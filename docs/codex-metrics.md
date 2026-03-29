@@ -2,25 +2,29 @@
 
 ## Goal summary
 
-- Closed goals: 50
-- Successes: 50
+- Closed goals: 56
+- Successes: 56
 - Fails: 0
-- Total attempts: 51
-- Total cost (USD): 1.159366
-- Total tokens: 2461072
+- Total attempts: 57
+- Known total cost (USD): 1.159366
+- Known total tokens: 2461072
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.02
-- Cost per Success (USD): n/a
-- Cost per Success (Tokens): n/a
+- Known cost coverage: 3/56 successful goals
+- Known token coverage: 3/56 successful goals
+- Known Cost per Success (USD): 0.386455
+- Known Cost per Success (Tokens): 820357.33
+- Complete Cost per Success (USD): n/a
+- Complete Cost per Success (Tokens): n/a
 
 ## Entry summary
 
-- Closed entries: 51
-- Successes: 50
+- Closed entries: 57
+- Successes: 56
 - Fails: 1
-- Success Rate: 98.04%
-- Total cost (USD): 1.159366
-- Total tokens: 2461072
+- Success Rate: 98.25%
+- Known total cost (USD): 1.159366
+- Known total tokens: 2461072
 
 ## By goal type
 
@@ -28,42 +32,126 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 5
-- Successes: 5
+- Closed goals: 11
+- Successes: 11
 - Fails: 0
-- Total attempts: 6
-- Total cost (USD): 0.638112
-- Total tokens: 1359406
+- Total attempts: 12
+- Known total cost (USD): 0.638112
+- Known total tokens: 1359406
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.20
-- Cost per Success (USD): n/a
-- Cost per Success (Tokens): n/a
+- Attempts per Closed Goal: 1.09
+- Known cost coverage: 1/11 successful goals
+- Known token coverage: 1/11 successful goals
+- Known Cost per Success (USD): 0.638112
+- Known Cost per Success (Tokens): 1359406.00
+- Complete Cost per Success (USD): n/a
+- Complete Cost per Success (Tokens): n/a
 
 ### retro
 - Closed goals: 12
 - Successes: 12
 - Fails: 0
 - Total attempts: 12
-- Total cost (USD): 0.255454
-- Total tokens: 532598
+- Known total cost (USD): 0.255454
+- Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Cost per Success (USD): n/a
-- Cost per Success (Tokens): n/a
+- Known cost coverage: 1/12 successful goals
+- Known token coverage: 1/12 successful goals
+- Known Cost per Success (USD): 0.255454
+- Known Cost per Success (Tokens): 532598.00
+- Complete Cost per Success (USD): n/a
+- Complete Cost per Success (Tokens): n/a
 
 ### meta
 - Closed goals: 33
 - Successes: 33
 - Fails: 0
 - Total attempts: 33
-- Total cost (USD): 0.2658
-- Total tokens: 569068
+- Known total cost (USD): 0.2658
+- Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Cost per Success (USD): n/a
-- Cost per Success (Tokens): n/a
+- Known cost coverage: 1/33 successful goals
+- Known token coverage: 1/33 successful goals
+- Known Cost per Success (USD): 0.2658
+- Known Cost per Success (Tokens): 569068.00
+- Complete Cost per Success (USD): n/a
+- Complete Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-060 — Improve cost reporting semantics
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:20:41+00:00
+- Finished at: 2026-03-29T12:24:34+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI.
+
+### 2026-03-29-059 — Audit cost reporting product semantics
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:18:49+00:00
+- Finished at: 2026-03-29T12:19:23+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Audited the cost layer: total cost uses known spend, but cost per success requires complete cost chains for all successes, which makes it unavailable in most real operator views. Recommended a product change toward explicit known-cost coverage and a known-only average.
+
+### 2026-03-29-058 — Capture product-framing discovery state
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:14:57+00:00
+- Finished at: 2026-03-29T12:15:28+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded the confirmed product-discovery context: outcome miss is the clearest quality failure, cost is a business signal, failure reasons are for debugging, and final quality/cost metrics remain intentionally open.
+
+### 2026-03-29-057 — Clarify quality metrics as working proxies
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:09:43+00:00
+- Finished at: 2026-03-29T12:10:08+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Clarified that current quality-related metrics are working proxies to be refined empirically rather than treated as final truth.
+
+### 2026-03-29-056 — Refine product vision from operator goals
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:00:20+00:00
+- Finished at: 2026-03-29T12:01:40+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Rewrote the product framing from the user's actual goals: operator-centric, quality-first, profit-aware, and cost-constrained Codex usage, then marked the vision TODO done.
+
+### 2026-03-29-055 — Define product framing for codex-metrics
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:52:49+00:00
+- Finished at: 2026-03-29T11:53:46+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a short product framing document covering primary user, JTBD, workflow, decisions supported, scope, and north star metric, and marked the product-vision TODO item complete.
 
 ### 2026-03-29-054 — PM retrospective for overall metrics work
 - Goal type: retro
@@ -702,6 +790,72 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-060-attempt-001 — 2026-03-29-060
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:20:41+00:00
+- Finished at: 2026-03-29T12:24:34+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI.
+
+### 2026-03-29-059-attempt-001 — 2026-03-29-059
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:18:49+00:00
+- Finished at: 2026-03-29T12:19:23+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Audited the cost layer: total cost uses known spend, but cost per success requires complete cost chains for all successes, which makes it unavailable in most real operator views. Recommended a product change toward explicit known-cost coverage and a known-only average.
+
+### 2026-03-29-058-attempt-001 — 2026-03-29-058
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:14:57+00:00
+- Finished at: 2026-03-29T12:15:28+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded the confirmed product-discovery context: outcome miss is the clearest quality failure, cost is a business signal, failure reasons are for debugging, and final quality/cost metrics remain intentionally open.
+
+### 2026-03-29-057-attempt-001 — 2026-03-29-057
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:09:43+00:00
+- Finished at: 2026-03-29T12:10:08+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Clarified that current quality-related metrics are working proxies to be refined empirically rather than treated as final truth.
+
+### 2026-03-29-056-attempt-001 — 2026-03-29-056
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:00:20+00:00
+- Finished at: 2026-03-29T12:01:40+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Rewrote the product framing from the user's actual goals: operator-centric, quality-first, profit-aware, and cost-constrained Codex usage, then marked the vision TODO done.
+
+### 2026-03-29-055-attempt-001 — 2026-03-29-055
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:52:49+00:00
+- Finished at: 2026-03-29T11:53:46+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a short product framing document covering primary user, JTBD, workflow, decisions supported, scope, and north star metric, and marked the product-vision TODO item complete.
 
 ### 2026-03-29-054-attempt-001 — 2026-03-29-054
 - Entry type: retro

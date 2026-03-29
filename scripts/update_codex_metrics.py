@@ -178,6 +178,10 @@ def empty_summary_block(include_by_task_type: bool = False) -> dict[str, Any]:
         "total_tokens": 0,
         "success_rate": None,
         "attempts_per_closed_task": None,
+        "known_cost_successes": 0,
+        "known_token_successes": 0,
+        "known_cost_per_success_usd": None,
+        "known_cost_per_success_tokens": None,
         "cost_per_success_usd": None,
         "cost_per_success_tokens": None,
     }
@@ -754,6 +758,12 @@ def format_usd(value: float | None) -> str:
     return formatted
 
 
+def format_coverage(known_count: int, total_count: int) -> str:
+    if total_count == 0:
+        return "n/a"
+    return f"{known_count}/{total_count}"
+
+
 def choose_earliest_timestamp(first: str | None, second: str | None) -> str | None:
     if first is None:
         return second
@@ -925,9 +935,17 @@ def compute_summary_block(tasks: list[EffectiveGoalRecord]) -> dict[str, Any]:
     success_cost_values = [
         t.cost_usd for t in successes if t.cost_complete and t.cost_usd is not None
     ]
+    known_success_cost_values = [
+        t.cost_usd_known for t in successes if t.cost_usd_known is not None
+    ]
     cost_per_success_usd = (
         float(sum(success_cost_values)) / len(successes)
         if successes and len(success_cost_values) == len(successes)
+        else None
+    )
+    known_cost_per_success_usd = (
+        float(sum(known_success_cost_values)) / len(known_success_cost_values)
+        if known_success_cost_values
         else None
     )
 
@@ -936,9 +954,19 @@ def compute_summary_block(tasks: list[EffectiveGoalRecord]) -> dict[str, Any]:
         for t in successes
         if t.tokens_complete and t.tokens_total is not None
     ]
+    known_success_token_values = [
+        t.tokens_total_known
+        for t in successes
+        if t.tokens_total_known is not None
+    ]
     cost_per_success_tokens = (
         sum(success_token_values) / len(successes)
         if successes and len(success_token_values) == len(successes)
+        else None
+    )
+    known_cost_per_success_tokens = (
+        sum(known_success_token_values) / len(known_success_token_values)
+        if known_success_token_values
         else None
     )
 
@@ -951,6 +979,12 @@ def compute_summary_block(tasks: list[EffectiveGoalRecord]) -> dict[str, Any]:
         "total_tokens": total_tokens,
         "success_rate": success_rate,
         "attempts_per_closed_task": attempts_per_closed_task,
+        "known_cost_successes": len(known_success_cost_values),
+        "known_token_successes": len(known_success_token_values),
+        "known_cost_per_success_usd": round_usd(known_cost_per_success_usd)
+        if known_cost_per_success_usd is not None
+        else None,
+        "known_cost_per_success_tokens": known_cost_per_success_tokens,
         "cost_per_success_usd": round_usd(cost_per_success_usd) if cost_per_success_usd is not None else None,
         "cost_per_success_tokens": cost_per_success_tokens,
     }
@@ -1030,12 +1064,16 @@ def generate_report_md(data: dict[str, Any]) -> str:
         f"- Successes: {summary['successes']}",
         f"- Fails: {summary['fails']}",
         f"- Total attempts: {summary['total_attempts']}",
-        f"- Total cost (USD): {format_usd(summary['total_cost_usd'])}",
-        f"- Total tokens: {summary['total_tokens']}",
+        f"- Known total cost (USD): {format_usd(summary['total_cost_usd'])}",
+        f"- Known total tokens: {summary['total_tokens']}",
         f"- Success Rate: {format_pct(summary['success_rate'])}",
         f"- Attempts per Closed Goal: {format_num(summary['attempts_per_closed_task'])}",
-        f"- Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}",
-        f"- Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}",
+        f"- Known cost coverage: {format_coverage(summary['known_cost_successes'], summary['successes'])} successful goals",
+        f"- Known token coverage: {format_coverage(summary['known_token_successes'], summary['successes'])} successful goals",
+        f"- Known Cost per Success (USD): {format_usd(summary['known_cost_per_success_usd'])}",
+        f"- Known Cost per Success (Tokens): {format_num(summary['known_cost_per_success_tokens'])}",
+        f"- Complete Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}",
+        f"- Complete Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}",
         "",
         "## Entry summary",
         "",
@@ -1043,8 +1081,8 @@ def generate_report_md(data: dict[str, Any]) -> str:
         f"- Successes: {summary['entries']['successes']}",
         f"- Fails: {summary['entries']['fails']}",
         f"- Success Rate: {format_pct(summary['entries']['success_rate'])}",
-        f"- Total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
-        f"- Total tokens: {summary['entries']['total_tokens']}",
+        f"- Known total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
+        f"- Known total tokens: {summary['entries']['total_tokens']}",
         "",
         "## By goal type",
         "",
@@ -1070,12 +1108,16 @@ def generate_report_md(data: dict[str, Any]) -> str:
                 f"- Successes: {type_summary['successes']}",
                 f"- Fails: {type_summary['fails']}",
                 f"- Total attempts: {type_summary['total_attempts']}",
-                f"- Total cost (USD): {format_usd(type_summary['total_cost_usd'])}",
-                f"- Total tokens: {type_summary['total_tokens']}",
+                f"- Known total cost (USD): {format_usd(type_summary['total_cost_usd'])}",
+                f"- Known total tokens: {type_summary['total_tokens']}",
                 f"- Success Rate: {format_pct(type_summary['success_rate'])}",
                 f"- Attempts per Closed Goal: {format_num(type_summary['attempts_per_closed_task'])}",
-                f"- Cost per Success (USD): {format_usd(type_summary['cost_per_success_usd'])}",
-                f"- Cost per Success (Tokens): {format_num(type_summary['cost_per_success_tokens'])}",
+                f"- Known cost coverage: {format_coverage(type_summary['known_cost_successes'], type_summary['successes'])} successful goals",
+                f"- Known token coverage: {format_coverage(type_summary['known_token_successes'], type_summary['successes'])} successful goals",
+                f"- Known Cost per Success (USD): {format_usd(type_summary['known_cost_per_success_usd'])}",
+                f"- Known Cost per Success (Tokens): {format_num(type_summary['known_cost_per_success_tokens'])}",
+                f"- Complete Cost per Success (USD): {format_usd(type_summary['cost_per_success_usd'])}",
+                f"- Complete Cost per Success (Tokens): {format_num(type_summary['cost_per_success_tokens'])}",
                 "",
             ]
         )
@@ -1711,12 +1753,16 @@ def print_summary(data: dict[str, Any]) -> None:
     print(f"Successes: {summary['successes']}")
     print(f"Fails: {summary['fails']}")
     print(f"Total attempts: {summary['total_attempts']}")
-    print(f"Total cost (USD): {format_usd(summary['total_cost_usd'])}")
-    print(f"Total tokens: {summary['total_tokens']}")
+    print(f"Known total cost (USD): {format_usd(summary['total_cost_usd'])}")
+    print(f"Known total tokens: {summary['total_tokens']}")
     print(f"Success Rate: {format_pct(summary['success_rate'])}")
     print(f"Attempts per Closed Goal: {format_num(summary['attempts_per_closed_task'])}")
-    print(f"Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}")
-    print(f"Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}")
+    print(f"Known cost coverage: {format_coverage(summary['known_cost_successes'], summary['successes'])} successful goals")
+    print(f"Known token coverage: {format_coverage(summary['known_token_successes'], summary['successes'])} successful goals")
+    print(f"Known Cost per Success (USD): {format_usd(summary['known_cost_per_success_usd'])}")
+    print(f"Known Cost per Success (Tokens): {format_num(summary['known_cost_per_success_tokens'])}")
+    print(f"Complete Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}")
+    print(f"Complete Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}")
     print(f"Closed entries: {summary['entries']['closed_entries']}")
     print(f"Entry successes: {summary['entries']['successes']}")
     print(f"Entry fails: {summary['entries']['fails']}")

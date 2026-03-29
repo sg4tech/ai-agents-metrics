@@ -276,6 +276,10 @@ def test_create_task_and_close_success(repo: Path) -> None:
     assert data["summary"]["total_attempts"] == 1
     assert data["summary"]["success_rate"] == 1.0
     assert data["summary"]["attempts_per_closed_task"] == 1.0
+    assert data["summary"]["known_cost_successes"] == 1
+    assert data["summary"]["known_token_successes"] == 1
+    assert data["summary"]["known_cost_per_success_usd"] == 0.25
+    assert data["summary"]["known_cost_per_success_tokens"] == 1000.0
     assert data["summary"]["cost_per_success_usd"] == 0.25
     assert data["summary"]["cost_per_success_tokens"] == 1000.0
     assert data["summary"]["by_task_type"]["product"]["successes"] == 1
@@ -566,6 +570,10 @@ def test_multiple_tasks_summary(repo: Path) -> None:
     assert summary["total_attempts"] == 6
     assert summary["success_rate"] == 0.5
     assert summary["attempts_per_closed_task"] == 3.0
+    assert summary["known_cost_successes"] == 1
+    assert summary["known_token_successes"] == 1
+    assert summary["known_cost_per_success_usd"] == 0.5
+    assert summary["known_cost_per_success_tokens"] == 500.0
     assert summary["cost_per_success_usd"] == 0.5
     assert summary["cost_per_success_tokens"] == 500.0
     assert summary["by_task_type"]["product"]["closed_tasks"] == 2
@@ -1333,8 +1341,55 @@ def test_show_preserves_small_usd_precision(repo: Path) -> None:
     result = run_cmd(repo, "show")
 
     assert result.returncode == 0, result.stderr
-    assert "Total cost (USD): 0.006263" in result.stdout
-    assert "Cost per Success (USD): 0.006263" in result.stdout
+    assert "Known total cost (USD): 0.006263" in result.stdout
+    assert "Known Cost per Success (USD): 0.006263" in result.stdout
+    assert "Complete Cost per Success (USD): 0.006263" in result.stdout
+
+
+def test_show_reports_known_cost_coverage_when_complete_cost_is_unavailable(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "cost-a",
+        "--title",
+        "Cost A",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "cost-b",
+        "--title",
+        "Cost B",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "cost-a",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+        "--cost-usd",
+        "0.25",
+        "--tokens",
+        "1000",
+    ).returncode == 0
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode == 0, result.stderr
+    assert "Known total cost (USD): 0.25" in result.stdout
+    assert "Known cost coverage: 1/1 successful goals" in result.stdout
+    assert "Known Cost per Success (USD): 0.25" in result.stdout
+    assert "Complete Cost per Success (USD): n/a" in result.stdout
 
 
 def test_sync_codex_usage_backfills_existing_tasks(repo: Path) -> None:
@@ -1555,6 +1610,10 @@ def test_merge_tasks_keeps_cost_unknown_when_dropped_task_cost_is_missing(repo: 
     task = data["tasks"][0]
     assert task["cost_usd"] is None
     assert task["tokens_total"] is None
+    assert data["summary"]["known_cost_successes"] == 0
+    assert data["summary"]["known_token_successes"] == 0
+    assert data["summary"]["known_cost_per_success_usd"] is None
+    assert data["summary"]["known_cost_per_success_tokens"] is None
     assert data["summary"]["cost_per_success_usd"] is None
     assert data["summary"]["cost_per_success_tokens"] is None
 

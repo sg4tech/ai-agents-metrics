@@ -232,19 +232,50 @@ Where:
 
 If `closed_goals = 0`, set `attempts_per_closed_task = null`.
 
-### Cost per Success (USD)
+### Known Cost Coverage (USD)
+
+Track how many successful effective goals have any known USD cost.
+
+Formula:
+
+`known_cost_successes = count(successful effective goals where known USD cost exists)`
+
+This helps distinguish:
+
+- “we know no cost”
+- from “we know some cost, but not enough for a complete chain-based KPI”
+
+### Known Cost per Success (USD)
+
+Formula:
+
+`known_cost_per_success_usd = sum(known USD cost across successful effective goals with known cost) / known_cost_successes`
+
+If `known_cost_successes = 0`, set `known_cost_per_success_usd = null`.
+
+This is a practical operator-facing average across the successful goals where cost is known.
+
+### Complete Cost per Success (USD)
 Formula:
 
 `cost_per_success_usd = total_cost_usd / successes`
 
-If `successes = 0` or cost is unavailable, set `cost_per_success_usd = null`.
+If `successes = 0` or full chain-complete cost is unavailable for all successes, set `cost_per_success_usd = null`.
 
-### Cost per Success (Tokens)
+### Known Cost per Success (Tokens)
+
+Formula:
+
+`known_cost_per_success_tokens = sum(known tokens across successful effective goals with known token data) / known_token_successes`
+
+If `known_token_successes = 0`, set `known_cost_per_success_tokens = null`.
+
+### Complete Cost per Success (Tokens)
 Formula:
 
 `cost_per_success_tokens = total_tokens / successes`
 
-If `successes = 0` or token data is unavailable, set `cost_per_success_tokens = null`.
+If `successes = 0` or full chain-complete token data is unavailable for all successes, set `cost_per_success_tokens = null`.
 
 ## Minimum reporting standard
 

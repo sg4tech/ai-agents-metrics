@@ -65,8 +65,65 @@ def test_compute_summary_block_uses_closed_goals_for_attempt_average() -> None:
     assert summary["total_attempts"] == 6
     assert summary["success_rate"] == 0.5
     assert summary["attempts_per_closed_task"] == 3.0
+    assert summary["known_cost_successes"] == 1
+    assert summary["known_token_successes"] == 1
+    assert summary["known_cost_per_success_usd"] == 0.5
+    assert summary["known_cost_per_success_tokens"] == 500.0
     assert summary["cost_per_success_usd"] == 0.5
     assert summary["cost_per_success_tokens"] == 500.0
+
+
+def test_compute_summary_block_separates_known_and_complete_cost_views() -> None:
+    summary = MODULE.compute_summary_block(
+        [
+            MODULE.EffectiveGoalRecord(
+                goal_id="goal-1",
+                title="Goal one",
+                goal_type="product",
+                status="success",
+                attempts=1,
+                started_at=None,
+                finished_at=None,
+                cost_usd=0.5,
+                cost_usd_known=0.5,
+                cost_complete=True,
+                tokens_total=500,
+                tokens_total_known=500,
+                tokens_complete=True,
+                failure_reason=None,
+                notes=None,
+                supersedes_goal_id=None,
+            ),
+            MODULE.EffectiveGoalRecord(
+                goal_id="goal-2",
+                title="Goal two",
+                goal_type="product",
+                status="success",
+                attempts=2,
+                started_at=None,
+                finished_at=None,
+                cost_usd=None,
+                cost_usd_known=1.0,
+                cost_complete=False,
+                tokens_total=None,
+                tokens_total_known=1200,
+                tokens_complete=False,
+                failure_reason=None,
+                notes=None,
+                supersedes_goal_id=None,
+            ),
+        ]
+    )
+
+    assert summary["successes"] == 2
+    assert summary["total_cost_usd"] == 1.5
+    assert summary["total_tokens"] == 1700
+    assert summary["known_cost_successes"] == 2
+    assert summary["known_token_successes"] == 2
+    assert summary["known_cost_per_success_usd"] == 0.75
+    assert summary["known_cost_per_success_tokens"] == 850.0
+    assert summary["cost_per_success_usd"] is None
+    assert summary["cost_per_success_tokens"] is None
 
 
 def test_build_effective_goals_merges_superseded_chain_attempts_and_known_cost() -> None:
