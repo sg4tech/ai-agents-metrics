@@ -227,6 +227,32 @@ def test_compute_entry_summary_counts_failure_reasons_from_failed_entries_only()
     assert summary["failure_reasons"] == {"unclear_task": 1}
 
 
+def test_build_operator_review_surfaces_retry_and_cost_visibility() -> None:
+    review = MODULE.build_operator_review(
+        {
+            "successes": 3,
+            "known_cost_successes": 1,
+            "known_cost_per_success_usd": 0.25,
+            "cost_per_success_usd": None,
+            "by_goal_type": {
+                "product": {"closed_tasks": 2},
+                "retro": {"closed_tasks": 0},
+                "meta": {"closed_tasks": 4},
+            },
+            "entries": {
+                "fails": 1,
+                "failure_reasons": {"unclear_task": 1},
+            },
+        }
+    )
+
+    assert "Product sample is still small; treat workflow conclusions as provisional." in review
+    assert "Meta work still outweighs product delivery; validate changes on real product goals." in review
+    assert "Retry pressure exists; inspect failed entries, especially unclear_task." in review
+    assert "Cost visibility is partial; use known-cost metrics as directional, not final." in review
+    assert "Known average cost is available, but complete cost-per-success is still incomplete." in review
+
+
 def test_sync_goal_attempt_entries_creates_and_closes_attempt_history() -> None:
     data = {"entries": []}
     previous_goal = {

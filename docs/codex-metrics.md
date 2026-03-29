@@ -2,16 +2,16 @@
 
 ## Goal summary
 
-- Closed goals: 56
-- Successes: 56
+- Closed goals: 58
+- Successes: 58
 - Fails: 0
-- Total attempts: 57
+- Total attempts: 59
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.02
-- Known cost coverage: 3/56 successful goals
-- Known token coverage: 3/56 successful goals
+- Known cost coverage: 3/58 successful goals
+- Known token coverage: 3/58 successful goals
 - Known Cost per Success (USD): 0.386455
 - Known Cost per Success (Tokens): 820357.33
 - Complete Cost per Success (USD): n/a
@@ -19,12 +19,19 @@
 
 ## Entry summary
 
-- Closed entries: 57
-- Successes: 56
+- Closed entries: 59
+- Successes: 58
 - Fails: 1
-- Success Rate: 98.25%
+- Success Rate: 98.31%
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
+
+## Operator review
+
+- Meta work still outweighs product delivery; validate changes on real product goals.
+- Retry pressure exists; inspect failed entries, especially unclear_task.
+- Cost visibility is partial; use known-cost metrics as directional, not final.
+- Known average cost is available, but complete cost-per-success is still incomplete.
 
 ## By goal type
 
@@ -32,32 +39,32 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 11
-- Successes: 11
+- Closed goals: 12
+- Successes: 12
 - Fails: 0
-- Total attempts: 12
+- Total attempts: 13
 - Known total cost (USD): 0.638112
 - Known total tokens: 1359406
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.09
-- Known cost coverage: 1/11 successful goals
-- Known token coverage: 1/11 successful goals
+- Attempts per Closed Goal: 1.08
+- Known cost coverage: 1/12 successful goals
+- Known token coverage: 1/12 successful goals
 - Known Cost per Success (USD): 0.638112
 - Known Cost per Success (Tokens): 1359406.00
 - Complete Cost per Success (USD): n/a
 - Complete Cost per Success (Tokens): n/a
 
 ### retro
-- Closed goals: 12
-- Successes: 12
+- Closed goals: 13
+- Successes: 13
 - Fails: 0
-- Total attempts: 12
+- Total attempts: 13
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/12 successful goals
-- Known token coverage: 1/12 successful goals
+- Known cost coverage: 1/13 successful goals
+- Known token coverage: 1/13 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Success (USD): n/a
@@ -80,6 +87,30 @@
 - Complete Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-062 — Retrospective on operator review layer
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:33:24+00:00
+- Finished at: 2026-03-29T12:33:24+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics.
+
+### 2026-03-29-061 — Add operator review layer
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:28:32+00:00
+- Finished at: 2026-03-29T12:31:53+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering.
 
 ### 2026-03-29-060 — Improve cost reporting semantics
 - Goal type: product
@@ -790,6 +821,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-062-attempt-001 — 2026-03-29-062
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:33:24+00:00
+- Finished at: 2026-03-29T12:33:24+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics.
+
+### 2026-03-29-061-attempt-001 — 2026-03-29-061
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:28:32+00:00
+- Finished at: 2026-03-29T12:31:53+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering.
 
 ### 2026-03-29-060-attempt-001 — 2026-03-29-060
 - Entry type: product

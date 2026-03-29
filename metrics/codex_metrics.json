@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 56,
-    "successes": 56,
+    "closed_tasks": 58,
+    "successes": 58,
     "fails": 0,
-    "total_attempts": 57,
+    "total_attempts": 59,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0178571428571428,
+    "attempts_per_closed_task": 1.0172413793103448,
     "known_cost_successes": 3,
     "known_token_successes": 3,
     "known_cost_per_success_usd": 0.386455,
@@ -32,14 +32,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 11,
-        "successes": 11,
+        "closed_tasks": 12,
+        "successes": 12,
         "fails": 0,
-        "total_attempts": 12,
+        "total_attempts": 13,
         "total_cost_usd": 0.638112,
         "total_tokens": 1359406,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.0909090909090908,
+        "attempts_per_closed_task": 1.0833333333333333,
         "known_cost_successes": 1,
         "known_token_successes": 1,
         "known_cost_per_success_usd": 0.638112,
@@ -48,10 +48,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 12,
-        "successes": 12,
+        "closed_tasks": 13,
+        "successes": 13,
         "fails": 0,
-        "total_attempts": 12,
+        "total_attempts": 13,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -82,14 +82,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 11,
-        "successes": 11,
+        "closed_tasks": 12,
+        "successes": 12,
         "fails": 0,
-        "total_attempts": 12,
+        "total_attempts": 13,
         "total_cost_usd": 0.638112,
         "total_tokens": 1359406,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.0909090909090908,
+        "attempts_per_closed_task": 1.0833333333333333,
         "known_cost_successes": 1,
         "known_token_successes": 1,
         "known_cost_per_success_usd": 0.638112,
@@ -98,10 +98,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 12,
-        "successes": 12,
+        "closed_tasks": 13,
+        "successes": 13,
         "fails": 0,
-        "total_attempts": 12,
+        "total_attempts": 13,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -115,10 +115,10 @@
       }
     },
     "entries": {
-      "closed_entries": 57,
-      "successes": 56,
+      "closed_entries": 59,
+      "successes": 58,
       "fails": 1,
-      "success_rate": 0.9824561403508771,
+      "success_rate": 0.9830508474576272,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -952,6 +952,34 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI."
+    },
+    {
+      "goal_id": "2026-03-29-061",
+      "title": "Add operator review layer",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T12:28:32+00:00",
+      "finished_at": "2026-03-29T12:31:53+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering."
+    },
+    {
+      "goal_id": "2026-03-29-062",
+      "title": "Retrospective on operator review layer",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T12:33:24+00:00",
+      "finished_at": "2026-03-29T12:33:24+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics."
     }
   ],
   "entries": [
@@ -1686,6 +1714,32 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI."
+    },
+    {
+      "entry_id": "2026-03-29-061-attempt-001",
+      "goal_id": "2026-03-29-061",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T12:28:32+00:00",
+      "finished_at": "2026-03-29T12:31:53+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering."
+    },
+    {
+      "entry_id": "2026-03-29-062-attempt-001",
+      "goal_id": "2026-03-29-062",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T12:33:24+00:00",
+      "finished_at": "2026-03-29T12:33:24+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics."
     }
   ]
 }

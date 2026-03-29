@@ -764,6 +764,44 @@ def format_coverage(known_count: int, total_count: int) -> str:
     return f"{known_count}/{total_count}"
 
 
+def build_operator_review(summary: dict[str, Any]) -> list[str]:
+    review: list[str] = []
+    product_summary = summary["by_goal_type"]["product"]
+    entry_summary = summary["entries"]
+    successes = summary["successes"]
+
+    if product_summary["closed_tasks"] == 0:
+        review.append("Need more real product goals before trusting workflow conclusions.")
+    elif product_summary["closed_tasks"] < 5:
+        review.append("Product sample is still small; treat workflow conclusions as provisional.")
+
+    if summary["by_goal_type"]["meta"]["closed_tasks"] > product_summary["closed_tasks"]:
+        review.append("Meta work still outweighs product delivery; validate changes on real product goals.")
+
+    if entry_summary["fails"] > 0:
+        top_reason = None
+        if entry_summary["failure_reasons"]:
+            top_reason = max(
+                entry_summary["failure_reasons"].items(),
+                key=lambda item: item[1],
+            )[0]
+        if top_reason is None:
+            review.append("Retry pressure exists; inspect failed entries and recent attempts.")
+        else:
+            review.append(f"Retry pressure exists; inspect failed entries, especially {top_reason}.")
+
+    if successes > 0 and summary["known_cost_successes"] < successes:
+        review.append("Cost visibility is partial; use known-cost metrics as directional, not final.")
+
+    if summary["cost_per_success_usd"] is None and summary["known_cost_per_success_usd"] is not None:
+        review.append("Known average cost is available, but complete cost-per-success is still incomplete.")
+
+    if not review:
+        review.append("Signals look stable; continue collecting product-goal history before changing the workflow.")
+
+    return review
+
+
 def choose_earliest_timestamp(first: str | None, second: str | None) -> str | None:
     if first is None:
         return second
@@ -1054,6 +1092,7 @@ def generate_report_md(data: dict[str, Any]) -> str:
     summary = data["summary"]
     goals: list[dict[str, Any]] = data["goals"]
     entries: list[dict[str, Any]] = data["entries"]
+    operator_review = build_operator_review(summary)
 
     lines: list[str] = [
         "# Codex Metrics",
@@ -1084,9 +1123,17 @@ def generate_report_md(data: dict[str, Any]) -> str:
         f"- Known total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
         f"- Known total tokens: {summary['entries']['total_tokens']}",
         "",
-        "## By goal type",
+        "## Operator review",
         "",
     ]
+    lines.extend(f"- {line}" for line in operator_review)
+    lines.extend(
+        [
+            "",
+            "## By goal type",
+            "",
+        ]
+    )
 
     failure_reasons = summary["entries"]["failure_reasons"]
     if failure_reasons:
@@ -1748,6 +1795,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def print_summary(data: dict[str, Any]) -> None:
     summary = data["summary"]
+    operator_review = build_operator_review(summary)
     print("Codex Metrics Summary")
     print(f"Closed goals: {summary['closed_tasks']}")
     print(f"Successes: {summary['successes']}")
@@ -1767,6 +1815,9 @@ def print_summary(data: dict[str, Any]) -> None:
     print(f"Entry successes: {summary['entries']['successes']}")
     print(f"Entry fails: {summary['entries']['fails']}")
     print(f"Entry Success Rate: {format_pct(summary['entries']['success_rate'])}")
+    print("Operator review:")
+    for line in operator_review:
+        print(f"- {line}")
     for task_type in ("product", "retro", "meta"):
         type_summary = summary["by_goal_type"][task_type]
         print(f"{task_type.title()} goals: {type_summary['closed_tasks']} closed, {type_summary['successes']} successes, {type_summary['fails']} fails")

@@ -1390,6 +1390,12 @@ def test_show_reports_known_cost_coverage_when_complete_cost_is_unavailable(repo
     assert "Known cost coverage: 1/1 successful goals" in result.stdout
     assert "Known Cost per Success (USD): 0.25" in result.stdout
     assert "Complete Cost per Success (USD): n/a" in result.stdout
+    assert "Operator review:" in result.stdout
+    assert "Known average cost is available, but complete cost-per-success is still incomplete." in result.stdout
+
+    report_text = (repo / "docs" / "codex-metrics.md").read_text()
+    assert "## Operator review" in report_text
+    assert "- Known average cost is available, but complete cost-per-success is still incomplete." in report_text
 
 
 def test_sync_codex_usage_backfills_existing_tasks(repo: Path) -> None:
