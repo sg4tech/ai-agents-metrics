@@ -32,6 +32,7 @@ render_audit_report = render_history_audit_report
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
 ALLOWED_TASK_TYPES = domain.ALLOWED_TASK_TYPES
 ALLOWED_FAILURE_REASONS = domain.ALLOWED_FAILURE_REASONS
+ALLOWED_RESULT_FITS = domain.ALLOWED_RESULT_FITS
 AttemptEntryRecord = domain.AttemptEntryRecord
 EffectiveGoalRecord = domain.EffectiveGoalRecord
 GoalRecord = domain.GoalRecord
@@ -418,6 +419,7 @@ def upsert_task(
     tokens_add: int | None,
     tokens_set: int | None,
     failure_reason: str | None,
+    result_fit: str | None,
     notes: str | None,
     started_at: str | None,
     finished_at: str | None,
@@ -501,6 +503,7 @@ def upsert_task(
         notes=notes,
         started_at=started_at,
         finished_at=finished_at,
+        result_fit=result_fit,
     )
     finalize_goal_update(task)
     task_dict = goal_to_dict(task)
@@ -577,6 +580,11 @@ def build_parser() -> argparse.ArgumentParser:
     update_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     update_parser.add_argument("--codex-thread-id")
     update_parser.add_argument("--failure-reason", choices=sorted(ALLOWED_FAILURE_REASONS), help="Primary failure reason for a failed goal")
+    update_parser.add_argument(
+        "--result-fit",
+        choices=sorted(ALLOWED_RESULT_FITS),
+        help="Operator quality judgement for closed product goals: exact_fit, partial_fit, or miss",
+    )
     update_parser.add_argument("--notes", help="Optional note recorded on the goal and latest attempt entry")
     update_parser.add_argument("--started-at", help="Explicit ISO8601 start timestamp")
     update_parser.add_argument("--finished-at", help="Explicit ISO8601 finish timestamp")

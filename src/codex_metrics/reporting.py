@@ -183,6 +183,7 @@ def generate_report_md(data: dict[str, Any]) -> str:
                 f"- Cost (USD): {format_usd(task.get('cost_usd'))}",
                 f"- Tokens: {format_num(task.get('tokens_total'))}",
                 f"- Failure reason: {task.get('failure_reason') or 'n/a'}",
+                f"- Result fit: {task.get('result_fit') or 'n/a'}",
                 f"- Notes: {task.get('notes') or 'n/a'}",
                 "",
             ]

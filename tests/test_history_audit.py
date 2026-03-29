@@ -224,3 +224,46 @@ def test_render_audit_report_groups_candidates() -> None:
 def test_render_audit_report_for_empty_history_is_concise() -> None:
     rendered = render_audit_report(audit_history({"goals": []}))
     assert "_No suspicious history patterns found._" in rendered
+
+
+def test_audit_history_skips_goals_with_reviewed_result_fit() -> None:
+    report = audit_history(
+        {
+            "goals": [
+                {
+                    "goal_id": "goal-1",
+                    "title": "Reviewed miss",
+                    "goal_type": "product",
+                    "supersedes_goal_id": None,
+                    "status": "fail",
+                    "attempts": 1,
+                    "started_at": "2026-03-29T09:00:00+00:00",
+                    "finished_at": "2026-03-29T09:05:00+00:00",
+                    "cost_usd": None,
+                    "tokens_total": None,
+                    "failure_reason": "unclear_task",
+                    "notes": None,
+                    "result_fit": "miss",
+                },
+                {
+                    "goal_id": "goal-2",
+                    "title": "Reviewed recovery",
+                    "goal_type": "product",
+                    "supersedes_goal_id": "goal-1",
+                    "status": "success",
+                    "attempts": 2,
+                    "started_at": "2026-03-29T09:06:00+00:00",
+                    "finished_at": "2026-03-29T09:10:00+00:00",
+                    "cost_usd": None,
+                    "tokens_total": None,
+                    "failure_reason": None,
+                    "notes": None,
+                    "result_fit": "partial_fit",
+                },
+            ]
+        }
+    )
+
+    assert all(candidate.category != "likely_miss" for candidate in report.candidates)
+    assert all(candidate.category != "likely_partial_fit" for candidate in report.candidates)
+    assert report.candidates[0].category == "low_cost_coverage"

@@ -111,6 +111,7 @@ def read_json(path: Path) -> dict:
                 "tokens_total": goal["tokens_total"],
                 "failure_reason": goal["failure_reason"],
                 "notes": goal["notes"],
+                "result_fit": goal.get("result_fit"),
             }
             for goal in data["goals"]
         ]
@@ -799,6 +800,75 @@ def test_goal_type_cannot_change_after_attempt_history_exists(repo: Path) -> Non
     assert result.returncode != 0
     assert "goal_id already exists as a product goal" in result.stderr
     assert "omit it for auto-generation" in result.stderr
+
+
+def test_product_goal_can_store_result_fit(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "fit-goal",
+        "--title",
+        "Fit goal",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--result-fit",
+        "exact_fit",
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task = next(task for task in data["tasks"] if task["task_id"] == "fit-goal")
+    assert task["result_fit"] == "exact_fit"
+    report = (repo / "docs" / "codex-metrics.md").read_text(encoding="utf-8")
+    assert "- Result fit: exact_fit" in report
+
+
+def test_result_fit_is_restricted_to_product_goals(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "retro-fit",
+        "--title",
+        "Retro fit",
+        "--task-type",
+        "retro",
+        "--status",
+        "success",
+        "--result-fit",
+        "partial_fit",
+    )
+
+    assert result.returncode != 0
+    assert "result_fit is only allowed for product goals" in result.stderr
+
+
+def test_failed_goal_only_allows_miss_result_fit(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "bad-fit",
+        "--title",
+        "Bad fit",
+        "--task-type",
+        "product",
+        "--status",
+        "fail",
+        "--failure-reason",
+        "unclear_task",
+        "--result-fit",
+        "partial_fit",
+    )
+
+    assert result.returncode != 0
+    assert "failed product goals may only use result_fit miss" in result.stderr
 
 
 def test_reused_manual_goal_id_guides_user_to_auto_generation(repo: Path) -> None:

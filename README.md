@@ -11,6 +11,7 @@ This repository is an internal local operator tool. It is meant to help track wh
 - goals
 - attempts
 - success and failure outcomes
+- optional reviewed result fit on product goals
 - retry pressure
 - token and cost signals
 

@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 87,
-    "successes": 87,
+    "closed_tasks": 88,
+    "successes": 88,
     "fails": 0,
-    "total_attempts": 91,
+    "total_attempts": 92,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0459770114942528,
+    "attempts_per_closed_task": 1.0454545454545454,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 20,
+        "total_attempts": 21,
         "total_cost_usd": 0.747974,
         "total_tokens": 1594794,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.25,
+        "attempts_per_closed_task": 1.2352941176470589,
         "known_cost_successes": 2,
         "known_token_successes": 2,
         "complete_cost_successes": 0,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 20,
+        "total_attempts": 21,
         "total_cost_usd": 0.747974,
         "total_tokens": 1594794,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.25,
+        "attempts_per_closed_task": 1.2352941176470589,
         "known_cost_successes": 2,
         "known_token_successes": 2,
         "complete_cost_successes": 0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 91,
-      "successes": 90,
+      "closed_entries": 92,
+      "successes": 91,
       "fails": 1,
-      "success_rate": 0.989010989010989,
+      "success_rate": 0.9891304347826086,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -167,7 +167,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv."
+      "notes": "Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-003",
@@ -181,7 +182,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added first retrospective, verified 10 passing tests, and completed serialized smoke flow for init/update/show before creating a checkpoint commit."
+      "notes": "Added first retrospective, verified 10 passing tests, and completed serialized smoke flow for init/update/show before creating a checkpoint commit.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-004",
@@ -195,7 +197,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added repository .gitignore for caches, local virtualenvs, IDE settings, and OS noise; verified required metrics/report/retro files are not ignored."
+      "notes": "Added repository .gitignore for caches, local virtualenvs, IDE settings, and OS noise; verified required metrics/report/retro files are not ignored.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-005",
@@ -209,7 +212,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated."
+      "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-006",
@@ -223,7 +227,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added strict task-record validation, status/failure_reason and timestamp business rules, safe init with --force, concise CLI error messages, 22 passing tests, and sequential smoke validation for init/update/show."
+      "notes": "Added strict task-record validation, status/failure_reason and timestamp business rules, safe init with --force, concise CLI error messages, 22 passing tests, and sequential smoke validation for init/update/show.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-007",
@@ -237,7 +242,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": "unclear_task",
-      "notes": "Initial pricing-only implementation was not accepted because it still depended on manual or semi-manual usage entry and did not satisfy the required fully automatic cost-tracking workflow."
+      "notes": "Initial pricing-only implementation was not accepted because it still depended on manual or semi-manual usage entry and did not satisfy the required fully automatic cost-tracking workflow.",
+      "result_fit": "miss"
     },
     {
       "goal_id": "2026-03-29-008",
@@ -251,7 +257,8 @@
       "cost_usd": 0.638112,
       "tokens_total": 1359406,
       "failure_reason": null,
-      "notes": "Implemented fully automatic Codex usage ingestion from local SQLite telemetry, added sync-codex-usage backfill command, validated with 29 tests, and confirmed that current-task usage auto-populates when local response.completed events exist."
+      "notes": "Implemented fully automatic Codex usage ingestion from local SQLite telemetry, added sync-codex-usage backfill command, validated with 29 tests, and confirmed that current-task usage auto-populates when local response.completed events exist.",
+      "result_fit": "partial_fit"
     },
     {
       "goal_id": "2026-03-29-009",
@@ -265,7 +272,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added a retrospective for the automatic usage sync milestone, verified 29 passing tests, and completed CLI smoke validation before creating the checkpoint commit."
+      "notes": "Added a retrospective for the automatic usage sync milestone, verified 29 passing tests, and completed CLI smoke validation before creating the checkpoint commit.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-010",
@@ -279,7 +287,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Corrected the metrics history so the rejected pricing-only attempt is now recorded as fail, which restores an honest success rate and attempt-per-success summary."
+      "notes": "Corrected the metrics history so the rejected pricing-only attempt is now recorded as fail, which restores an honest success rate and attempt-per-success summary.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-011",
@@ -293,7 +302,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Audited the current metrics history. No additional false successes were found after correcting task 007, but two process risks remain: the original cost-tracking goal is still historically split across tasks 007 and 008, and the earliest repository commits predate the metrics workflow so they do not have corresponding task records."
+      "notes": "Audited the current metrics history. No additional false successes were found after correcting task 007, but two process risks remain: the original cost-tracking goal is still historically split across tasks 007 and 008, and the earliest repository commits predate the metrics workflow so they do not have corresponding task records.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-012",
@@ -307,7 +317,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added a safe merge-tasks command for recombining mistakenly split closed tasks, covered it with focused tests, and verified the full CLI flow with merge smoke validation."
+      "notes": "Added a safe merge-tasks command for recombining mistakenly split closed tasks, covered it with focused tests, and verified the full CLI flow with merge smoke validation.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-013",
@@ -321,7 +332,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Completed a deep 5 Whys retrospective on overstated success and split task boundaries, recorded root causes, and proposed solution options for discussion."
+      "notes": "Completed a deep 5 Whys retrospective on overstated success and split task boundaries, recorded root causes, and proposed solution options for discussion.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-014",
@@ -335,7 +347,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Applied retrospective outcomes by separating task types across product, retro, and meta work, updating policy and AGENTS, adding per-type reporting to the updater, and validating with tests plus CLI smoke."
+      "notes": "Applied retrospective outcomes by separating task types across product, retro, and meta work, updating policy and AGENTS, adding per-type reporting to the updater, and validating with tests plus CLI smoke.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-015",
@@ -349,7 +362,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Required explicit task_type for new task creation, preserved existing-task updates, updated docs, and validated the new guardrail with 35 passing tests plus CLI smoke."
+      "notes": "Required explicit task_type for new task creation, preserved existing-task updates, updated docs, and validated the new guardrail with 35 passing tests plus CLI smoke.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-016",
@@ -363,7 +377,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added explicit linked-task guardrails via continuation or supersession references for newly created tasks, validated reference rules, updated reporting, and confirmed behavior with 39 passing tests plus CLI smoke."
+      "notes": "Added explicit linked-task guardrails via continuation or supersession references for newly created tasks, validated reference rules, updated reporting, and confirmed behavior with 39 passing tests plus CLI smoke.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-018",
@@ -377,7 +392,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Migrated the metrics source of truth from task records to goals plus entries, enabled effective goal-chain summaries via supersession links, restored generated outputs, and validated the new model with 40 passing tests plus CLI smoke."
+      "notes": "Migrated the metrics source of truth from task records to goals plus entries, enabled effective goal-chain summaries via supersession links, restored generated outputs, and validated the new model with 40 passing tests plus CLI smoke.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-017",
@@ -391,7 +407,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Confirmed the first TODO audit item is complete and marked it done after the metrics definitions, validation flow, task typing, and success/failure bookkeeping were corrected."
+      "notes": "Confirmed the first TODO audit item is complete and marked it done after the metrics definitions, validation flow, task typing, and success/failure bookkeeping were corrected.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-019",
@@ -405,7 +422,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added entry-level summary and failure-reason visibility alongside goal metrics, preserved effective goal-chain summaries, and validated the combined model with 40 passing tests plus CLI smoke."
+      "notes": "Added entry-level summary and failure-reason visibility alongside goal metrics, preserved effective goal-chain summaries, and validated the combined model with 40 passing tests plus CLI smoke.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-020",
@@ -419,7 +437,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly."
+      "notes": "Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-021",
@@ -433,7 +452,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Updated AGENTS with two historical guardrails: use temporary paths for destructive init smoke checks, and report both goal-level and entry-level metrics when failures exist in entries."
+      "notes": "Updated AGENTS with two historical guardrails: use temporary paths for destructive init smoke checks, and report both goal-level and entry-level metrics when failures exist in entries.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-022",
@@ -447,7 +467,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Updated policy to require temp-path validation for destructive smoke checks, keep entry-level failure visibility alongside goal summaries, and align Success Rate terminology from closed_tasks to closed_goals."
+      "notes": "Updated policy to require temp-path validation for destructive smoke checks, keep entry-level failure visibility alongside goal summaries, and align Success Rate terminology from closed_tasks to closed_goals.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-023",
@@ -461,7 +482,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Audited metric definitions end-to-end and fixed the main inconsistency: summary/report/tests now use attempts_per_closed_task (shown as Attempts per Closed Goal) instead of attempts_per_success; failure reason counting is explicitly covered by tests."
+      "notes": "Audited metric definitions end-to-end and fixed the main inconsistency: summary/report/tests now use attempts_per_closed_task (shown as Attempts per Closed Goal) instead of attempts_per_success; failure reason counting is explicitly covered by tests.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-024",
@@ -475,7 +497,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Converted entries from mirrored goal snapshots into attempt-history records, added focused attempt-log tests, kept merge and sync flows compatible, and synchronized AGENTS/policy with the new semantics."
+      "notes": "Converted entries from mirrored goal snapshots into attempt-history records, added focused attempt-log tests, kept merge and sync flows compatible, and synchronized AGENTS/policy with the new semantics.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-025",
@@ -489,7 +512,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Audited historical goals after attempt-log migration. No additional structural backfill was required: all existing goals already have entry counts matching attempts, and the earlier failed-to-successful product path remains represented through separate linked goals 2026-03-29-007 -> 2026-03-29-008."
+      "notes": "Audited historical goals after attempt-log migration. No additional structural backfill was required: all existing goals already have entry counts matching attempts, and the earlier failed-to-successful product path remains represented through separate linked goals 2026-03-29-007 -> 2026-03-29-008.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-026",
@@ -503,7 +527,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests."
+      "notes": "Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-027",
@@ -517,7 +542,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass."
+      "notes": "Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-028",
@@ -531,7 +557,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow."
+      "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-029",
@@ -545,7 +572,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green."
+      "notes": "Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-030",
@@ -559,7 +587,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Continue safe refactoring by making summary and effective-goal logic more explicit and modular without changing persisted schema or CLI behavior."
+      "notes": "Continue safe refactoring by making summary and effective-goal logic more explicit and modular without changing persisted schema or CLI behavior.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-031",
@@ -573,7 +602,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Introduced typed internal records for attempt entries and effective goals, and switched the corresponding helper paths to use those structures without changing the persisted JSON schema or CLI behavior."
+      "notes": "Introduced typed internal records for attempt entries and effective goals, and switched the corresponding helper paths to use those structures without changing the persisted JSON schema or CLI behavior.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-032",
@@ -587,7 +617,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added explicit dict-to-record and record-to-dict helpers and applied them to validation and internal record creation without changing CLI or persisted schema."
+      "notes": "Added explicit dict-to-record and record-to-dict helpers and applied them to validation and internal record creation without changing CLI or persisted schema.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-033",
@@ -601,7 +632,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Moved summary and effective-goal computation to typed GoalRecord, AttemptEntryRecord, and EffectiveGoalRecord inputs while keeping JSON serialization at the boundary."
+      "notes": "Moved summary and effective-goal computation to typed GoalRecord, AttemptEntryRecord, and EffectiveGoalRecord inputs while keeping JSON serialization at the boundary.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-034",
@@ -615,7 +647,8 @@
       "cost_usd": 0.255454,
       "tokens_total": 532598,
       "failure_reason": null,
-      "notes": "Recorded the lesson that dependent updater commands must be validated sequentially because parallel update/show can produce stale-read false positives."
+      "notes": "Recorded the lesson that dependent updater commands must be validated sequentially because parallel update/show can produce stale-read false positives.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-035",
@@ -629,7 +662,8 @@
       "cost_usd": 0.2658,
       "tokens_total": 569068,
       "failure_reason": null,
-      "notes": "Added permanent sequential-validation rules to AGENTS.md and codex-metrics-policy.md so dependent updater commands are not validated in parallel."
+      "notes": "Added permanent sequential-validation rules to AGENTS.md and codex-metrics-policy.md so dependent updater commands are not validated in parallel.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-036",
@@ -643,7 +677,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Reviewed commits, retros, and current metrics state. No new unresolved historical product bugs found beyond already documented issues around task boundaries, partial cost completeness, and stale-read validation procedure."
+      "notes": "Reviewed commits, retros, and current metrics state. No new unresolved historical product bugs found beyond already documented issues around task boundaries, partial cost completeness, and stale-read validation procedure.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-037",
@@ -657,7 +692,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Decomposed sync_goal_attempt_entries into smaller policy helpers and excluded inferred synthetic failures from diagnostic failure-reason reporting."
+      "notes": "Decomposed sync_goal_attempt_entries into smaller policy helpers and excluded inferred synthetic failures from diagnostic failure-reason reporting.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-038",
@@ -671,7 +707,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded the lesson that inferred attempt history is operational context, not diagnostic failure attribution, and should not pollute failure-reason metrics."
+      "notes": "Recorded the lesson that inferred attempt history is operational context, not diagnostic failure attribution, and should not pollute failure-reason metrics.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-039",
@@ -685,7 +722,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Closed goal_type drift by forbidding goal reclassification after attempt history exists and synced that invariant into AGENTS.md and codex-metrics-policy.md."
+      "notes": "Closed goal_type drift by forbidding goal reclassification after attempt history exists and synced that invariant into AGENTS.md and codex-metrics-policy.md.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-040",
@@ -699,7 +737,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Moved the update/application path closer to the typed domain boundary by mutating GoalRecord internally and serializing back to dict only at persistence boundaries."
+      "notes": "Moved the update/application path closer to the typed domain boundary by mutating GoalRecord internally and serializing back to dict only at persistence boundaries.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-041",
@@ -713,7 +752,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded that moving update flow to typed domain boundaries was the final high-ROI refactor before diminishing returns and that further refactoring should now be demand-driven."
+      "notes": "Recorded that moving update flow to typed domain boundaries was the final high-ROI refactor before diminishing returns and that further refactoring should now be demand-driven.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-042",
@@ -727,7 +767,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Audited the updater for copy-pasted logic. No severe duplication found; remaining repetition is concentrated in report rendering, merge/sync dict mutation, and a few parallel cost/token update branches."
+      "notes": "Audited the updater for copy-pasted logic. No severe duplication found; remaining repetition is concentrated in report rendering, merge/sync dict mutation, and a few parallel cost/token update branches.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-043",
@@ -741,7 +782,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Fixed merge_tasks to reject cross-type merges and supersession cycles, and marked inferred entries explicitly in the markdown report."
+      "notes": "Fixed merge_tasks to reject cross-type merges and supersession cycles, and marked inferred entries explicitly in the markdown report.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-044",
@@ -755,7 +797,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Prevent invalid merge states in merge_tasks and mark inferred entries explicitly in the markdown report."
+      "notes": "Prevent invalid merge states in merge_tasks and mark inferred entries explicitly in the markdown report.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-045",
@@ -769,7 +812,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded that mutating commands need tests for happy path, invalid-state rejection, and summary/report consistency, and codified that rule in AGENTS.md and the metrics policy."
+      "notes": "Recorded that mutating commands need tests for happy path, invalid-state rejection, and summary/report consistency, and codified that rule in AGENTS.md and the metrics policy.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-046",
@@ -783,7 +827,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones."
+      "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-047",
@@ -797,7 +842,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing."
+      "notes": "Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-048",
@@ -811,7 +857,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint."
+      "notes": "Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-049",
@@ -825,7 +872,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail."
+      "notes": "Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-050",
@@ -839,7 +887,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Expanded high-ROI coverage for pricing validation and usage-sync no-op paths, then documented make verify as the canonical local validation flow."
+      "notes": "Expanded high-ROI coverage for pricing validation and usage-sync no-op paths, then documented make verify as the canonical local validation flow.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-051",
@@ -853,7 +902,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries."
+      "notes": "Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-052",
@@ -867,7 +917,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules."
+      "notes": "Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-053",
@@ -881,7 +932,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Documented the external-style project/product audit in docs/audits/ with a dedicated index for future audits."
+      "notes": "Documented the external-style project/product audit in docs/audits/ with a dedicated index for future audits.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-054",
@@ -895,7 +947,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Captured an overall PM/client-oriented retrospective: what user problem the metrics system needed to solve, what value was actually delivered, and what product gaps remain."
+      "notes": "Captured an overall PM/client-oriented retrospective: what user problem the metrics system needed to solve, what value was actually delivered, and what product gaps remain.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-055",
@@ -909,7 +962,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added a short product framing document covering primary user, JTBD, workflow, decisions supported, scope, and north star metric, and marked the product-vision TODO item complete."
+      "notes": "Added a short product framing document covering primary user, JTBD, workflow, decisions supported, scope, and north star metric, and marked the product-vision TODO item complete.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-056",
@@ -923,7 +977,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Rewrote the product framing from the user's actual goals: operator-centric, quality-first, profit-aware, and cost-constrained Codex usage, then marked the vision TODO done."
+      "notes": "Rewrote the product framing from the user's actual goals: operator-centric, quality-first, profit-aware, and cost-constrained Codex usage, then marked the vision TODO done.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-057",
@@ -937,7 +992,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Clarified that current quality-related metrics are working proxies to be refined empirically rather than treated as final truth."
+      "notes": "Clarified that current quality-related metrics are working proxies to be refined empirically rather than treated as final truth.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-058",
@@ -951,7 +1007,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded the confirmed product-discovery context: outcome miss is the clearest quality failure, cost is a business signal, failure reasons are for debugging, and final quality/cost metrics remain intentionally open."
+      "notes": "Recorded the confirmed product-discovery context: outcome miss is the clearest quality failure, cost is a business signal, failure reasons are for debugging, and final quality/cost metrics remain intentionally open.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-059",
@@ -965,7 +1022,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Audited the cost layer: total cost uses known spend, but cost per success requires complete cost chains for all successes, which makes it unavailable in most real operator views. Recommended a product change toward explicit known-cost coverage and a known-only average."
+      "notes": "Audited the cost layer: total cost uses known spend, but cost per success requires complete cost chains for all successes, which makes it unavailable in most real operator views. Recommended a product change toward explicit known-cost coverage and a known-only average.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-060",
@@ -979,7 +1037,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI."
+      "notes": "Upgraded cost reporting to separate known spend from complete chain completeness by adding known-cost coverage and known-only average cost metrics alongside the stricter complete cost-per-success KPI.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-061",
@@ -993,7 +1052,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering."
+      "notes": "Added operator-facing review guidance to CLI show output and markdown report, with tests covering review heuristics and report rendering.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-062",
@@ -1007,7 +1067,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics."
+      "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-063",
@@ -1021,7 +1082,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Repeated high-ROI code review, added supersession-cycle guardrails for merge and load validation, expanded regression coverage, and closed the TODO review item."
+      "notes": "Repeated high-ROI code review, added supersession-cycle guardrails for merge and load validation, expanded regression coverage, and closed the TODO review item.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-064",
@@ -1035,7 +1097,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting."
+      "notes": "Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-065",
@@ -1049,7 +1112,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update."
+      "notes": "Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-066",
@@ -1063,7 +1127,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Tightened AGENTS.md wording, reduced duplication, and kept the file focused on durable operating rules rather than history."
+      "notes": "Tightened AGENTS.md wording, reduced duplication, and kept the file focused on durable operating rules rather than history.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-067",
@@ -1077,7 +1142,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added README.md with minimal public-facing project description, quick start, validated CLI commands, and local verification entrypoints."
+      "notes": "Added README.md with minimal public-facing project description, quick start, validated CLI commands, and local verification entrypoints.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-068",
@@ -1091,7 +1157,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Rewrote the metrics policy into a shorter reusable version, removed bloated local detail, preserved core invariants, and closed the TODO item for policy minimization."
+      "notes": "Rewrote the metrics policy into a shorter reusable version, removed bloated local detail, preserved core invariants, and closed the TODO item for policy minimization.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-069",
@@ -1105,7 +1172,8 @@
       "cost_usd": 0.109862,
       "tokens_total": 235388,
       "failure_reason": null,
-      "notes": "Improved argparse help text, examples, and command descriptions without changing CLI behavior, then closed the usability TODO item."
+      "notes": "Improved argparse help text, examples, and command descriptions without changing CLI behavior, then closed the usability TODO item.",
+      "result_fit": "partial_fit"
     },
     {
       "goal_id": "2026-03-29-070",
@@ -1119,7 +1187,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation."
+      "notes": "Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-071",
@@ -1133,7 +1202,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage."
+      "notes": "Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-072",
@@ -1147,7 +1217,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock."
+      "notes": "Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-073",
@@ -1161,7 +1232,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Aligned README terminology with the current goal-based model and clarified that goal-level outcome summary should be read together with entry-level retry history."
+      "notes": "Aligned README terminology with the current goal-based model and clarified that goal-level outcome summary should be read together with entry-level retry history.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-074",
@@ -1175,7 +1247,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Packaged codex-metrics as an installable src-layout CLI with a console script entrypoint, bundled pricing data, a compatibility shim under scripts/, packaging docs, a GitHub build workflow, and validated wheel installation in a clean venv."
+      "notes": "Packaged codex-metrics as an installable src-layout CLI with a console script entrypoint, bundled pricing data, a compatibility shim under scripts/, packaging docs, a GitHub build workflow, and validated wheel installation in a clean venv.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-075",
@@ -1189,7 +1262,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added retrospective for the installable CLI packaging milestone, documenting the shift from repo-local script assumptions to package-first runtime, package data handling, compatibility shims, and release validation."
+      "notes": "Added retrospective for the installable CLI packaging milestone, documenting the shift from repo-local script assumptions to package-first runtime, package data handling, compatibility shims, and release validation.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-076",
@@ -1203,7 +1277,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Improve manual goal ID conflict messaging and document auto-ID as the default path for new goals."
+      "notes": "Improve manual goal ID conflict messaging and document auto-ID as the default path for new goals.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-077",
@@ -1217,7 +1292,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Clarified auto-id default path and manual id conflict guidance"
+      "notes": "Clarified auto-id default path and manual id conflict guidance",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-078",
@@ -1231,7 +1307,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation."
+      "notes": "Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-079",
@@ -1245,7 +1322,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Captured manual goal id conflict UX retro and permanent workflow guidance"
+      "notes": "Captured manual goal id conflict UX retro and permanent workflow guidance",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-080",
@@ -1259,7 +1337,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Recorded a refreshed external-style audit covering the packaged CLI state, product maturity shift, remaining weaknesses, and updated recommendations in docs/audits/."
+      "notes": "Recorded a refreshed external-style audit covering the packaged CLI state, product maturity shift, remaining weaknesses, and updated recommendations in docs/audits/.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-081",
@@ -1273,7 +1352,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Completed an engineering-lead audit of the packaged CLI: verified green lint/typecheck/tests, measured coverage, identified high-ROI refactoring seams, and found no critical runtime bugs in the current review pass."
+      "notes": "Completed an engineering-lead audit of the packaged CLI: verified green lint/typecheck/tests, measured coverage, identified high-ROI refactoring seams, and found no critical runtime bugs in the current review pass.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-082",
@@ -1287,7 +1367,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Fixed coverage reporting to follow the configured codex_metrics source set instead of manually including the compatibility shim; re-ran verify and coverage successfully."
+      "notes": "Fixed coverage reporting to follow the configured codex_metrics source set instead of manually including the compatibility shim; re-ran verify and coverage successfully.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-083",
@@ -1301,7 +1382,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Improved coverage with a packaged-module init smoke test and subprocess coverage for python -m codex_metrics using the canonical src path; coverage report remains clean and stable."
+      "notes": "Improved coverage with a packaged-module init smoke test and subprocess coverage for python -m codex_metrics using the canonical src path; coverage report remains clean and stable.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-084",
@@ -1315,7 +1397,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added focused domain coverage for malformed goal-id filtering and non-positive numeric deltas; coverage now reaches 90% total with 90% on the main CLI module."
+      "notes": "Added focused domain coverage for malformed goal-id filtering and non-positive numeric deltas; coverage now reaches 90% total with 90% on the main CLI module.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-085",
@@ -1329,7 +1412,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Extracted the reporting/presentation layer into src/codex_metrics/reporting.py, kept CLI behavior unchanged via imports/re-exports, and verified the refactor with green lint, mypy, tests, and coverage."
+      "notes": "Extracted the reporting/presentation layer into src/codex_metrics/reporting.py, kept CLI behavior unchanged via imports/re-exports, and verified the refactor with green lint, mypy, tests, and coverage.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-086",
@@ -1343,7 +1427,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Extracted command handlers into src/codex_metrics/commands.py with a typed Protocol boundary and lazy import from cli.main; verify and coverage remained green after the refactor."
+      "notes": "Extracted command handlers into src/codex_metrics/commands.py with a typed Protocol boundary and lazy import from cli.main; verify and coverage remained green after the refactor.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-087",
@@ -1357,7 +1442,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Extracted storage and mutation helpers into src/codex_metrics/storage.py, kept CLI behavior unchanged via imports and re-exports, and verified the refactor with green lint, mypy, tests, and coverage."
+      "notes": "Extracted storage and mutation helpers into src/codex_metrics/storage.py, kept CLI behavior unchanged via imports and re-exports, and verified the refactor with green lint, mypy, tests, and coverage.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-088",
@@ -1371,7 +1457,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Extracted record models, validation, summary computation, and attempt-sync helpers into src/codex_metrics/domain.py while preserving the existing CLI surface via imports and re-exports; verify and coverage remained green after restoring datetime/timezone compatibility for the shim-exported module surface."
+      "notes": "Extracted record models, validation, summary computation, and attempt-sync helpers into src/codex_metrics/domain.py while preserving the existing CLI surface via imports and re-exports; verify and coverage remained green after restoring datetime/timezone compatibility for the shim-exported module surface.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-089",
@@ -1385,7 +1472,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added focused domain tests for validation failures, unknown supersession references, attempt-history trimming and fallback paths, goal-type guardrails, and create/update/finalize edge cases; domain coverage rose to 90% and total coverage to 91% with full verify green."
+      "notes": "Added focused domain tests for validation failures, unknown supersession references, attempt-history trimming and fallback paths, goal-type guardrails, and create/update/finalize edge cases; domain coverage rose to 90% and total coverage to 91% with full verify green.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-090",
@@ -1399,7 +1487,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Logged the retrospective for the layered CLI decomposition and the follow-up domain coverage pass in docs/retros, then reran the repository verify flow successfully."
+      "notes": "Logged the retrospective for the layered CLI decomposition and the follow-up domain coverage pass in docs/retros, then reran the repository verify flow successfully.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-091",
@@ -1413,7 +1502,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully."
+      "notes": "Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-092",
@@ -1427,7 +1517,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular."
+      "notes": "Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular.",
+      "result_fit": null
     },
     {
       "goal_id": "2026-03-29-093",
@@ -1441,7 +1532,23 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Documented the history audit command checkpoint, modular integration path, and verification changes."
+      "notes": "Documented the history audit command checkpoint, modular integration path, and verification changes.",
+      "result_fit": null
+    },
+    {
+      "goal_id": "2026-03-29-094",
+      "title": "Add result fit quality layer",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:40:45+00:00",
+      "finished_at": "2026-03-29T14:42:18+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added the result_fit quality layer, exposed it through the CLI and report, and backfilled the clearest historical quality outcomes.",
+      "result_fit": "exact_fit"
     }
   ],
   "entries": [
@@ -1515,7 +1622,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": "unclear_task",
-      "notes": "Initial pricing-only implementation was not accepted because it still depended on manual or semi-manual usage entry and did not satisfy the required fully automatic cost-tracking workflow."
+      "notes": "Initial pricing-only implementation was not accepted because it still depended on manual or semi-manual usage entry and did not satisfy the required fully automatic cost-tracking workflow.",
+      "inferred": false
     },
     {
       "entry_id": "2026-03-29-008",
@@ -1527,7 +1635,8 @@
       "cost_usd": 0.638112,
       "tokens_total": 1359406,
       "failure_reason": null,
-      "notes": "Implemented fully automatic Codex usage ingestion from local SQLite telemetry, added sync-codex-usage backfill command, validated with 29 tests, and confirmed that current-task usage auto-populates when local response.completed events exist."
+      "notes": "Implemented fully automatic Codex usage ingestion from local SQLite telemetry, added sync-codex-usage backfill command, validated with 29 tests, and confirmed that current-task usage auto-populates when local response.completed events exist.",
+      "inferred": false
     },
     {
       "entry_id": "2026-03-29-009",
@@ -2631,6 +2740,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Documented the history audit command checkpoint, modular integration path, and verification changes."
+    },
+    {
+      "entry_id": "2026-03-29-094-attempt-001",
+      "goal_id": "2026-03-29-094",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:40:45+00:00",
+      "finished_at": "2026-03-29T14:42:18+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added the result_fit quality layer, exposed it through the CLI and report, and backfilled the clearest historical quality outcomes."
     }
   ]
 }

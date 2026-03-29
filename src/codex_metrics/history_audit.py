@@ -59,6 +59,8 @@ def find_likely_miss_candidates(goals: list[GoalRecord]) -> list[AuditCandidate]
     for goal in goals:
         if goal.status != "fail":
             continue
+        if goal.result_fit is not None:
+            continue
         reason = "explicit failed goal"
         if goal.failure_reason is not None:
             reason += f" with failure_reason={goal.failure_reason}"
@@ -84,6 +86,8 @@ def find_likely_partial_fit_candidates(goals: list[GoalRecord]) -> list[AuditCan
         if goal.goal_type != "product":
             continue
         if goal.status != "success":
+            continue
+        if goal.result_fit is not None:
             continue
 
         reason: str | None = None

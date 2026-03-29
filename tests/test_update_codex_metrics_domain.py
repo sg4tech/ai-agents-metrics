@@ -308,6 +308,48 @@ def test_validate_goal_record_rejects_missing_required_field() -> None:
         )
 
 
+def test_validate_goal_record_rejects_non_product_result_fit() -> None:
+    with pytest.raises(ValueError, match="result_fit is only allowed for product goals"):
+        MODULE.validate_goal_record(
+            {
+                "goal_id": "goal-1",
+                "title": "Retro with fit",
+                "goal_type": "retro",
+                "supersedes_goal_id": None,
+                "status": "success",
+                "attempts": 1,
+                "started_at": "2026-03-29T09:00:00+00:00",
+                "finished_at": "2026-03-29T09:05:00+00:00",
+                "cost_usd": None,
+                "tokens_total": None,
+                "failure_reason": None,
+                "notes": None,
+                "result_fit": "partial_fit",
+            }
+        )
+
+
+def test_validate_goal_record_rejects_success_with_miss_result_fit() -> None:
+    with pytest.raises(ValueError, match="result_fit miss is not allowed when status is success"):
+        MODULE.validate_goal_record(
+            {
+                "goal_id": "goal-1",
+                "title": "Success with miss",
+                "goal_type": "product",
+                "supersedes_goal_id": None,
+                "status": "success",
+                "attempts": 1,
+                "started_at": "2026-03-29T09:00:00+00:00",
+                "finished_at": "2026-03-29T09:05:00+00:00",
+                "cost_usd": None,
+                "tokens_total": None,
+                "failure_reason": None,
+                "notes": None,
+                "result_fit": "miss",
+            }
+        )
+
+
 def test_validate_entry_record_rejects_non_bool_inferred_flag() -> None:
     with pytest.raises(ValueError, match="Invalid type for entry field: inferred"):
         MODULE.validate_entry_record(

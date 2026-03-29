@@ -19,6 +19,7 @@ ALLOWED_FAILURE_REASONS = {
     "tooling_issue",
     "other",
 }
+ALLOWED_RESULT_FITS = {"exact_fit", "partial_fit", "miss"}
 
 
 @dataclass
@@ -35,6 +36,7 @@ class GoalRecord:
     tokens_total: int | None
     failure_reason: str | None
     notes: str | None
+    result_fit: str | None = None
 
 
 @dataclass
@@ -70,6 +72,7 @@ class EffectiveGoalRecord:
     failure_reason: str | None
     notes: str | None
     supersedes_goal_id: str | None
+    result_fit: str | None = None
 
 
 StatusRecordT = TypeVar("StatusRecordT", GoalRecord, AttemptEntryRecord, EffectiveGoalRecord)
@@ -94,6 +97,7 @@ def goal_from_dict(goal: dict[str, Any]) -> GoalRecord:
         tokens_total=None if goal.get("tokens_total") is None else int(goal["tokens_total"]),
         failure_reason=goal.get("failure_reason"),
         notes=goal.get("notes"),
+        result_fit=goal.get("result_fit"),
     )
 
 
@@ -218,6 +222,13 @@ def validate_failure_reason(reason: str | None) -> None:
         raise ValueError(f"Invalid failure reason: {reason}. Allowed: {sorted(ALLOWED_FAILURE_REASONS)}")
 
 
+def validate_result_fit(result_fit: str | None) -> None:
+    if result_fit is None:
+        return
+    if result_fit not in ALLOWED_RESULT_FITS:
+        raise ValueError(f"Invalid result_fit: {result_fit}. Allowed: {sorted(ALLOWED_RESULT_FITS)}")
+
+
 def validate_non_negative_int(value: int, field_name: str) -> None:
     if value < 0:
         raise ValueError(f"{field_name} cannot be negative")
@@ -234,6 +245,8 @@ def validate_task_business_rules(task: dict[str, Any]) -> None:
     status = task["status"]
     attempts = task["attempts"]
     failure_reason = task.get("failure_reason")
+    goal_type = task["goal_type"]
+    result_fit = task.get("result_fit")
 
     started_dt = parse_iso_datetime(started_at, "started_at") if started_at is not None else None
     finished_dt = parse_iso_datetime(finished_at, "finished_at") if finished_at is not None else None
@@ -248,6 +261,14 @@ def validate_task_business_rules(task: dict[str, Any]) -> None:
         raise ValueError("finished_at must be empty when status is in_progress")
     if started_dt is not None and finished_dt is not None and finished_dt < started_dt:
         raise ValueError("finished_at cannot be earlier than started_at")
+    if result_fit is not None and goal_type != "product":
+        raise ValueError("result_fit is only allowed for product goals")
+    if status == "in_progress" and result_fit is not None:
+        raise ValueError("result_fit must be empty when status is in_progress")
+    if status == "success" and result_fit == "miss":
+        raise ValueError("result_fit miss is not allowed when status is success")
+    if status == "fail" and result_fit not in {None, "miss"}:
+        raise ValueError("failed product goals may only use result_fit miss")
 
 
 def validate_entry_business_rules(entry: dict[str, Any]) -> None:
@@ -291,6 +312,8 @@ def validate_goal_record(goal: dict[str, Any]) -> None:
             raise ValueError(f"Missing required goal field: {field_name}")
         if not isinstance(goal[field_name], allowed_types):
             raise ValueError(f"Invalid type for goal field: {field_name}")
+    if "result_fit" in goal and not isinstance(goal["result_fit"], (str, type(None))):
+        raise ValueError("Invalid type for goal field: result_fit")
 
     goal_record = goal_from_dict(goal)
     if not goal_record.goal_id.strip():
@@ -308,6 +331,7 @@ def validate_goal_record(goal: dict[str, Any]) -> None:
         validate_non_negative_int(goal_record.tokens_total, "tokens_total")
 
     validate_failure_reason(goal_record.failure_reason)
+    validate_result_fit(goal_record.result_fit)
     validate_task_business_rules(goal)
 
 
@@ -446,6 +470,7 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
                     "tokens_total": task.get("tokens_total"),
                     "failure_reason": task.get("failure_reason"),
                     "notes": task.get("notes"),
+                    "result_fit": task.get("result_fit"),
                 }
                 legacy_goals.append(goal)
                 legacy_entries.append(
@@ -474,6 +499,8 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
                 goal["goal_id"] = goal.pop("task_id")
             if isinstance(goal, dict) and "supersedes_goal_id" not in goal:
                 goal["supersedes_goal_id"] = goal.pop("supersedes_task_id", None)
+            if isinstance(goal, dict) and "result_fit" not in goal:
+                goal["result_fit"] = None
 
     entries: Any = data.get("entries")
     if not isinstance(entries, list) and isinstance(goals, list):
@@ -618,6 +645,7 @@ def build_effective_goal_record(terminal_goal: GoalRecord, chain: list[GoalRecor
         failure_reason=terminal_goal.failure_reason,
         notes=terminal_goal.notes,
         supersedes_goal_id=terminal_goal.supersedes_goal_id,
+        result_fit=terminal_goal.result_fit,
     )
 
 
@@ -1011,6 +1039,7 @@ def create_goal_record(
         tokens_total=None,
         failure_reason=None,
         notes=None,
+        result_fit=None,
     )
     tasks.append(goal_to_dict(new_goal))
     return new_goal
@@ -1037,6 +1066,7 @@ def apply_goal_updates(
     notes: str | None,
     started_at: str | None,
     finished_at: str | None,
+    result_fit: str | None = None,
 ) -> None:
     if title is not None:
         if not title.strip():
@@ -1085,6 +1115,9 @@ def apply_goal_updates(
     if failure_reason is not None:
         validate_failure_reason(failure_reason)
         task.failure_reason = failure_reason
+    if result_fit is not None:
+        validate_result_fit(result_fit)
+        task.result_fit = result_fit
 
     if notes is not None:
         task.notes = notes

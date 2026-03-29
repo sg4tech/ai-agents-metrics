@@ -98,6 +98,10 @@ Each goal record must contain:
 - `failure_reason`
 - `notes`
 
+Optional goal-review field:
+
+- `result_fit` for closed `product` goals when the operator wants to record whether the delivered result was an exact fit, a partial fit, or a miss
+
 ## Required Entry Fields
 
 Each entry record must contain:
@@ -258,6 +262,22 @@ If `closed_goals = 0`, set to `null`.
 ### Failure Reasons
 
 Count failure reasons from diagnostic failed entries only.
+
+## Product Quality Review
+
+For `product` goals, an optional operator-reviewed `result_fit` field may be used to distinguish:
+
+- `exact_fit`
+- `partial_fit`
+- `miss`
+
+This field is meant to complement, not replace, operational `success` and `fail` status.
+
+Use it when the operator needs to distinguish:
+
+- goals that closed successfully but still required corrective work
+- explicit misses
+- exact outcome matches
 
 Do not count synthetic inferred failures created only to preserve attempt history shape.
 
