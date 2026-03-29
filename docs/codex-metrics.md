@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 66
-- Successes: 66
+- Closed goals: 67
+- Successes: 67
 - Fails: 0
-- Total attempts: 70
+- Total attempts: 71
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.06
-- Known cost coverage: 4/66 successful goals
-- Known token coverage: 4/66 successful goals
-- Complete cost coverage: 2/66 successful goals
-- Complete token coverage: 2/66 successful goals
+- Known cost coverage: 4/67 successful goals
+- Known token coverage: 4/67 successful goals
+- Complete cost coverage: 2/67 successful goals
+- Complete token coverage: 2/67 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 70
-- Successes: 69
+- Closed entries: 71
+- Successes: 70
 - Fails: 1
-- Success Rate: 98.57%
+- Success Rate: 98.59%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -77,24 +77,36 @@
 - Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
-- Closed goals: 36
-- Successes: 36
+- Closed goals: 37
+- Successes: 37
 - Fails: 0
-- Total attempts: 36
+- Total attempts: 37
 - Known total cost (USD): 0.2658
 - Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/36 successful goals
-- Known token coverage: 1/36 successful goals
-- Complete cost coverage: 1/36 successful goals
-- Complete token coverage: 1/36 successful goals
+- Known cost coverage: 1/37 successful goals
+- Known token coverage: 1/37 successful goals
+- Complete cost coverage: 1/37 successful goals
+- Complete token coverage: 1/37 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
 - Complete Cost per Covered Success (USD): 0.2658
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-072 — Close TODO item for script-generated goal IDs
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:09:38+00:00
+- Finished at: 2026-03-29T13:09:43+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock.
 
 ### 2026-03-29-071 — Retrospective for concurrent goal-id collision fix
 - Goal type: retro
@@ -937,6 +949,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-072-attempt-001 — 2026-03-29-072
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:09:38+00:00
+- Finished at: 2026-03-29T13:09:43+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock.
 
 ### 2026-03-29-071-attempt-001 — 2026-03-29-071
 - Entry type: retro

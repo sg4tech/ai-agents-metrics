@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 66,
-    "successes": 66,
+    "closed_tasks": 67,
+    "successes": 67,
     "fails": 0,
-    "total_attempts": 70,
+    "total_attempts": 71,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0606060606060606,
+    "attempts_per_closed_task": 1.0597014925373134,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -20,10 +20,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 36,
-        "successes": 36,
+        "closed_tasks": 37,
+        "successes": 37,
         "fails": 0,
-        "total_attempts": 36,
+        "total_attempts": 37,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -82,10 +82,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 36,
-        "successes": 36,
+        "closed_tasks": 37,
+        "successes": 37,
         "fails": 0,
-        "total_attempts": 36,
+        "total_attempts": 37,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 70,
-      "successes": 69,
+      "closed_entries": 71,
+      "successes": 70,
       "fails": 1,
-      "success_rate": 0.9857142857142858,
+      "success_rate": 0.9859154929577465,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -1134,6 +1134,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage."
+    },
+    {
+      "goal_id": "2026-03-29-072",
+      "title": "Close TODO item for script-generated goal IDs",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T13:09:38+00:00",
+      "finished_at": "2026-03-29T13:09:43+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock."
     }
   ],
   "entries": [
@@ -2037,6 +2051,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Improved argparse help text, examples, and command descriptions without changing CLI behavior, then closed the usability TODO item."
+    },
+    {
+      "entry_id": "2026-03-29-072-attempt-001",
+      "goal_id": "2026-03-29-072",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T13:09:38+00:00",
+      "finished_at": "2026-03-29T13:09:43+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Closed the TODO item for script-generated IDs after the updater began allocating goal IDs internally and guarding mutations with a lock."
     }
   ]
 }
