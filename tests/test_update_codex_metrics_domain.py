@@ -253,6 +253,47 @@ def test_build_operator_review_surfaces_retry_and_cost_visibility() -> None:
     assert "Known average cost is available, but complete cost-per-success is still incomplete." in review
 
 
+def test_validate_metrics_data_rejects_supersession_cycle(tmp_path: Path) -> None:
+    metrics_path = tmp_path / "metrics.json"
+    data = {
+        "summary": {},
+        "goals": [
+            {
+                "goal_id": "goal-a",
+                "title": "Goal A",
+                "goal_type": "product",
+                "supersedes_goal_id": "goal-b",
+                "status": "success",
+                "attempts": 1,
+                "started_at": "2026-03-29T09:00:00+00:00",
+                "finished_at": "2026-03-29T09:01:00+00:00",
+                "cost_usd": None,
+                "tokens_total": None,
+                "failure_reason": None,
+                "notes": None,
+            },
+            {
+                "goal_id": "goal-b",
+                "title": "Goal B",
+                "goal_type": "product",
+                "supersedes_goal_id": "goal-a",
+                "status": "success",
+                "attempts": 1,
+                "started_at": "2026-03-29T09:02:00+00:00",
+                "finished_at": "2026-03-29T09:03:00+00:00",
+                "cost_usd": None,
+                "tokens_total": None,
+                "failure_reason": None,
+                "notes": None,
+            },
+        ],
+        "entries": [],
+    }
+
+    with pytest.raises(ValueError, match="Detected supersession cycle"):
+        MODULE.validate_metrics_data(data, metrics_path)
+
+
 def test_sync_goal_attempt_entries_creates_and_closes_attempt_history() -> None:
     data = {"entries": []}
     previous_goal = {

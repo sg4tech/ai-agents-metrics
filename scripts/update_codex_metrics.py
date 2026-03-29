@@ -331,6 +331,8 @@ def validate_metrics_data(data: dict[str, Any], path: Path) -> None:
         if superseded_goal_id is not None and superseded_goal_id not in goal_ids:
             raise ValueError(f"Referenced superseded goal not found: {superseded_goal_id}")
 
+    validate_goal_supersession_graph(data["goals"])
+
     entry_ids: set[str] = set()
     for entry in data["entries"]:
         if not isinstance(entry, dict):
@@ -1045,6 +1047,13 @@ def build_effective_goals(goals: list[GoalRecord]) -> list[EffectiveGoalRecord]:
         effective_goals.append(build_effective_goal_record(terminal_goal, chain))
 
     return effective_goals
+
+
+def validate_goal_supersession_graph(goals: list[dict[str, Any]]) -> None:
+    goal_records = [goal_from_dict(goal) for goal in goals]
+    goal_by_id = {goal.goal_id: goal for goal in goal_records}
+    for goal in goal_records:
+        build_goal_chain(goal_by_id, goal)
 
 
 def compute_entry_summary(entries: list[AttemptEntryRecord]) -> dict[str, Any]:
@@ -1884,6 +1893,20 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
         raise ValueError("only goals with the same goal_type can be merged")
     if dropped_task.get("supersedes_goal_id") == keep_task_id:
         raise ValueError("merge would create a supersession cycle")
+
+    simulated_tasks = [dict(task) for task in tasks]
+    simulated_kept_task = next(task for task in simulated_tasks if task["goal_id"] == keep_task_id)
+    simulated_dropped_task = next(task for task in simulated_tasks if task["goal_id"] == drop_task_id)
+    if simulated_kept_task.get("supersedes_goal_id") is None:
+        simulated_kept_task["supersedes_goal_id"] = simulated_dropped_task.get("supersedes_goal_id")
+    for task in simulated_tasks:
+        if task.get("supersedes_goal_id") == drop_task_id:
+            task["supersedes_goal_id"] = keep_task_id
+    simulated_tasks = [task for task in simulated_tasks if task["goal_id"] != drop_task_id]
+    try:
+        validate_goal_supersession_graph(simulated_tasks)
+    except ValueError as exc:
+        raise ValueError("merge would create a supersession cycle") from exc
 
     kept_task["attempts"] = int(kept_task["attempts"]) + int(dropped_task["attempts"])
     kept_task["started_at"] = choose_earliest_timestamp(kept_task.get("started_at"), dropped_task.get("started_at"))

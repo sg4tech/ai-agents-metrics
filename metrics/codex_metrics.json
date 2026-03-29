@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 58,
-    "successes": 58,
+    "closed_tasks": 59,
+    "successes": 59,
     "fails": 0,
-    "total_attempts": 59,
+    "total_attempts": 60,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0172413793103448,
+    "attempts_per_closed_task": 1.0169491525423728,
     "known_cost_successes": 3,
     "known_token_successes": 3,
     "known_cost_per_success_usd": 0.386455,
@@ -16,10 +16,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 33,
-        "successes": 33,
+        "closed_tasks": 34,
+        "successes": 34,
         "fails": 0,
-        "total_attempts": 33,
+        "total_attempts": 34,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -66,10 +66,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 33,
-        "successes": 33,
+        "closed_tasks": 34,
+        "successes": 34,
         "fails": 0,
-        "total_attempts": 33,
+        "total_attempts": 34,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -115,10 +115,10 @@
       }
     },
     "entries": {
-      "closed_entries": 59,
-      "successes": 58,
+      "closed_entries": 60,
+      "successes": 59,
       "fails": 1,
-      "success_rate": 0.9830508474576272,
+      "success_rate": 0.9833333333333333,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -980,6 +980,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics."
+    },
+    {
+      "goal_id": "2026-03-29-063",
+      "title": "Repeat code review and close TODO",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T12:35:55+00:00",
+      "finished_at": "2026-03-29T12:37:18+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Repeated high-ROI code review, added supersession-cycle guardrails for merge and load validation, expanded regression coverage, and closed the TODO review item."
     }
   ],
   "entries": [
@@ -1740,6 +1754,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Captured why the new operator-facing review layer was needed, what value it adds, and why interpretation now has higher ROI than more raw metrics."
+    },
+    {
+      "entry_id": "2026-03-29-063-attempt-001",
+      "goal_id": "2026-03-29-063",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T12:35:55+00:00",
+      "finished_at": "2026-03-29T12:37:18+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Repeated high-ROI code review, added supersession-cycle guardrails for merge and load validation, expanded regression coverage, and closed the TODO review item."
     }
   ]
 }

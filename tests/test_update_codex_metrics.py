@@ -1803,6 +1803,68 @@ def test_merge_tasks_rewrites_downstream_supersession_links(repo: Path) -> None:
     assert task_c["supersedes_task_id"] == "task-a"
 
 
+def test_merge_tasks_rejects_transitive_supersession_cycle(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-b",
+        "--title",
+        "Task B",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-c",
+        "--title",
+        "Task C",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "task-b",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-a",
+        "--title",
+        "Task A",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "task-c",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+
+    result = run_cmd(
+        repo,
+        "merge-tasks",
+        "--keep-task-id",
+        "task-a",
+        "--drop-task-id",
+        "task-b",
+    )
+
+    assert result.returncode != 0
+    assert "merge would create a supersession cycle" in result.stderr
+
+
 def test_report_sorts_tasks_by_started_at_descending(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 
