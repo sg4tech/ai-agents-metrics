@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 99
-- Successes: 99
+- Closed goals: 100
+- Successes: 100
 - Fails: 0
-- Total attempts: 103
+- Total attempts: 104
 - Known total cost (USD): 135.076254
 - Known total tokens: 96857586
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 80/99 successful goals
-- Known token coverage: 80/99 successful goals
-- Complete cost coverage: 80/99 successful goals
-- Complete token coverage: 80/99 successful goals
+- Known cost coverage: 80/100 successful goals
+- Known token coverage: 80/100 successful goals
+- Complete cost coverage: 80/100 successful goals
+- Complete token coverage: 80/100 successful goals
 - Known Cost per Success (USD): 1.688453
 - Known Cost per Success (Tokens): 1210719.82
 - Complete Cost per Covered Success (USD): 1.688453
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 103
-- Successes: 102
+- Closed entries: 104
+- Successes: 103
 - Fails: 1
-- Success Rate: 99.03%
+- Success Rate: 99.04%
 - Known total cost (USD): 134.178874
 - Known total tokens: 96141607
 
@@ -41,18 +41,18 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 21
-- Successes: 21
+- Closed goals: 22
+- Successes: 22
 - Fails: 0
-- Total attempts: 25
+- Total attempts: 26
 - Known total cost (USD): 41.999556
 - Known total tokens: 30197846
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.19
-- Known cost coverage: 18/21 successful goals
-- Known token coverage: 18/21 successful goals
-- Complete cost coverage: 18/21 successful goals
-- Complete token coverage: 18/21 successful goals
+- Attempts per Closed Goal: 1.18
+- Known cost coverage: 18/22 successful goals
+- Known token coverage: 18/22 successful goals
+- Complete cost coverage: 18/22 successful goals
+- Complete token coverage: 18/22 successful goals
 - Known Cost per Success (USD): 2.333309
 - Known Cost per Success (Tokens): 1677658.11
 - Complete Cost per Covered Success (USD): 2.333309
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1297793.45
 
 ## Goal log
+
+### 2026-03-29-106 — Guard against zero-duration product goal windows
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T17:40:20+00:00
+- Finished at: 2026-03-29T17:40:21+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Added a finalize-path guardrail that normalizes zero-duration closed product goals without stored cost/tokens into a one-second recovery window, plus regression tests for normalization and explicit-token exemptions.
 
 ### 2026-03-29-105 — Clarify zero-duration cost audit windows
 - Goal type: meta
@@ -1449,6 +1462,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-106-attempt-001 — 2026-03-29-106
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T17:40:20+00:00
+- Finished at: 2026-03-29T17:40:21+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a finalize-path guardrail that normalizes zero-duration closed product goals without stored cost/tokens into a one-second recovery window, plus regression tests for normalization and explicit-token exemptions.
 
 ### 2026-03-29-105-attempt-001 — 2026-03-29-105
 - Entry type: meta

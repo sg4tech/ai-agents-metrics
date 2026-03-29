@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 99,
-    "successes": 99,
+    "closed_tasks": 100,
+    "successes": 100,
     "fails": 0,
-    "total_attempts": 103,
+    "total_attempts": 104,
     "total_cost_usd": 135.076254,
     "total_tokens": 96857586,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0404040404040404,
+    "attempts_per_closed_task": 1.04,
     "known_cost_successes": 80,
     "known_token_successes": 80,
     "complete_cost_successes": 80,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 21,
-        "successes": 21,
+        "closed_tasks": 22,
+        "successes": 22,
         "fails": 0,
-        "total_attempts": 25,
+        "total_attempts": 26,
         "total_cost_usd": 41.999556,
         "total_tokens": 30197846,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1904761904761905,
+        "attempts_per_closed_task": 1.1818181818181819,
         "known_cost_successes": 18,
         "known_token_successes": 18,
         "complete_cost_successes": 18,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 21,
-        "successes": 21,
+        "closed_tasks": 22,
+        "successes": 22,
         "fails": 0,
-        "total_attempts": 25,
+        "total_attempts": 26,
         "total_cost_usd": 41.999556,
         "total_tokens": 30197846,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1904761904761905,
+        "attempts_per_closed_task": 1.1818181818181819,
         "known_cost_successes": 18,
         "known_token_successes": 18,
         "complete_cost_successes": 18,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 103,
-      "successes": 102,
+      "closed_entries": 104,
+      "successes": 103,
       "fails": 1,
-      "success_rate": 0.9902912621359223,
+      "success_rate": 0.9903846153846154,
       "total_cost_usd": 134.178874,
       "total_tokens": 96141607,
       "failure_reasons": {
@@ -1714,6 +1714,21 @@
       "failure_reason": null,
       "notes": "Reclassified zero-duration product goal windows from no_usage_data_found to incomplete_goal_window so cost audit points at too-narrow recorded boundaries instead of blaming telemetry absence.",
       "result_fit": null
+    },
+    {
+      "goal_id": "2026-03-29-106",
+      "title": "Guard against zero-duration product goal windows",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T17:40:20+00:00",
+      "finished_at": "2026-03-29T17:40:21+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a finalize-path guardrail that normalizes zero-duration closed product goals without stored cost/tokens into a one-second recovery window, plus regression tests for normalization and explicit-token exemptions.",
+      "result_fit": "exact_fit"
     }
   ],
   "entries": [
@@ -3094,6 +3109,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Reclassified zero-duration product goal windows from no_usage_data_found to incomplete_goal_window so cost audit points at too-narrow recorded boundaries instead of blaming telemetry absence."
+    },
+    {
+      "entry_id": "2026-03-29-106-attempt-001",
+      "goal_id": "2026-03-29-106",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T17:40:20+00:00",
+      "finished_at": "2026-03-29T17:40:21+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a finalize-path guardrail that normalizes zero-duration closed product goals without stored cost/tokens into a one-second recovery window, plus regression tests for normalization and explicit-token exemptions."
     }
   ]
 }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any, TypeVar
@@ -247,7 +247,6 @@ def validate_task_business_rules(task: dict[str, Any]) -> None:
     failure_reason = task.get("failure_reason")
     goal_type = task["goal_type"]
     result_fit = task.get("result_fit")
-
     started_dt = parse_iso_datetime(started_at, "started_at") if started_at is not None else None
     finished_dt = parse_iso_datetime(finished_at, "finished_at") if finished_at is not None else None
 
@@ -1138,6 +1137,18 @@ def finalize_goal_update(task: GoalRecord) -> None:
             if finished_dt < started_dt:
                 finished_dt = started_dt
         task.finished_at = finished_dt.isoformat()
+    if (
+        task.goal_type == "product"
+        and task.status in {"success", "fail"}
+        and task.cost_usd is None
+        and task.tokens_total is None
+        and task.started_at is not None
+        and task.finished_at is not None
+    ):
+        started_dt = parse_iso_datetime(task.started_at, "started_at")
+        finished_dt = parse_iso_datetime(task.finished_at, "finished_at")
+        if started_dt == finished_dt:
+            task.started_at = (started_dt - timedelta(seconds=1)).isoformat()
     if task.status == "success":
         task.failure_reason = None
 

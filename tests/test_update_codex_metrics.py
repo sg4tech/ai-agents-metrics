@@ -989,6 +989,65 @@ def test_failed_goal_only_allows_miss_result_fit(repo: Path) -> None:
     assert "failed product goals may only use result_fit miss" in result.stderr
 
 
+def test_closed_product_goal_normalizes_zero_duration_window_without_cost(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "zero-window",
+        "--title",
+        "Zero window",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--attempts-delta",
+        "1",
+        "--started-at",
+        "2026-03-29T09:00:00+00:00",
+        "--finished-at",
+        "2026-03-29T09:00:00+00:00",
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task = next(task for task in data["tasks"] if task["task_id"] == "zero-window")
+    assert task["started_at"] == "2026-03-29T08:59:59+00:00"
+    assert task["finished_at"] == "2026-03-29T09:00:00+00:00"
+
+
+def test_closed_product_goal_allows_zero_duration_window_with_explicit_tokens(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "zero-window-with-tokens",
+        "--title",
+        "Zero window with tokens",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--attempts-delta",
+        "1",
+        "--started-at",
+        "2026-03-29T09:00:00+00:00",
+        "--finished-at",
+        "2026-03-29T09:00:00+00:00",
+        "--tokens",
+        "123",
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task = next(task for task in data["tasks"] if task["task_id"] == "zero-window-with-tokens")
+    assert task["tokens_total"] == 123
+
+
 def test_reused_manual_goal_id_guides_user_to_auto_generation(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
     assert run_cmd(
