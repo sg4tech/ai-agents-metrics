@@ -120,6 +120,7 @@ Available `make` targets:
 - `make typecheck`
 - `make test`
 - `make verify`
+- `make live-usage-smoke` for an opt-in end-to-end check against real local Codex telemetry
 - `make coverage`
 
 Build distributable artifacts:

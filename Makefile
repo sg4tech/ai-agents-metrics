@@ -1,4 +1,4 @@
-.PHONY: lint typecheck test verify coverage package
+.PHONY: lint typecheck test verify coverage package live-usage-smoke
 
 lint:
 	./.venv/bin/ruff check .
@@ -20,3 +20,6 @@ coverage:
 package:
 	rm -rf build dist src/codex_metrics.egg-info
 	./.venv/bin/python -m build --no-isolation
+
+live-usage-smoke:
+	./.venv/bin/python scripts/check_live_usage_recovery.py

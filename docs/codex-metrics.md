@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 93
-- Successes: 93
+- Closed goals: 94
+- Successes: 94
 - Fails: 0
-- Total attempts: 97
+- Total attempts: 98
 - Known total cost (USD): 134.658855
 - Known total tokens: 96561704
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 78/93 successful goals
-- Known token coverage: 78/93 successful goals
-- Complete cost coverage: 78/93 successful goals
-- Complete token coverage: 78/93 successful goals
+- Known cost coverage: 78/94 successful goals
+- Known token coverage: 78/94 successful goals
+- Complete cost coverage: 78/94 successful goals
+- Complete token coverage: 78/94 successful goals
 - Known Cost per Success (USD): 1.726396
 - Known Cost per Success (Tokens): 1237970.56
 - Complete Cost per Covered Success (USD): 1.726396
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 97
-- Successes: 96
+- Closed entries: 98
+- Successes: 97
 - Fails: 1
-- Success Rate: 98.97%
+- Success Rate: 98.98%
 - Known total cost (USD): 133.761475
 - Known total tokens: 95845725
 
@@ -41,18 +41,18 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 19
-- Successes: 19
+- Closed goals: 20
+- Successes: 20
 - Fails: 0
-- Total attempts: 23
+- Total attempts: 24
 - Known total cost (USD): 41.722462
 - Known total tokens: 29999550
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.21
-- Known cost coverage: 17/19 successful goals
-- Known token coverage: 17/19 successful goals
-- Complete cost coverage: 17/19 successful goals
-- Complete token coverage: 17/19 successful goals
+- Attempts per Closed Goal: 1.20
+- Known cost coverage: 17/20 successful goals
+- Known token coverage: 17/20 successful goals
+- Complete cost coverage: 17/20 successful goals
+- Complete token coverage: 17/20 successful goals
 - Known Cost per Success (USD): 2.454262
 - Known Cost per Success (Tokens): 1764679.41
 - Complete Cost per Covered Success (USD): 2.454262
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1323884.91
 
 ## Goal log
+
+### 2026-03-29-100 — Add live usage recovery smoke check
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T17:15:17+00:00
+- Finished at: 2026-03-29T17:15:17+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Added an opt-in live E2E smoke that creates temporary metrics files, runs updater end-to-end against real local Codex telemetry, and verifies recovered tokens and cost match the selected rollout event exactly.
 
 ### 2026-03-29-099 — Add session telemetry fallback for usage recovery
 - Goal type: product
@@ -1371,6 +1384,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-100-attempt-001 — 2026-03-29-100
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T17:15:17+00:00
+- Finished at: 2026-03-29T17:15:17+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added an opt-in live E2E smoke that creates temporary metrics files, runs updater end-to-end against real local Codex telemetry, and verifies recovered tokens and cost match the selected rollout event exactly.
 
 ### 2026-03-29-099-attempt-001 — 2026-03-29-099
 - Entry type: product
