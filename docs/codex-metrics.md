@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 41
-- Successes: 41
+- Closed goals: 42
+- Successes: 42
 - Fails: 0
-- Total attempts: 42
+- Total attempts: 43
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 42
-- Successes: 41
+- Closed entries: 43
+- Successes: 42
 - Fails: 1
-- Success Rate: 97.62%
+- Success Rate: 97.67%
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 27
-- Successes: 27
+- Closed goals: 28
+- Successes: 28
 - Fails: 0
-- Total attempts: 27
+- Total attempts: 28
 - Total cost (USD): 0.2658
 - Total tokens: 569068
 - Success Rate: 100.00%
@@ -64,6 +64,18 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-046 — Add real subprocess-aware coverage reporting
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:20:36+00:00
+- Finished at: 2026-03-29T11:22:50+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones.
 
 ### 2026-03-29-045 — Retro for missing merge invariant tests
 - Goal type: retro
@@ -594,6 +606,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-046-attempt-001 — 2026-03-29-046
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:20:36+00:00
+- Finished at: 2026-03-29T11:22:50+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones.
 
 ### 2026-03-29-045-attempt-001 — 2026-03-29-045
 - Entry type: retro

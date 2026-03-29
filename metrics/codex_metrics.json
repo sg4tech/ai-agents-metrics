@@ -1,21 +1,21 @@
 {
   "summary": {
-    "closed_tasks": 41,
-    "successes": 41,
+    "closed_tasks": 42,
+    "successes": 42,
     "fails": 0,
-    "total_attempts": 42,
+    "total_attempts": 43,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.024390243902439,
+    "attempts_per_closed_task": 1.0238095238095237,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 27,
-        "successes": 27,
+        "closed_tasks": 28,
+        "successes": 28,
         "fails": 0,
-        "total_attempts": 27,
+        "total_attempts": 28,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -50,10 +50,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 27,
-        "successes": 27,
+        "closed_tasks": 28,
+        "successes": 28,
         "fails": 0,
-        "total_attempts": 27,
+        "total_attempts": 28,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 42,
-      "successes": 41,
+      "closed_entries": 43,
+      "successes": 42,
       "fails": 1,
-      "success_rate": 0.9761904761904762,
+      "success_rate": 0.9767441860465116,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -714,6 +714,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Recorded that mutating commands need tests for happy path, invalid-state rejection, and summary/report consistency, and codified that rule in AGENTS.md and the metrics policy."
+    },
+    {
+      "goal_id": "2026-03-29-046",
+      "title": "Add real subprocess-aware coverage reporting",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:20:36+00:00",
+      "finished_at": "2026-03-29T11:22:50+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones."
     }
   ],
   "entries": [
@@ -1253,6 +1267,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Recorded that mutating commands need tests for happy path, invalid-state rejection, and summary/report consistency, and codified that rule in AGENTS.md and the metrics policy."
+    },
+    {
+      "entry_id": "2026-03-29-046-attempt-001",
+      "goal_id": "2026-03-29-046",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:20:36+00:00",
+      "finished_at": "2026-03-29T11:22:50+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones."
     }
   ]
 }

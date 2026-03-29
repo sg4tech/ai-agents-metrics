@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import subprocess
 import sys
@@ -9,17 +10,38 @@ from pathlib import Path
 
 import pytest
 
+WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = Path("scripts/update_codex_metrics.py")
-PRICING = Path("pricing/model_pricing.json")
+ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
+PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
 
 def run_cmd(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    script = str(SCRIPT)
+    if env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
+        env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+        script = str(ABS_SCRIPT)
+        cmd = [
+            sys.executable,
+            "-m",
+            "coverage",
+            "run",
+            "--rcfile",
+            str(WORKSPACE_ROOT / "pyproject.toml"),
+            "--parallel-mode",
+            script,
+            *args,
+        ]
+    else:
+        cmd = [sys.executable, script, *args]
     return subprocess.run(
-        [sys.executable, str(SCRIPT), *args],
+        cmd,
         cwd=tmp_path,
         text=True,
         capture_output=True,
         check=False,
+        env=env,
     )
 
 
@@ -154,7 +176,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
 
     script_target = tmp_path / "scripts" / "update_codex_metrics.py"
-    script_target.write_text(SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
+    script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
     pricing_target = tmp_path / "pricing" / "model_pricing.json"
     pricing_target.write_text(PRICING.read_text(encoding="utf-8"), encoding="utf-8")
     return tmp_path

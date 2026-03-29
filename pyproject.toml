@@ -22,3 +22,14 @@ files = [
 exclude = [
   "^\\.venv/",
 ]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = [
+  "scripts",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
