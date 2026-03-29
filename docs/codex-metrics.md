@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 130
-- Successes: 130
+- Closed goals: 131
+- Successes: 131
 - Fails: 0
-- Total attempts: 136
-- Known total cost (USD): 195.404617
-- Known total tokens: 140178468
+- Total attempts: 137
+- Known total cost (USD): 197.607646
+- Known total tokens: 141769523
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.05
-- Known cost coverage: 109/130 successful goals
-- Known token coverage: 109/130 successful goals
-- Complete cost coverage: 109/130 successful goals
-- Complete token coverage: 109/130 successful goals
-- Known Cost per Success (USD): 1.792703
-- Known Cost per Success (Tokens): 1286040.99
-- Complete Cost per Covered Success (USD): 1.792703
-- Complete Cost per Covered Success (Tokens): 1286040.99
+- Known cost coverage: 110/131 successful goals
+- Known token coverage: 110/131 successful goals
+- Complete cost coverage: 110/131 successful goals
+- Complete token coverage: 110/131 successful goals
+- Known Cost per Success (USD): 1.796433
+- Known Cost per Success (Tokens): 1288813.85
+- Complete Cost per Covered Success (USD): 1.796433
+- Complete Cost per Covered Success (Tokens): 1288813.85
 
 ## Entry summary
 
-- Closed entries: 136
-- Successes: 135
+- Closed entries: 137
+- Successes: 136
 - Fails: 1
-- Success Rate: 99.26%
-- Known total cost (USD): 194.507237
-- Known total tokens: 139462489
+- Success Rate: 99.27%
+- Known total cost (USD): 196.710266
+- Known total tokens: 141053544
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 42
-- Successes: 42
+- Closed goals: 43
+- Successes: 43
 - Fails: 0
-- Total attempts: 48
-- Known total cost (USD): 96.187109
-- Known total tokens: 69118138
+- Total attempts: 49
+- Known total cost (USD): 98.390138
+- Known total tokens: 70709193
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.14
-- Known cost coverage: 38/42 successful goals
-- Known token coverage: 38/42 successful goals
-- Complete cost coverage: 38/42 successful goals
-- Complete token coverage: 38/42 successful goals
-- Known Cost per Success (USD): 2.53124
-- Known Cost per Success (Tokens): 1818898.37
-- Complete Cost per Covered Success (USD): 2.53124
-- Complete Cost per Covered Success (Tokens): 1818898.37
+- Known cost coverage: 39/43 successful goals
+- Known token coverage: 39/43 successful goals
+- Complete cost coverage: 39/43 successful goals
+- Complete token coverage: 39/43 successful goals
+- Known Cost per Success (USD): 2.522824
+- Known Cost per Success (Tokens): 1813056.23
+- Complete Cost per Covered Success (USD): 2.522824
+- Complete Cost per Covered Success (Tokens): 1813056.23
 
 ### retro
 - Closed goals: 31
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-137 — Add make target for rebuild and global self-install
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T19:25:22+00:00
+- Finished at: 2026-03-29T19:26:54+00:00
+- Cost (USD): 2.203029
+- Tokens: 1591055
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added make package-refresh-global to rebuild sdist, wheel, and standalone binary, then run install-self for a global refresh; documented INSTALL_SELF_ARGS override and verified with make verify plus end-to-end make package-refresh-global INSTALL_SELF_ARGS=--target-dir /tmp/codex-metrics-bin.
 
 ### 2026-03-29-136 — AGENTS vs policy boundary retrospective
 - Goal type: retro
@@ -1852,6 +1865,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-137-attempt-001 — 2026-03-29-137
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T19:25:22+00:00
+- Finished at: 2026-03-29T19:26:54+00:00
+- Cost (USD): 2.203029
+- Tokens: 1591055
+- Failure reason: n/a
+- Notes: Added make package-refresh-global to rebuild sdist, wheel, and standalone binary, then run install-self for a global refresh; documented INSTALL_SELF_ARGS override and verified with make verify plus end-to-end make package-refresh-global INSTALL_SELF_ARGS=--target-dir /tmp/codex-metrics-bin.
 
 ### 2026-03-29-136-attempt-001 — 2026-03-29-136
 - Entry type: retro

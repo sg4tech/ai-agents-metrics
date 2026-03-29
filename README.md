@@ -390,6 +390,18 @@ Build a standalone binary for the current platform:
 make package-standalone
 ```
 
+Rebuild all local package artifacts and refresh the global self-host install:
+
+```bash
+make package-refresh-global
+```
+
+For a non-default install target:
+
+```bash
+make package-refresh-global INSTALL_SELF_ARGS="--target-dir /tmp/codex-metrics-bin"
+```
+
 This produces:
 
 - macOS / Linux: `dist/standalone/codex-metrics`
