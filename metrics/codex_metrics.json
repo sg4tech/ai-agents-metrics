@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 89,
-    "successes": 89,
+    "closed_tasks": 90,
+    "successes": 90,
     "fails": 0,
-    "total_attempts": 93,
+    "total_attempts": 94,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0449438202247192,
+    "attempts_per_closed_task": 1.0444444444444445,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -20,10 +20,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 52,
-        "successes": 52,
+        "closed_tasks": 53,
+        "successes": 53,
         "fails": 0,
-        "total_attempts": 52,
+        "total_attempts": 53,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -82,10 +82,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 52,
-        "successes": 52,
+        "closed_tasks": 53,
+        "successes": 53,
         "fails": 0,
-        "total_attempts": 52,
+        "total_attempts": 53,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 93,
-      "successes": 92,
+      "closed_entries": 94,
+      "successes": 93,
       "fails": 1,
-      "success_rate": 0.989247311827957,
+      "success_rate": 0.9893617021276596,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -213,7 +213,7 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated.",
-      "result_fit": null
+      "result_fit": "exact_fit"
     },
     {
       "goal_id": "2026-03-29-006",
@@ -1564,6 +1564,21 @@
       "failure_reason": null,
       "notes": "Documented why result_fit was added, why status was preserved, and why backfill remained curated.",
       "result_fit": null
+    },
+    {
+      "goal_id": "2026-03-29-096",
+      "title": "Backfill reviewed result fit for remaining clear audit candidate",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:48:34+00:00",
+      "finished_at": "2026-03-29T14:48:50+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Backfilled reviewed result_fit for the last clear manual audit candidate and confirmed the quality audit now only surfaces stale goals and low cost coverage.",
+      "result_fit": null
     }
   ],
   "entries": [
@@ -1613,7 +1628,8 @@
       "cost_usd": null,
       "tokens_total": null,
       "failure_reason": null,
-      "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated."
+      "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated.",
+      "inferred": false
     },
     {
       "entry_id": "2026-03-29-006",
@@ -2781,6 +2797,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Documented why result_fit was added, why status was preserved, and why backfill remained curated."
+    },
+    {
+      "entry_id": "2026-03-29-096-attempt-001",
+      "goal_id": "2026-03-29-096",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:48:34+00:00",
+      "finished_at": "2026-03-29T14:48:50+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Backfilled reviewed result_fit for the last clear manual audit candidate and confirmed the quality audit now only surfaces stale goals and low cost coverage."
     }
   ]
 }
