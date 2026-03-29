@@ -16,6 +16,10 @@ The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this r
 - Do not rewrite working code without a clear reason.
 - Preserve backward compatibility unless explicitly asked to change it.
 - Treat assumptions as risks until verified.
+- When product framing or success criteria are not yet confirmed by the user, treat drafts as hypotheses, not settled truth.
+- Treat “adjacent but not requested” output as a primary quality failure, even if the implementation is otherwise technically strong.
+- Before investing in more metrics semantics, refactoring, or process polish, ask which layer is the current bottleneck; do not optimize a non-constraint.
+- For partial-data metrics, prefer explicit coverage and covered-subset averages over brittle all-or-nothing KPIs that collapse to `n/a`.
 
 ## Metrics tooling
 

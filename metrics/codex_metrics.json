@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 60,
-    "successes": 60,
+    "closed_tasks": 61,
+    "successes": 61,
     "fails": 0,
-    "total_attempts": 61,
+    "total_attempts": 62,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0166666666666666,
+    "attempts_per_closed_task": 1.0163934426229508,
     "known_cost_successes": 3,
     "known_token_successes": 3,
     "complete_cost_successes": 2,
@@ -60,10 +60,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 13,
-        "successes": 13,
+        "closed_tasks": 14,
+        "successes": 14,
         "fails": 0,
-        "total_attempts": 13,
+        "total_attempts": 14,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -122,10 +122,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 13,
-        "successes": 13,
+        "closed_tasks": 14,
+        "successes": 14,
         "fails": 0,
-        "total_attempts": 13,
+        "total_attempts": 14,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 61,
-      "successes": 60,
+      "closed_entries": 62,
+      "successes": 61,
       "fails": 1,
-      "success_rate": 0.9836065573770492,
+      "success_rate": 0.9838709677419355,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -1036,6 +1036,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting."
+    },
+    {
+      "goal_id": "2026-03-29-065",
+      "title": "Deep overall retrospective and AGENTS update",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T12:49:26+00:00",
+      "finished_at": "2026-03-29T12:50:26+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update."
     }
   ],
   "entries": [
@@ -1822,6 +1836,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting."
+    },
+    {
+      "entry_id": "2026-03-29-065-attempt-001",
+      "goal_id": "2026-03-29-065",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T12:49:26+00:00",
+      "finished_at": "2026-03-29T12:50:26+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update."
     }
   ]
 }

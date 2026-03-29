@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 60
-- Successes: 60
+- Closed goals: 61
+- Successes: 61
 - Fails: 0
-- Total attempts: 61
+- Total attempts: 62
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.02
-- Known cost coverage: 3/60 successful goals
-- Known token coverage: 3/60 successful goals
-- Complete cost coverage: 2/60 successful goals
-- Complete token coverage: 2/60 successful goals
+- Known cost coverage: 3/61 successful goals
+- Known token coverage: 3/61 successful goals
+- Complete cost coverage: 2/61 successful goals
+- Complete token coverage: 2/61 successful goals
 - Known Cost per Success (USD): 0.386455
 - Known Cost per Success (Tokens): 820357.33
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 61
-- Successes: 60
+- Closed entries: 62
+- Successes: 61
 - Fails: 1
-- Success Rate: 98.36%
+- Success Rate: 98.39%
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
 
@@ -59,18 +59,18 @@
 - Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
-- Closed goals: 13
-- Successes: 13
+- Closed goals: 14
+- Successes: 14
 - Fails: 0
-- Total attempts: 13
+- Total attempts: 14
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/13 successful goals
-- Known token coverage: 1/13 successful goals
-- Complete cost coverage: 1/13 successful goals
-- Complete token coverage: 1/13 successful goals
+- Known cost coverage: 1/14 successful goals
+- Known token coverage: 1/14 successful goals
+- Complete cost coverage: 1/14 successful goals
+- Complete token coverage: 1/14 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Covered Success (USD): 0.255454
@@ -95,6 +95,18 @@
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-065 — Deep overall retrospective and AGENTS update
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:49:26+00:00
+- Finished at: 2026-03-29T12:50:26+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update.
 
 ### 2026-03-29-064 — Make complete cost reporting actionable
 - Goal type: product
@@ -853,6 +865,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-065-attempt-001 — 2026-03-29-065
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:49:26+00:00
+- Finished at: 2026-03-29T12:50:26+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added one deep overall retrospective using 5 Whys and Theory of Constraints, updated AGENTS.md with durable product-alignment rules, and closed the TODO item for the overall retro and local AGENTS update.
 
 ### 2026-03-29-064-attempt-001 — 2026-03-29-064
 - Entry type: product
