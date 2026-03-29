@@ -49,6 +49,40 @@ class GoalRecord:
     notes: str | None
 
 
+@dataclass
+class AttemptEntryRecord:
+    entry_id: str
+    goal_id: str
+    entry_type: str
+    status: str
+    started_at: str | None
+    finished_at: str | None
+    cost_usd: float | None
+    tokens_total: int | None
+    failure_reason: str | None
+    notes: str | None
+
+
+@dataclass
+class EffectiveGoalRecord:
+    goal_id: str
+    title: str
+    goal_type: str
+    status: str
+    attempts: int
+    started_at: str | None
+    finished_at: str | None
+    cost_usd: float | None
+    cost_usd_known: float | None
+    cost_complete: bool
+    tokens_total: int | None
+    tokens_total_known: int | None
+    tokens_complete: bool
+    failure_reason: str | None
+    notes: str | None
+    supersedes_goal_id: str | None
+
+
 LEGACY_GOAL_SUPERSEDES_MAP = {
     "2026-03-29-008": "2026-03-29-007",
 }
@@ -747,6 +781,34 @@ def aggregate_chain_timestamps(chain: list[dict[str, Any]]) -> tuple[str | None,
     return started_at, finished_at
 
 
+def build_effective_goal_record(
+    terminal_goal: dict[str, Any],
+    chain: list[dict[str, Any]],
+) -> EffectiveGoalRecord:
+    aggregated_cost, aggregated_cost_known, cost_complete = aggregate_chain_costs(chain)
+    aggregated_tokens, aggregated_tokens_known, tokens_complete = aggregate_chain_tokens(chain)
+    started_at, finished_at = aggregate_chain_timestamps(chain)
+
+    return EffectiveGoalRecord(
+        goal_id=terminal_goal["goal_id"],
+        title=terminal_goal["title"],
+        goal_type=terminal_goal["goal_type"],
+        status=terminal_goal["status"],
+        attempts=sum(int(goal.get("attempts") or 0) for goal in chain),
+        started_at=started_at,
+        finished_at=finished_at,
+        cost_usd=aggregated_cost,
+        cost_usd_known=aggregated_cost_known,
+        cost_complete=cost_complete,
+        tokens_total=aggregated_tokens,
+        tokens_total_known=aggregated_tokens_known,
+        tokens_complete=tokens_complete,
+        failure_reason=terminal_goal.get("failure_reason"),
+        notes=terminal_goal.get("notes"),
+        supersedes_goal_id=terminal_goal.get("supersedes_goal_id"),
+    )
+
+
 def resolve_linked_task_reference(
     tasks: list[dict[str, Any]],
     continuation_of: str | None,
@@ -830,30 +892,7 @@ def build_effective_goals(goals: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
 
         chain = build_goal_chain(goal_by_id, terminal_goal)
-        aggregated_cost, aggregated_cost_known, cost_complete = aggregate_chain_costs(chain)
-        aggregated_tokens, aggregated_tokens_known, tokens_complete = aggregate_chain_tokens(chain)
-        started_at, finished_at = aggregate_chain_timestamps(chain)
-
-        effective_goals.append(
-            {
-                "goal_id": terminal_goal["goal_id"],
-                "title": terminal_goal["title"],
-                "goal_type": terminal_goal["goal_type"],
-                "status": terminal_goal["status"],
-                "attempts": sum(int(goal.get("attempts") or 0) for goal in chain),
-                "started_at": started_at,
-                "finished_at": finished_at,
-                "cost_usd": aggregated_cost,
-                "cost_usd_known": aggregated_cost_known,
-                "cost_complete": cost_complete,
-                "tokens_total": aggregated_tokens,
-                "tokens_total_known": aggregated_tokens_known,
-                "tokens_complete": tokens_complete,
-                "failure_reason": terminal_goal.get("failure_reason"),
-                "notes": terminal_goal.get("notes"),
-                "supersedes_goal_id": terminal_goal.get("supersedes_goal_id"),
-            }
-        )
+        effective_goals.append(asdict(build_effective_goal_record(terminal_goal, chain)))
 
     return effective_goals
 
@@ -1057,18 +1096,20 @@ def build_attempt_entry(
     failure_reason: str | None,
     notes: str | None,
 ) -> dict[str, Any]:
-    entry = {
-        "entry_id": next_entry_id(entries, goal["goal_id"]),
-        "goal_id": goal["goal_id"],
-        "entry_type": goal["goal_type"],
-        "status": status,
-        "started_at": started_at,
-        "finished_at": finished_at,
-        "cost_usd": cost_usd,
-        "tokens_total": tokens_total,
-        "failure_reason": failure_reason,
-        "notes": notes,
-    }
+    entry = asdict(
+        AttemptEntryRecord(
+            entry_id=next_entry_id(entries, goal["goal_id"]),
+            goal_id=goal["goal_id"],
+            entry_type=goal["goal_type"],
+            status=status,
+            started_at=started_at,
+            finished_at=finished_at,
+            cost_usd=cost_usd,
+            tokens_total=tokens_total,
+            failure_reason=failure_reason,
+            notes=notes,
+        )
+    )
     validate_entry_record(entry)
     return entry
 

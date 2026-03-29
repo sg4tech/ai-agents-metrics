@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 27
-- Successes: 27
+- Closed goals: 28
+- Successes: 28
 - Fails: 0
-- Total attempts: 28
+- Total attempts: 29
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 28
-- Successes: 27
+- Closed entries: 29
+- Successes: 28
 - Fails: 1
-- Success Rate: 96.43%
+- Success Rate: 96.55%
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 17
-- Successes: 17
+- Closed goals: 18
+- Successes: 18
 - Fails: 0
-- Total attempts: 17
+- Total attempts: 18
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -64,6 +64,18 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-031 — Introduce typed domain structures for metrics internals
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:38:32+00:00
+- Finished at: 2026-03-29T10:39:37+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Introduced typed internal records for attempt entries and effective goals, and switched the corresponding helper paths to use those structures without changing the persisted JSON schema or CLI behavior.
 
 ### 2026-03-29-030 — Refactor goal and summary domain helpers
 - Goal type: meta
@@ -414,6 +426,16 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-031-attempt-001 — 2026-03-29-031
+- Entry type: meta
+- Status: success
+- Started at: 2026-03-29T10:38:32+00:00
+- Finished at: 2026-03-29T10:39:37+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Introduced typed internal records for attempt entries and effective goals, and switched the corresponding helper paths to use those structures without changing the persisted JSON schema or CLI behavior.
 
 ### 2026-03-29-030-attempt-001 — 2026-03-29-030
 - Entry type: meta
