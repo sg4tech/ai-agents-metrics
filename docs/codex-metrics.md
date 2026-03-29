@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 42
-- Successes: 42
+- Closed goals: 45
+- Successes: 45
 - Fails: 0
-- Total attempts: 43
+- Total attempts: 46
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 43
-- Successes: 42
+- Closed entries: 46
+- Successes: 45
 - Fails: 1
-- Success Rate: 97.67%
+- Success Rate: 97.83%
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 
@@ -40,10 +40,10 @@
 - Cost per Success (Tokens): n/a
 
 ### retro
-- Closed goals: 9
-- Successes: 9
+- Closed goals: 10
+- Successes: 10
 - Fails: 0
-- Total attempts: 9
+- Total attempts: 10
 - Total cost (USD): 0.255454
 - Total tokens: 532598
 - Success Rate: 100.00%
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 28
-- Successes: 28
+- Closed goals: 30
+- Successes: 30
 - Fails: 0
-- Total attempts: 28
+- Total attempts: 30
 - Total cost (USD): 0.2658
 - Total tokens: 569068
 - Success Rate: 100.00%
@@ -64,6 +64,42 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-049 — Retro for high-ROI coverage expansion
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:32:30+00:00
+- Finished at: 2026-03-29T11:32:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail.
+
+### 2026-03-29-048 — Expand high-ROI test coverage and add verify command
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:28:28+00:00
+- Finished at: 2026-03-29T11:31:29+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint.
+
+### 2026-03-29-047 — Ignore local coverage artifacts and plan ROI work
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:25:21+00:00
+- Finished at: 2026-03-29T11:25:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing.
 
 ### 2026-03-29-046 — Add real subprocess-aware coverage reporting
 - Goal type: meta
@@ -606,6 +642,39 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-049-attempt-001 — 2026-03-29-049
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:32:30+00:00
+- Finished at: 2026-03-29T11:32:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail.
+
+### 2026-03-29-048-attempt-001 — 2026-03-29-048
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:28:28+00:00
+- Finished at: 2026-03-29T11:31:29+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint.
+
+### 2026-03-29-047-attempt-001 — 2026-03-29-047
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:25:21+00:00
+- Finished at: 2026-03-29T11:25:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing.
 
 ### 2026-03-29-046-attempt-001 — 2026-03-29-046
 - Entry type: meta

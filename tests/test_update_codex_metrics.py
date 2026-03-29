@@ -723,6 +723,102 @@ def test_invalid_metrics_file_format_fails(repo: Path) -> None:
     assert "Invalid type for goal field: goal_id" in result.stderr
 
 
+def test_duplicate_goal_ids_in_metrics_file_fail(repo: Path) -> None:
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    metrics_path.write_text(
+        json.dumps(
+            {
+                "summary": {},
+                "goals": [
+                    {
+                        "goal_id": "dup-goal",
+                        "title": "First",
+                        "goal_type": "product",
+                        "supersedes_goal_id": None,
+                        "status": "success",
+                        "attempts": 1,
+                        "started_at": None,
+                        "finished_at": None,
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": None,
+                        "notes": None,
+                    },
+                    {
+                        "goal_id": "dup-goal",
+                        "title": "Second",
+                        "goal_type": "product",
+                        "supersedes_goal_id": None,
+                        "status": "fail",
+                        "attempts": 1,
+                        "started_at": None,
+                        "finished_at": None,
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": "other",
+                        "notes": None,
+                    },
+                ],
+                "entries": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode != 0
+    assert "Duplicate goal_id found: dup-goal" in result.stderr
+
+
+def test_entry_referencing_unknown_goal_fails(repo: Path) -> None:
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    metrics_path.write_text(
+        json.dumps(
+            {
+                "summary": {},
+                "goals": [
+                    {
+                        "goal_id": "known-goal",
+                        "title": "Known",
+                        "goal_type": "product",
+                        "supersedes_goal_id": None,
+                        "status": "success",
+                        "attempts": 1,
+                        "started_at": None,
+                        "finished_at": None,
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": None,
+                        "notes": None,
+                    }
+                ],
+                "entries": [
+                    {
+                        "entry_id": "entry-001",
+                        "goal_id": "missing-goal",
+                        "entry_type": "product",
+                        "inferred": False,
+                        "status": "fail",
+                        "started_at": None,
+                        "finished_at": None,
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": "other",
+                        "notes": None,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode != 0
+    assert "Entry references unknown goal_id: missing-goal" in result.stderr
+
+
 def test_existing_task_can_be_updated_without_title_and_keeps_started_at(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 

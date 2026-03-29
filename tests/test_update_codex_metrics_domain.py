@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -221,3 +223,102 @@ def test_sync_goal_attempt_entries_creates_and_closes_attempt_history() -> None:
     assert entries[1]["failure_reason"] is None
     assert entries[1]["cost_usd"] == 0.2
     assert entries[1]["tokens_total"] == 500
+
+
+def test_parse_usage_event_extracts_expected_fields() -> None:
+    event = MODULE.parse_usage_event(
+        'event.name="codex.sse_event" '
+        "event.kind=response.completed "
+        "input_token_count=1000 "
+        "output_token_count=500 "
+        "cached_token_count=100 "
+        "reasoning_token_count=25 "
+        "tool_token_count=10 "
+        "event.timestamp=2026-03-29T09:05:00.000Z "
+        "conversation.id=thread-123 "
+        "model=gpt-5.4 "
+        "slug=gpt-5.4"
+    )
+
+    assert event is not None
+    assert event["model"] == "gpt-5.4"
+    assert event["input_tokens"] == 1000
+    assert event["cached_input_tokens"] == 100
+    assert event["output_tokens"] == 500
+    assert event["reasoning_tokens"] == 25
+    assert event["tool_tokens"] == 10
+
+
+def test_resolve_pricing_model_alias_accepts_current_model_suffixes() -> None:
+    pricing = {
+        "gpt-5": {
+            "input_per_million_usd": 1.25,
+            "cached_input_per_million_usd": 0.125,
+            "output_per_million_usd": 10.0,
+        },
+        "gpt-5-mini": {
+            "input_per_million_usd": 0.25,
+            "cached_input_per_million_usd": 0.025,
+            "output_per_million_usd": 2.0,
+        },
+    }
+
+    assert MODULE.resolve_pricing_model_alias("gpt-5.4", pricing) == "gpt-5"
+    assert MODULE.resolve_pricing_model_alias("gpt-5.4-mini", pricing) == "gpt-5-mini"
+
+
+def test_resolve_codex_usage_window_returns_none_without_matching_thread(
+    tmp_path: Path,
+) -> None:
+    state_path = tmp_path / "state.sqlite"
+    logs_path = tmp_path / "logs.sqlite"
+    pricing_path = tmp_path / "pricing.json"
+
+    pricing_path.write_text(
+        json.dumps(
+            {
+                "models": {
+                    "gpt-5": {
+                        "input_per_million_usd": 1.25,
+                        "cached_input_per_million_usd": 0.125,
+                        "output_per_million_usd": 10.0,
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with sqlite3.connect(state_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE threads (
+                id TEXT PRIMARY KEY,
+                cwd TEXT NOT NULL,
+                updated_at INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO threads (id, cwd, updated_at) VALUES (?, ?, ?)",
+            ("thread-123", str(tmp_path / "other"), 1),
+        )
+
+    with sqlite3.connect(logs_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                feedback_log_body TEXT
+            )
+            """
+        )
+
+    assert MODULE.resolve_codex_usage_window(
+        state_path=state_path,
+        logs_path=logs_path,
+        cwd=tmp_path,
+        started_at="2026-03-29T09:00:00+00:00",
+        finished_at="2026-03-29T09:10:00+00:00",
+        pricing_path=pricing_path,
+    ) == (None, None)

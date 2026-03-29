@@ -1,21 +1,21 @@
 {
   "summary": {
-    "closed_tasks": 42,
-    "successes": 42,
+    "closed_tasks": 45,
+    "successes": 45,
     "fails": 0,
-    "total_attempts": 43,
+    "total_attempts": 46,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0238095238095237,
+    "attempts_per_closed_task": 1.0222222222222221,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 28,
-        "successes": 28,
+        "closed_tasks": 30,
+        "successes": 30,
         "fails": 0,
-        "total_attempts": 28,
+        "total_attempts": 30,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -36,10 +36,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 9,
-        "successes": 9,
+        "closed_tasks": 10,
+        "successes": 10,
         "fails": 0,
-        "total_attempts": 9,
+        "total_attempts": 10,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -50,10 +50,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 28,
-        "successes": 28,
+        "closed_tasks": 30,
+        "successes": 30,
         "fails": 0,
-        "total_attempts": 28,
+        "total_attempts": 30,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -74,10 +74,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 9,
-        "successes": 9,
+        "closed_tasks": 10,
+        "successes": 10,
         "fails": 0,
-        "total_attempts": 9,
+        "total_attempts": 10,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 43,
-      "successes": 42,
+      "closed_entries": 46,
+      "successes": 45,
       "fails": 1,
-      "success_rate": 0.9767441860465116,
+      "success_rate": 0.9782608695652174,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -728,6 +728,48 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones."
+    },
+    {
+      "goal_id": "2026-03-29-047",
+      "title": "Ignore local coverage artifacts and plan ROI work",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:25:21+00:00",
+      "finished_at": "2026-03-29T11:25:30+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing."
+    },
+    {
+      "goal_id": "2026-03-29-048",
+      "title": "Expand high-ROI test coverage and add verify command",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:28:28+00:00",
+      "finished_at": "2026-03-29T11:31:29+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint."
+    },
+    {
+      "goal_id": "2026-03-29-049",
+      "title": "Retro for high-ROI coverage expansion",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:32:30+00:00",
+      "finished_at": "2026-03-29T11:32:30+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail."
     }
   ],
   "entries": [
@@ -1280,6 +1322,45 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added subprocess-aware coverage support via coverage.py and test harness env switching, then measured real updater coverage and identified the main remaining untested zones."
+    },
+    {
+      "entry_id": "2026-03-29-047-attempt-001",
+      "goal_id": "2026-03-29-047",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:25:21+00:00",
+      "finished_at": "2026-03-29T11:25:30+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added local coverage artifacts to .gitignore and defined the next engineering plan around expected ROI instead of continued polishing."
+    },
+    {
+      "entry_id": "2026-03-29-048-attempt-001",
+      "goal_id": "2026-03-29-048",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:28:28+00:00",
+      "finished_at": "2026-03-29T11:31:29+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added high-ROI tests for malformed metrics validation plus usage/pricing helpers, and introduced a canonical Makefile verify/coverage entrypoint."
+    },
+    {
+      "entry_id": "2026-03-29-049-attempt-001",
+      "goal_id": "2026-03-29-049",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:32:30+00:00",
+      "finished_at": "2026-03-29T11:32:30+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why coverage-driven test selection had better ROI than broad test expansion, and kept verify-flow as a permanent guardrail."
     }
   ]
 }
