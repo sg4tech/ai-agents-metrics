@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,6 +45,10 @@ def now_utc_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def now_utc_datetime() -> datetime:
+    return datetime.now(timezone.utc).replace(microsecond=0)
+
+
 def ensure_parent_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -66,13 +71,79 @@ def default_metrics() -> dict[str, Any]:
     }
 
 
+def parse_iso_datetime(value: str, field_name: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"Invalid {field_name}: {value}") from exc
+
+    if parsed.tzinfo is None:
+        raise ValueError(f"Invalid {field_name}: timezone offset is required")
+    return parsed
+
+
+def validate_task_record(task: dict[str, Any]) -> None:
+    required_fields = {
+        "task_id": str,
+        "title": str,
+        "status": str,
+        "attempts": int,
+        "started_at": (str, type(None)),
+        "finished_at": (str, type(None)),
+        "cost_usd": (int, float, type(None)),
+        "tokens_total": (int, type(None)),
+        "failure_reason": (str, type(None)),
+        "notes": (str, type(None)),
+    }
+
+    for field_name, allowed_types in required_fields.items():
+        if field_name not in task:
+            raise ValueError(f"Missing required task field: {field_name}")
+        if not isinstance(task[field_name], allowed_types):
+            raise ValueError(f"Invalid type for task field: {field_name}")
+
+    if not task["task_id"].strip():
+        raise ValueError("task_id cannot be empty")
+    if not task["title"].strip():
+        raise ValueError("title cannot be empty")
+
+    validate_status(task["status"])
+    validate_non_negative_int(task["attempts"], "attempts")
+
+    if task["cost_usd"] is not None:
+        validate_non_negative_float(float(task["cost_usd"]), "cost_usd")
+    if task["tokens_total"] is not None:
+        validate_non_negative_int(task["tokens_total"], "tokens_total")
+
+    validate_failure_reason(task["failure_reason"])
+    validate_task_business_rules(task)
+
+
+def validate_metrics_data(data: dict[str, Any], path: Path) -> None:
+    if "summary" not in data or "tasks" not in data:
+        raise ValueError(f"Invalid metrics file format: {path}")
+    if not isinstance(data["summary"], dict):
+        raise ValueError(f"Invalid metrics summary format: {path}")
+    if not isinstance(data["tasks"], list):
+        raise ValueError(f"Invalid metrics tasks format: {path}")
+
+    task_ids: set[str] = set()
+    for task in data["tasks"]:
+        if not isinstance(task, dict):
+            raise ValueError("Each task record must be an object")
+        validate_task_record(task)
+        task_id = task["task_id"]
+        if task_id in task_ids:
+            raise ValueError(f"Duplicate task_id found: {task_id}")
+        task_ids.add(task_id)
+
+
 def load_metrics(path: Path) -> dict[str, Any]:
     if not path.exists():
         return default_metrics()
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
-    if "summary" not in data or "tasks" not in data:
-        raise ValueError(f"Invalid metrics file format: {path}")
+    validate_metrics_data(data, path)
     return data
 
 
@@ -105,6 +176,25 @@ def validate_non_negative_int(value: int, field_name: str) -> None:
 def validate_non_negative_float(value: float, field_name: str) -> None:
     if value < 0:
         raise ValueError(f"{field_name} cannot be negative")
+
+
+def validate_task_business_rules(task: dict[str, Any]) -> None:
+    started_at = task.get("started_at")
+    finished_at = task.get("finished_at")
+    status = task["status"]
+    failure_reason = task.get("failure_reason")
+
+    started_dt = parse_iso_datetime(started_at, "started_at") if started_at is not None else None
+    finished_dt = parse_iso_datetime(finished_at, "finished_at") if finished_at is not None else None
+
+    if status == "fail" and failure_reason is None:
+        raise ValueError("failure_reason is required when status is fail")
+    if status == "success" and failure_reason is not None:
+        raise ValueError("failure_reason must be empty when status is success")
+    if status == "in_progress" and finished_at is not None:
+        raise ValueError("finished_at must be empty when status is in_progress")
+    if started_dt is not None and finished_dt is not None and finished_dt < started_dt:
+        raise ValueError("finished_at cannot be earlier than started_at")
 
 
 def get_task_index(tasks: list[dict[str, Any]], task_id: str) -> int | None:
@@ -226,7 +316,14 @@ def save_report(path: Path, data: dict[str, Any]) -> None:
     path.write_text(report, encoding="utf-8")
 
 
-def init_files(metrics_path: Path, report_path: Path) -> None:
+def init_files(metrics_path: Path, report_path: Path, force: bool = False) -> None:
+    if not force:
+        existing_paths = [path for path in (metrics_path, report_path) if path.exists()]
+        if existing_paths:
+            joined_paths = ", ".join(str(path) for path in existing_paths)
+            raise ValueError(
+                f"Metrics files already exist: {joined_paths}. Use --force to overwrite."
+            )
     data = default_metrics()
     save_metrics(metrics_path, data)
     save_report(report_path, data)
@@ -272,6 +369,8 @@ def upsert_task(
     task = tasks[task_index]
 
     if title is not None:
+        if not title.strip():
+            raise ValueError("title cannot be empty")
         task["title"] = title
     if status is not None:
         validate_status(status)
@@ -313,7 +412,17 @@ def upsert_task(
         task["finished_at"] = finished_at
 
     if task["status"] in {"success", "fail"} and not task.get("finished_at"):
-        task["finished_at"] = now_utc_iso()
+        finished_dt = now_utc_datetime()
+        started_at_value = task.get("started_at")
+        if started_at_value is not None:
+            started_dt = parse_iso_datetime(started_at_value, "started_at")
+            if finished_dt < started_dt:
+                finished_dt = started_dt
+        task["finished_at"] = finished_dt.isoformat()
+    if task["status"] == "success":
+        task["failure_reason"] = None
+
+    validate_task_record(task)
 
     return task
 
@@ -325,6 +434,7 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser = subparsers.add_parser("init", help="Initialize metrics files")
     init_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     init_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
+    init_parser.add_argument("--force", action="store_true", help="Overwrite existing metrics files")
 
     update_parser = subparsers.add_parser("update", help="Create or update a task")
     update_parser.add_argument("--task-id", required=True)
@@ -371,7 +481,7 @@ def main() -> int:
     if args.command == "init":
         metrics_path = Path(args.metrics_path)
         report_path = Path(args.report_path)
-        init_files(metrics_path, report_path)
+        init_files(metrics_path, report_path, force=args.force)
         print(f"Initialized {metrics_path} and {report_path}")
         return 0
 
@@ -419,4 +529,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1)

@@ -2,10 +2,10 @@
 
 ## Current summary
 
-- Closed tasks: 4
-- Successes: 4
+- Closed tasks: 5
+- Successes: 5
 - Fails: 0
-- Total attempts: 4
+- Total attempts: 5
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -14,6 +14,16 @@
 - Cost per Success (Tokens): n/a
 
 ## Task log
+
+### 2026-03-29-006 — Harden metrics business validation and safe init
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T08:49:39+00:00
+- Finished at: 2026-03-29T08:51:56+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added strict task-record validation, status/failure_reason and timestamp business rules, safe init with --force, concise CLI error messages, 22 passing tests, and sequential smoke validation for init/update/show.
 
 ### 2026-03-29-005 — Assess and improve updater test coverage
 - Status: success

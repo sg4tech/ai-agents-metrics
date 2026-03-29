@@ -1,9 +1,9 @@
 {
   "summary": {
-    "closed_tasks": 4,
-    "successes": 4,
+    "closed_tasks": 5,
+    "successes": 5,
     "fails": 0,
-    "total_attempts": 4,
+    "total_attempts": 5,
     "total_cost_usd": 0.0,
     "total_tokens": 0,
     "success_rate": 1.0,
@@ -59,6 +59,18 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Expanded tests to cover missing stateful CLI behavior: required title on create, updating existing tasks without title, explicit timestamps, negative attempts, and report ordering; 15 tests passed and smoke flow validated."
+    },
+    {
+      "task_id": "2026-03-29-006",
+      "title": "Harden metrics business validation and safe init",
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T08:49:39+00:00",
+      "finished_at": "2026-03-29T08:51:56+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added strict task-record validation, status/failure_reason and timestamp business rules, safe init with --force, concise CLI error messages, 22 passing tests, and sequential smoke validation for init/update/show."
     }
   ]
 }

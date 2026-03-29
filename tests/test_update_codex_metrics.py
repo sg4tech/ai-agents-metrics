@@ -56,6 +56,27 @@ def test_init_creates_files(repo: Path) -> None:
     assert "_No tasks recorded yet._" in report
 
 
+def test_init_refuses_to_overwrite_without_force(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(repo, "init")
+
+    assert result.returncode != 0
+    assert "already exist" in result.stderr
+
+
+def test_init_force_allows_overwrite(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    metrics_path.write_text('{"unexpected": true}\n', encoding="utf-8")
+
+    result = run_cmd(repo, "init", "--force")
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(metrics_path)
+    assert data["tasks"] == []
+
+
 def test_create_task_and_close_success(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 
@@ -183,6 +204,8 @@ def test_multiple_tasks_summary(repo: Path) -> None:
         "4",
         "--status",
         "fail",
+        "--failure-reason",
+        "other",
     ).returncode == 0
 
     data = read_json(repo / "metrics" / "codex_metrics.json")
@@ -220,6 +243,16 @@ def test_new_task_requires_title(repo: Path) -> None:
 
     assert result.returncode != 0
     assert "title is required when creating a new task" in result.stderr
+
+
+def test_invalid_metrics_file_format_fails(repo: Path) -> None:
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    metrics_path.write_text(json.dumps({"summary": {}, "tasks": [{}]}), encoding="utf-8")
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode != 0
+    assert "Missing required task field" in result.stderr
 
 
 def test_existing_task_can_be_updated_without_title_and_keeps_started_at(repo: Path) -> None:
@@ -261,6 +294,77 @@ def test_existing_task_can_be_updated_without_title_and_keeps_started_at(repo: P
     assert task["started_at"] == started_at
     assert task["finished_at"] == finished_at
     assert task["attempts"] == 1
+
+
+def test_finished_at_cannot_be_before_started_at(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "bad-times",
+        "--title",
+        "Bad Times",
+        "--started-at",
+        "2026-03-29T09:10:00+00:00",
+        "--finished-at",
+        "2026-03-29T09:00:00+00:00",
+        "--status",
+        "success",
+    )
+
+    assert result.returncode != 0
+    assert "finished_at cannot be earlier than started_at" in result.stderr
+
+
+def test_invalid_timestamp_format_fails(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "bad-timestamp",
+        "--title",
+        "Bad Timestamp",
+        "--started-at",
+        "not-a-timestamp",
+    )
+
+    assert result.returncode != 0
+    assert "Invalid started_at" in result.stderr
+
+
+def test_fail_status_requires_failure_reason(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    assert run_cmd(repo, "update", "--task-id", "must-fail", "--title", "Must Fail").returncode == 0
+
+    result = run_cmd(repo, "update", "--task-id", "must-fail", "--status", "fail")
+
+    assert result.returncode != 0
+    assert "failure_reason is required when status is fail" in result.stderr
+
+
+def test_success_status_clears_existing_failure_reason(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    assert run_cmd(repo, "update", "--task-id", "recover", "--title", "Recover Task").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "recover",
+        "--status",
+        "fail",
+        "--failure-reason",
+        "validation_failed",
+    ).returncode == 0
+
+    result = run_cmd(repo, "update", "--task-id", "recover", "--status", "success")
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    assert data["tasks"][0]["failure_reason"] is None
 
 
 @pytest.mark.parametrize(
