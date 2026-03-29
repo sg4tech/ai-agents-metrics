@@ -33,24 +33,25 @@ Generated files:
 
 For every engineering task involving the metrics system:
 
-1. create or continue a task record
-2. set or confirm the task type:
+1. create or continue a goal record
+2. set or confirm the goal type:
    - `product` for product or engineering delivery
    - `retro` for retrospective analysis and retro writeups
    - `meta` for bookkeeping, audits, process/tooling governance, and non-product support work
-   - for new tasks, always pass the task type explicitly
-   - if a new task intentionally continues or supersedes a prior closed task, link it explicitly with `--continuation-of` or `--supersedes-task-id`
-3. update attempts on each new implementation pass
+   - for new goals, always pass the goal type explicitly
+   - if a new goal intentionally continues or supersedes a prior closed goal, link it explicitly with `--continuation-of` or `--supersedes-task-id`
+3. update attempts on each new implementation pass for the same goal
 4. update cost or tokens when available
-5. close the task as `success` or `fail`
+5. close the goal as `success` or `fail`
 6. regenerate:
    - `metrics/codex_metrics.json`
    - `docs/codex-metrics.md`
 
 Metrics bookkeeping is part of the definition of done.
 
-Retrospectives must not be mixed into product-delivery metrics without classification.
+Retrospectives must not be mixed into product-delivery goal metrics without classification.
 Reports should make retrospective work and product-development work distinguishable.
+Source of truth should use `goals + entries`, with summary reported by effective goal chains rather than raw linked records.
 
 ## Script editing rules
 

@@ -34,7 +34,7 @@ A task is considered in scope if Codex:
 
 ## Definitions
 
-### Task
+### Goal
 One user-visible or developer-visible requested outcome.
 
 Examples:
@@ -42,44 +42,44 @@ Examples:
 - fix login redirect bug
 - add test coverage for billing service
 
-A task may require multiple attempts.
+A goal may require multiple attempts or linked follow-up records.
 
 ### Attempt
-One independent Codex execution cycle for the same task.
+One independent Codex execution cycle for the same goal.
 
 A new attempt starts when Codex takes a new implementation pass after failure, clarification, rollback, or a significant re-plan.
 
 ### Success
-A task is marked as `success` when:
+A goal is marked as `success` when:
 - the intended outcome is implemented
 - required validation has been completed
 - the result is accepted
 - no manual code edits were required from the user
 
 ### Fail
-A task is marked as `fail` when:
-- the task is abandoned
-- the task is reverted
-- the task cannot be completed in the current session
+A goal is marked as `fail` when:
+- the goal is abandoned
+- the goal is reverted
+- the goal cannot be completed in the current session
 - the result is unusable after attempts
-- the task must be restarted as a new task instead of continued
+- the goal must be restarted as a new goal instead of continued
 
 ### Cost
-Cost is the total resource usage across all attempts for the task.
+Cost is the total resource usage across all attempts for the goal.
 
 Preferred order:
 1. USD cost
 2. token count
 3. if neither is available, keep cost as null
 
-## Required task fields
+## Required goal fields
 
-Each task record must contain:
+Each goal record must contain:
 
-- `task_id`
+- `goal_id`
 - `title`
-- `task_type`
-- `supersedes_task_id`
+- `goal_type`
+- `supersedes_goal_id`
 - `status`
 - `attempts`
 - `started_at`
@@ -89,7 +89,22 @@ Each task record must contain:
 - `failure_reason`
 - `notes`
 
-## Allowed task types
+## Required entry fields
+
+Each entry record must contain:
+
+- `entry_id`
+- `goal_id`
+- `entry_type`
+- `status`
+- `started_at`
+- `finished_at`
+- `cost_usd`
+- `tokens_total`
+- `failure_reason`
+- `notes`
+
+## Allowed goal types
 
 - `product`
 - `retro`
@@ -100,8 +115,8 @@ Use:
 - `retro` for retrospectives and retrospective writeups
 - `meta` for bookkeeping, audits, policy/tooling governance, and other support work that should not be mixed with product delivery metrics
 
-For new task records, `task_type` must always be set explicitly.
-If a new task intentionally continues or supersedes a prior closed task instead of remaining one task with more attempts, that relationship must be recorded explicitly.
+For new goal records, `goal_type` must always be set explicitly.
+If a new goal intentionally continues or supersedes a prior closed goal instead of remaining one goal with more attempts, that relationship must be recorded explicitly.
 
 ## Allowed status values
 
@@ -134,13 +149,13 @@ Human-readable summaries may also be written to:
 
 If there is any mismatch, `metrics/codex_metrics.json` is the source of truth.
 
-## Required per-task workflow
+## Required per-goal workflow
 
-### At task start
+### At goal start
 Codex must:
-1. detect whether the work belongs to an existing open task or a new task
-2. create a new task record if needed
-3. if a new task intentionally replaces or continues a prior closed task, record that link explicitly
+1. detect whether the work belongs to an existing open goal or a new goal
+2. create a new goal record if needed
+3. if a new goal intentionally replaces or continues a prior closed goal, record that link explicitly
 4. set status to `in_progress`
 5. initialize attempts to `0`
 
@@ -151,7 +166,7 @@ Codex must:
 3. update partial cost if available
 4. record the dominant failure reason if the attempt did not succeed
 
-### On task completion
+### On goal completion
 Codex must:
 1. set final status to `success` or `fail`
 2. set `finished_at`
@@ -161,11 +176,11 @@ Codex must:
 
 ## Summary metrics
 
-The following summary metrics must be recalculated after every closed task.
+The following summary metrics must be recalculated after every closed effective goal.
 
 They must be available both:
 - overall
-- per `task_type`
+- per `goal_type`
 
 ### Success Rate
 Formula:
@@ -173,8 +188,8 @@ Formula:
 `success_rate = successes / closed_tasks`
 
 Where:
-- `successes` = number of tasks with status `success`
-- `closed_tasks` = number of tasks with status `success` or `fail`
+- `successes` = number of effective goals with status `success`
+- `closed_tasks` = number of effective goals with status `success` or `fail`
 
 If `closed_tasks = 0`, set `success_rate = null`.
 
@@ -184,8 +199,8 @@ Formula:
 `attempts_per_success = total_attempts / successes`
 
 Where:
-- `total_attempts` = sum of attempts across closed tasks
-- `successes` = number of successful tasks
+- `total_attempts` = sum of attempts across closed effective goals
+- `successes` = number of successful effective goals
 
 If `successes = 0`, set `attempts_per_success = null`.
 
@@ -207,9 +222,9 @@ If `successes = 0` or token data is unavailable, set `cost_per_success_tokens = 
 
 At the end of each completed task, Codex must provide in its final response:
 
-- task status
-- task type
-- attempts for the task
+- goal status
+- goal type
+- attempts for the goal
 - current success rate
 - current attempts per success
 - current cost per success if available
@@ -219,17 +234,17 @@ At the end of each completed task, Codex must provide in its final response:
 A task is not done until all of the following are true:
 - implementation work is complete
 - validation work is complete
-- task record is updated in `metrics/codex_metrics.json`
+- goal and entry records are updated in `metrics/codex_metrics.json`
 - summary metrics are recalculated
 - readable report is updated in `docs/codex-metrics.md`
 
 ## Anti-gaming rules
 
-- Do not split one coherent task into many tiny tasks just to inflate success rate.
+- Do not split one coherent goal into many tiny goals just to inflate success rate.
 - Do not classify retrospective or bookkeeping work as product delivery.
 - Do not keep failed work as `in_progress` forever to hide failures.
-- Do not edit summary values directly without updating the underlying task records.
-- Do not mark a task as success if validation has not been completed.
+- Do not edit summary values directly without updating the underlying goal and entry records.
+- Do not mark a goal as success if validation has not been completed.
 - Do not ignore bookkeeping because implementation “already works”.
 
 ## Preferred file structure
@@ -260,12 +275,12 @@ A task is not done until all of the following are true:
       "meta": {}
     }
   },
-  "tasks": [
+  "goals": [
     {
-      "task_id": "2026-03-29-001",
+      "goal_id": "2026-03-29-g001",
       "title": "Example task",
-      "task_type": "product",
-      "supersedes_task_id": null,
+      "goal_type": "product",
+      "supersedes_goal_id": null,
       "status": "success",
       "attempts": 1,
       "started_at": "2026-03-29T09:00:00+00:00",
@@ -274,6 +289,20 @@ A task is not done until all of the following are true:
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Example task record"
+    }
+  ],
+  "entries": [
+    {
+      "entry_id": "2026-03-29-e001",
+      "goal_id": "2026-03-29-g001",
+      "entry_type": "product",
+      "status": "success",
+      "started_at": "2026-03-29T09:00:00+00:00",
+      "finished_at": "2026-03-29T09:10:00+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Example entry record"
     }
   ]
 }

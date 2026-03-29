@@ -35,11 +35,11 @@ ALLOWED_FAILURE_REASONS = {
 
 
 @dataclass
-class TaskRecord:
-    task_id: str
+class GoalRecord:
+    goal_id: str
     title: str
-    task_type: str
-    supersedes_task_id: str | None
+    goal_type: str
+    supersedes_goal_id: str | None
     status: str
     attempts: int
     started_at: str | None
@@ -48,6 +48,11 @@ class TaskRecord:
     tokens_total: int | None
     failure_reason: str | None
     notes: str | None
+
+
+LEGACY_GOAL_SUPERSEDES_MAP = {
+    "2026-03-29-008": "2026-03-29-007",
+}
 
 
 USAGE_FIELD_PATTERNS = {
@@ -76,7 +81,8 @@ def ensure_parent_dir(path: Path) -> None:
 def default_metrics() -> dict[str, Any]:
     return {
         "summary": empty_summary_block(include_by_task_type=True),
-        "tasks": [],
+        "goals": [],
+        "entries": [],
     }
 
 
@@ -94,8 +100,19 @@ def empty_summary_block(include_by_task_type: bool = False) -> dict[str, Any]:
         "cost_per_success_tokens": None,
     }
     if include_by_task_type:
-        summary["by_task_type"] = {
+        typed_summary = {
             task_type: empty_summary_block(include_by_task_type=False) for task_type in sorted(ALLOWED_TASK_TYPES)
+        }
+        summary["by_goal_type"] = typed_summary
+        summary["by_task_type"] = typed_summary
+        summary["entries"] = {
+            "closed_entries": 0,
+            "successes": 0,
+            "fails": 0,
+            "success_rate": None,
+            "total_cost_usd": 0.0,
+            "total_tokens": 0,
+            "failure_reasons": {},
         }
     return summary
 
@@ -121,12 +138,12 @@ def parse_iso_datetime(value: str, field_name: str) -> datetime:
     return parsed
 
 
-def validate_task_record(task: dict[str, Any]) -> None:
+def validate_goal_record(goal: dict[str, Any]) -> None:
     required_fields = {
-        "task_id": str,
+        "goal_id": str,
         "title": str,
-        "task_type": str,
-        "supersedes_task_id": (str, type(None)),
+        "goal_type": str,
+        "supersedes_goal_id": (str, type(None)),
         "status": str,
         "attempts": int,
         "started_at": (str, type(None)),
@@ -138,57 +155,171 @@ def validate_task_record(task: dict[str, Any]) -> None:
     }
 
     for field_name, allowed_types in required_fields.items():
-        if field_name not in task:
-            raise ValueError(f"Missing required task field: {field_name}")
-        if not isinstance(task[field_name], allowed_types):
-            raise ValueError(f"Invalid type for task field: {field_name}")
+        if field_name not in goal:
+            raise ValueError(f"Missing required goal field: {field_name}")
+        if not isinstance(goal[field_name], allowed_types):
+            raise ValueError(f"Invalid type for goal field: {field_name}")
 
-    if not task["task_id"].strip():
-        raise ValueError("task_id cannot be empty")
-    if not task["title"].strip():
+    if not goal["goal_id"].strip():
+        raise ValueError("goal_id cannot be empty")
+    if not goal["title"].strip():
         raise ValueError("title cannot be empty")
 
-    validate_task_type(task["task_type"])
-    validate_status(task["status"])
-    validate_non_negative_int(task["attempts"], "attempts")
+    validate_task_type(goal["goal_type"])
+    validate_status(goal["status"])
+    validate_non_negative_int(goal["attempts"], "attempts")
 
-    if task["cost_usd"] is not None:
-        validate_non_negative_float(float(task["cost_usd"]), "cost_usd")
-    if task["tokens_total"] is not None:
-        validate_non_negative_int(task["tokens_total"], "tokens_total")
+    if goal["cost_usd"] is not None:
+        validate_non_negative_float(float(goal["cost_usd"]), "cost_usd")
+    if goal["tokens_total"] is not None:
+        validate_non_negative_int(goal["tokens_total"], "tokens_total")
 
-    validate_failure_reason(task["failure_reason"])
-    validate_task_business_rules(task)
+    validate_failure_reason(goal["failure_reason"])
+    validate_task_business_rules(goal)
+
+
+def validate_entry_record(entry: dict[str, Any]) -> None:
+    required_fields = {
+        "entry_id": str,
+        "goal_id": str,
+        "entry_type": str,
+        "status": str,
+        "started_at": (str, type(None)),
+        "finished_at": (str, type(None)),
+        "cost_usd": (int, float, type(None)),
+        "tokens_total": (int, type(None)),
+        "failure_reason": (str, type(None)),
+        "notes": (str, type(None)),
+    }
+
+    for field_name, allowed_types in required_fields.items():
+        if field_name not in entry:
+            raise ValueError(f"Missing required entry field: {field_name}")
+        if not isinstance(entry[field_name], allowed_types):
+            raise ValueError(f"Invalid type for entry field: {field_name}")
+
+    if not entry["entry_id"].strip():
+        raise ValueError("entry_id cannot be empty")
+    if not entry["goal_id"].strip():
+        raise ValueError("goal_id cannot be empty")
+    if not entry["entry_type"].strip():
+        raise ValueError("entry_type cannot be empty")
+
+    validate_status(entry["status"])
+    if entry["cost_usd"] is not None:
+        validate_non_negative_float(float(entry["cost_usd"]), "cost_usd")
+    if entry["tokens_total"] is not None:
+        validate_non_negative_int(entry["tokens_total"], "tokens_total")
+    validate_failure_reason(entry["failure_reason"])
 
 
 def validate_metrics_data(data: dict[str, Any], path: Path) -> None:
-    if "summary" not in data or "tasks" not in data:
+    if "summary" not in data or "goals" not in data or "entries" not in data:
         raise ValueError(f"Invalid metrics file format: {path}")
     if not isinstance(data["summary"], dict):
         raise ValueError(f"Invalid metrics summary format: {path}")
-    if not isinstance(data["tasks"], list):
-        raise ValueError(f"Invalid metrics tasks format: {path}")
+    if not isinstance(data["goals"], list):
+        raise ValueError(f"Invalid metrics goals format: {path}")
+    if not isinstance(data["entries"], list):
+        raise ValueError(f"Invalid metrics entries format: {path}")
 
-    task_ids: set[str] = set()
-    for task in data["tasks"]:
-        if not isinstance(task, dict):
-            raise ValueError("Each task record must be an object")
-        validate_task_record(task)
-        task_id = task["task_id"]
-        if task_id in task_ids:
-            raise ValueError(f"Duplicate task_id found: {task_id}")
-        task_ids.add(task_id)
+    goal_ids: set[str] = set()
+    for goal in data["goals"]:
+        if not isinstance(goal, dict):
+            raise ValueError("Each goal record must be an object")
+        validate_goal_record(goal)
+        goal_id = goal["goal_id"]
+        if goal_id in goal_ids:
+            raise ValueError(f"Duplicate goal_id found: {goal_id}")
+        goal_ids.add(goal_id)
+
+    for goal in data["goals"]:
+        superseded_goal_id = goal.get("supersedes_goal_id")
+        if superseded_goal_id is not None and superseded_goal_id not in goal_ids:
+            raise ValueError(f"Referenced superseded goal not found: {superseded_goal_id}")
+
+    entry_ids: set[str] = set()
+    for entry in data["entries"]:
+        if not isinstance(entry, dict):
+            raise ValueError("Each entry record must be an object")
+        validate_entry_record(entry)
+        entry_id = entry["entry_id"]
+        if entry_id in entry_ids:
+            raise ValueError(f"Duplicate entry_id found: {entry_id}")
+        if entry["goal_id"] not in goal_ids:
+            raise ValueError(f"Entry references unknown goal_id: {entry['goal_id']}")
+        entry_ids.add(entry_id)
 
 
 def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
-    tasks = data.get("tasks")
-    if not isinstance(tasks, list):
-        return
-    for task in tasks:
-        if isinstance(task, dict) and "task_type" not in task:
-            task["task_type"] = "product"
-        if isinstance(task, dict) and "supersedes_task_id" not in task:
-            task["supersedes_task_id"] = None
+    if "tasks" in data and "goals" not in data:
+        tasks = data.get("tasks")
+        if isinstance(tasks, list):
+            goals = []
+            entries = []
+            for task in tasks:
+                if not isinstance(task, dict):
+                    continue
+                task_type = task.get("task_type", "product")
+                supersedes_task_id = task.get("supersedes_task_id")
+                task_id = task.get("task_id")
+                if task_id in LEGACY_GOAL_SUPERSEDES_MAP and supersedes_task_id is None:
+                    supersedes_task_id = LEGACY_GOAL_SUPERSEDES_MAP[task_id]
+                goal = {
+                    "goal_id": task_id,
+                    "title": task.get("title"),
+                    "goal_type": task_type,
+                    "supersedes_goal_id": supersedes_task_id,
+                    "status": task.get("status"),
+                    "attempts": task.get("attempts"),
+                    "started_at": task.get("started_at"),
+                    "finished_at": task.get("finished_at"),
+                    "cost_usd": task.get("cost_usd"),
+                    "tokens_total": task.get("tokens_total"),
+                    "failure_reason": task.get("failure_reason"),
+                    "notes": task.get("notes"),
+                }
+                goals.append(goal)
+                entries.append(
+                    {
+                        "entry_id": task_id,
+                        "goal_id": task_id,
+                        "entry_type": task_type,
+                        "status": task.get("status"),
+                        "started_at": task.get("started_at"),
+                        "finished_at": task.get("finished_at"),
+                        "cost_usd": task.get("cost_usd"),
+                        "tokens_total": task.get("tokens_total"),
+                        "failure_reason": task.get("failure_reason"),
+                        "notes": task.get("notes"),
+                    }
+                )
+            data["goals"] = goals
+            data["entries"] = entries
+
+    goals = data.get("goals")
+    if isinstance(goals, list):
+        for goal in goals:
+            if isinstance(goal, dict) and "goal_type" not in goal:
+                goal["goal_type"] = goal.pop("task_type", "product")
+            if isinstance(goal, dict) and "goal_id" not in goal:
+                goal["goal_id"] = goal.pop("task_id")
+            if isinstance(goal, dict) and "supersedes_goal_id" not in goal:
+                goal["supersedes_goal_id"] = goal.pop("supersedes_task_id", None)
+
+    entries = data.get("entries")
+    if not isinstance(entries, list) and isinstance(goals, list):
+        data["entries"] = []
+        entries = data["entries"]
+
+    if isinstance(entries, list):
+        for entry in entries:
+            if isinstance(entry, dict) and "goal_id" not in entry:
+                entry["goal_id"] = entry.get("task_id")
+            if isinstance(entry, dict) and "entry_id" not in entry:
+                entry["entry_id"] = entry.get("goal_id")
+            if isinstance(entry, dict) and "entry_type" not in entry:
+                entry["entry_type"] = entry.get("task_type", "update")
 
 
 def load_pricing(path: Path) -> dict[str, dict[str, float | None]]:
@@ -420,8 +551,10 @@ def load_metrics(path: Path) -> dict[str, Any]:
 
 def save_metrics(path: Path, data: dict[str, Any]) -> None:
     ensure_parent_dir(path)
+    data_to_save = dict(data)
+    data_to_save.pop("tasks", None)
     with path.open("w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data_to_save, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
 
@@ -475,7 +608,7 @@ def validate_task_business_rules(task: dict[str, Any]) -> None:
 
 def get_task_index(tasks: list[dict[str, Any]], task_id: str) -> int | None:
     for idx, task in enumerate(tasks):
-        if task.get("task_id") == task_id:
+        if task.get("goal_id") == task_id:
             return idx
     return None
 
@@ -540,7 +673,7 @@ def combine_optional_tokens(first: int | None, second: int | None) -> int | None
 def build_merged_notes(kept_task: dict[str, Any], dropped_task: dict[str, Any]) -> str:
     notes_parts = [part for part in (kept_task.get("notes"), dropped_task.get("notes")) if part]
     notes_parts.append(
-        f"Merged {dropped_task['task_id']} into {kept_task['task_id']} to recombine split task history."
+        f"Merged {dropped_task['goal_id']} into {kept_task['goal_id']} to recombine split goal history."
     )
     return " | ".join(notes_parts)
 
@@ -572,23 +705,23 @@ def compute_summary_block(tasks: list[dict[str, Any]]) -> dict[str, Any]:
 
     total_attempts = sum(int(t.get("attempts") or 0) for t in closed_tasks)
 
-    usd_values = [t["cost_usd"] for t in closed_tasks if t.get("cost_usd") is not None]
+    usd_values = [t["cost_usd_known"] for t in closed_tasks if t.get("cost_usd_known") is not None]
     total_cost_usd = float(sum(usd_values)) if usd_values else 0.0
 
-    token_values = [int(t["tokens_total"]) for t in closed_tasks if t.get("tokens_total") is not None]
+    token_values = [int(t["tokens_total_known"]) for t in closed_tasks if t.get("tokens_total_known") is not None]
     total_tokens = sum(token_values) if token_values else 0
 
     success_rate = (len(successes) / len(closed_tasks)) if closed_tasks else None
     attempts_per_success = (total_attempts / len(successes)) if successes else None
 
-    success_cost_values = [t["cost_usd"] for t in successes if t.get("cost_usd") is not None]
+    success_cost_values = [t["cost_usd"] for t in successes if t.get("cost_complete") and t.get("cost_usd") is not None]
     cost_per_success_usd = (
         float(sum(success_cost_values)) / len(successes)
         if successes and len(success_cost_values) == len(successes)
         else None
     )
 
-    success_token_values = [int(t["tokens_total"]) for t in successes if t.get("tokens_total") is not None]
+    success_token_values = [int(t["tokens_total"]) for t in successes if t.get("tokens_complete") and t.get("tokens_total") is not None]
     cost_per_success_tokens = (
         sum(success_token_values) / len(successes)
         if successes and len(success_token_values) == len(successes)
@@ -609,26 +742,121 @@ def compute_summary_block(tasks: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def build_effective_goals(goals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    goal_by_id = {goal["goal_id"]: goal for goal in goals}
+    superseded_goal_ids = {
+        goal["supersedes_goal_id"]
+        for goal in goals
+        if goal.get("supersedes_goal_id") is not None
+    }
+    effective_goals: list[dict[str, Any]] = []
+
+    for terminal_goal in goals:
+        if terminal_goal["goal_id"] in superseded_goal_ids:
+            continue
+
+        chain: list[dict[str, Any]] = []
+        current_goal = terminal_goal
+        visited_goal_ids: set[str] = set()
+        while True:
+            goal_id = current_goal["goal_id"]
+            if goal_id in visited_goal_ids:
+                raise ValueError(f"Detected supersession cycle at goal: {goal_id}")
+            visited_goal_ids.add(goal_id)
+            chain.append(current_goal)
+            previous_goal_id = current_goal.get("supersedes_goal_id")
+            if previous_goal_id is None:
+                break
+            previous_goal = goal_by_id.get(previous_goal_id)
+            if previous_goal is None:
+                raise ValueError(f"Referenced superseded goal not found: {previous_goal_id}")
+            current_goal = previous_goal
+
+        chain.reverse()
+        known_cost_values = [float(goal["cost_usd"]) for goal in chain if goal.get("cost_usd") is not None]
+        aggregated_cost_known = round_usd(sum(known_cost_values)) if known_cost_values else None
+        aggregated_cost = aggregated_cost_known if len(known_cost_values) == len(chain) else None
+        known_token_values = [int(goal["tokens_total"]) for goal in chain if goal.get("tokens_total") is not None]
+        aggregated_tokens_known = sum(known_token_values) if known_token_values else None
+        aggregated_tokens = aggregated_tokens_known if len(known_token_values) == len(chain) else None
+        started_at = None
+        finished_at = None
+        for goal in chain:
+            started_at = choose_earliest_timestamp(started_at, goal.get("started_at"))
+            finished_at = choose_latest_timestamp(finished_at, goal.get("finished_at"))
+
+        effective_goals.append(
+            {
+                "goal_id": terminal_goal["goal_id"],
+                "title": terminal_goal["title"],
+                "goal_type": terminal_goal["goal_type"],
+                "status": terminal_goal["status"],
+                "attempts": sum(int(goal.get("attempts") or 0) for goal in chain),
+                "started_at": started_at,
+                "finished_at": finished_at,
+                "cost_usd": aggregated_cost,
+                "cost_usd_known": aggregated_cost_known,
+                "cost_complete": len(known_cost_values) == len(chain),
+                "tokens_total": aggregated_tokens,
+                "tokens_total_known": aggregated_tokens_known,
+                "tokens_complete": len(known_token_values) == len(chain),
+                "failure_reason": terminal_goal.get("failure_reason"),
+                "notes": terminal_goal.get("notes"),
+                "supersedes_goal_id": terminal_goal.get("supersedes_goal_id"),
+            }
+        )
+
+    return effective_goals
+
+
+def compute_entry_summary(entries: list[dict[str, Any]]) -> dict[str, Any]:
+    closed_entries = [entry for entry in entries if entry["status"] in {"success", "fail"}]
+    successes = [entry for entry in closed_entries if entry["status"] == "success"]
+    fails = [entry for entry in closed_entries if entry["status"] == "fail"]
+    usd_values = [float(entry["cost_usd"]) for entry in closed_entries if entry.get("cost_usd") is not None]
+    token_values = [int(entry["tokens_total"]) for entry in closed_entries if entry.get("tokens_total") is not None]
+    failure_reason_counts: dict[str, int] = {}
+    for entry in fails:
+        reason = entry.get("failure_reason") or "other"
+        failure_reason_counts[reason] = failure_reason_counts.get(reason, 0) + 1
+
+    return {
+        "closed_entries": len(closed_entries),
+        "successes": len(successes),
+        "fails": len(fails),
+        "success_rate": (len(successes) / len(closed_entries)) if closed_entries else None,
+        "total_cost_usd": round_usd(sum(usd_values)) if usd_values else 0.0,
+        "total_tokens": sum(token_values) if token_values else 0,
+        "failure_reasons": dict(sorted(failure_reason_counts.items())),
+    }
+
+
 def recompute_summary(data: dict[str, Any]) -> None:
-    tasks: list[dict[str, Any]] = data["tasks"]
-    summary = compute_summary_block(tasks)
-    summary["by_task_type"] = {
-        task_type: compute_summary_block([task for task in tasks if task.get("task_type") == task_type])
+    goals: list[dict[str, Any]] = data["goals"]
+    entries: list[dict[str, Any]] = data["entries"]
+    effective_goals = build_effective_goals(goals)
+    summary = compute_summary_block(effective_goals)
+    by_goal_type = {
+        task_type: compute_summary_block([goal for goal in effective_goals if goal.get("goal_type") == task_type])
         for task_type in sorted(ALLOWED_TASK_TYPES)
     }
+    summary["by_goal_type"] = by_goal_type
+    summary["by_task_type"] = by_goal_type
+    summary["entries"] = compute_entry_summary(entries)
     data["summary"] = summary
 
 
 def generate_report_md(data: dict[str, Any]) -> str:
     summary = data["summary"]
-    tasks: list[dict[str, Any]] = data["tasks"]
+    goals: list[dict[str, Any]] = data["goals"]
+    entries: list[dict[str, Any]] = data["entries"]
 
     lines: list[str] = [
         "# Codex Metrics",
         "",
-        "## Current summary",
+        "## Goal summary",
         "",
-        f"- Closed tasks: {summary['closed_tasks']}",
+        f"- Closed goals: {summary['closed_tasks']}",
         f"- Successes: {summary['successes']}",
         f"- Fails: {summary['fails']}",
         f"- Total attempts: {summary['total_attempts']}",
@@ -639,16 +867,36 @@ def generate_report_md(data: dict[str, Any]) -> str:
         f"- Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}",
         f"- Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}",
         "",
-        "## By task type",
+        "## Entry summary",
+        "",
+        f"- Closed entries: {summary['entries']['closed_entries']}",
+        f"- Successes: {summary['entries']['successes']}",
+        f"- Fails: {summary['entries']['fails']}",
+        f"- Success Rate: {format_pct(summary['entries']['success_rate'])}",
+        f"- Total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
+        f"- Total tokens: {summary['entries']['total_tokens']}",
+        "",
+        "## By goal type",
         "",
     ]
 
+    failure_reasons = summary["entries"]["failure_reasons"]
+    if failure_reasons:
+        lines.extend(
+            [
+                "### Entry failure reasons",
+            ]
+        )
+        for reason, count in failure_reasons.items():
+            lines.append(f"- {reason}: {count}")
+        lines.append("")
+
     for task_type in ("product", "retro", "meta"):
-        type_summary = summary["by_task_type"][task_type]
+        type_summary = summary["by_goal_type"][task_type]
         lines.extend(
             [
                 f"### {task_type}",
-                f"- Closed tasks: {type_summary['closed_tasks']}",
+                f"- Closed goals: {type_summary['closed_tasks']}",
                 f"- Successes: {type_summary['successes']}",
                 f"- Fails: {type_summary['fails']}",
                 f"- Total attempts: {type_summary['total_attempts']}",
@@ -664,22 +912,22 @@ def generate_report_md(data: dict[str, Any]) -> str:
 
     lines.extend(
         [
-            "## Task log",
+            "## Goal log",
             "",
         ]
     )
 
-    if not tasks:
-        lines.append("_No tasks recorded yet._")
+    if not goals:
+        lines.append("_No goals recorded yet._")
         lines.append("")
         return "\n".join(lines)
 
-    for task in sorted(tasks, key=lambda x: x.get("started_at") or "", reverse=True):
+    for task in sorted(goals, key=lambda x: x.get("started_at") or "", reverse=True):
         lines.extend(
             [
-                f"### {task['task_id']} — {task['title']}",
-                f"- Task type: {task['task_type']}",
-                f"- Supersedes task: {task.get('supersedes_task_id') or 'n/a'}",
+                f"### {task['goal_id']} — {task['title']}",
+                f"- Goal type: {task['goal_type']}",
+                f"- Supersedes goal: {task.get('supersedes_goal_id') or 'n/a'}",
                 f"- Status: {task['status']}",
                 f"- Attempts: {task['attempts']}",
                 f"- Started at: {task['started_at'] or 'n/a'}",
@@ -692,6 +940,28 @@ def generate_report_md(data: dict[str, Any]) -> str:
             ]
         )
 
+    lines.extend(
+        [
+            "## Entry log",
+            "",
+        ]
+    )
+    for entry in sorted(entries, key=lambda x: x.get("started_at") or "", reverse=True):
+        lines.extend(
+            [
+                f"### {entry['entry_id']} — {entry['goal_id']}",
+                f"- Entry type: {entry['entry_type']}",
+                f"- Status: {entry['status']}",
+                f"- Started at: {entry['started_at'] or 'n/a'}",
+                f"- Finished at: {entry['finished_at'] or 'n/a'}",
+                f"- Cost (USD): {format_usd(entry.get('cost_usd'))}",
+                f"- Tokens: {format_num(entry.get('tokens_total'))}",
+                f"- Failure reason: {entry.get('failure_reason') or 'n/a'}",
+                f"- Notes: {entry.get('notes') or 'n/a'}",
+                "",
+            ]
+        )
+
     return "\n".join(lines)
 
 
@@ -699,6 +969,25 @@ def save_report(path: Path, data: dict[str, Any]) -> None:
     ensure_parent_dir(path)
     report = generate_report_md(data)
     path.write_text(report, encoding="utf-8")
+
+
+def refresh_entries_from_goals(data: dict[str, Any]) -> None:
+    goals: list[dict[str, Any]] = data["goals"]
+    data["entries"] = [
+        {
+            "entry_id": goal["goal_id"],
+            "goal_id": goal["goal_id"],
+            "entry_type": goal["goal_type"],
+            "status": goal["status"],
+            "started_at": goal["started_at"],
+            "finished_at": goal["finished_at"],
+            "cost_usd": goal["cost_usd"],
+            "tokens_total": goal["tokens_total"],
+            "failure_reason": goal["failure_reason"],
+            "notes": goal["notes"],
+        }
+        for goal in goals
+    ]
 
 
 def init_files(metrics_path: Path, report_path: Path, force: bool = False) -> None:
@@ -742,7 +1031,7 @@ def upsert_task(
     codex_thread_id: str | None,
     cwd: Path,
 ) -> dict[str, Any]:
-    tasks: list[dict[str, Any]] = data["tasks"]
+    tasks: list[dict[str, Any]] = data["goals"]
     task_index = get_task_index(tasks, task_id)
     linked_task_id = resolve_linked_task_reference(
         tasks=tasks,
@@ -760,13 +1049,13 @@ def upsert_task(
         validate_task_type(resolved_task_type)
         if linked_task_id is not None:
             linked_task = get_task(tasks, linked_task_id)
-            if linked_task is not None and linked_task["task_type"] != resolved_task_type:
+            if linked_task is not None and linked_task["goal_type"] != resolved_task_type:
                 raise ValueError("linked tasks must use the same task_type")
-        task = TaskRecord(
-            task_id=task_id,
+        task = GoalRecord(
+            goal_id=task_id,
             title=title,
-            task_type=resolved_task_type,
-            supersedes_task_id=linked_task_id,
+            goal_type=resolved_task_type,
+            supersedes_goal_id=linked_task_id,
             status="in_progress",
             attempts=0,
             started_at=started_at or now_utc_iso(),
@@ -810,7 +1099,7 @@ def upsert_task(
         task["title"] = title
     if task_type is not None:
         validate_task_type(task_type)
-        task["task_type"] = task_type
+        task["goal_type"] = task_type
     if status is not None:
         validate_status(status)
         task["status"] = status
@@ -871,7 +1160,7 @@ def upsert_task(
     if task["status"] == "success":
         task["failure_reason"] = None
 
-    validate_task_record(task)
+    validate_goal_record(task)
 
     return task
 
@@ -937,7 +1226,7 @@ def build_parser() -> argparse.ArgumentParser:
 def print_summary(data: dict[str, Any]) -> None:
     summary = data["summary"]
     print("Codex Metrics Summary")
-    print(f"Closed tasks: {summary['closed_tasks']}")
+    print(f"Closed goals: {summary['closed_tasks']}")
     print(f"Successes: {summary['successes']}")
     print(f"Fails: {summary['fails']}")
     print(f"Total attempts: {summary['total_attempts']}")
@@ -947,9 +1236,17 @@ def print_summary(data: dict[str, Any]) -> None:
     print(f"Attempts per Success: {format_num(summary['attempts_per_success'])}")
     print(f"Cost per Success (USD): {format_usd(summary['cost_per_success_usd'])}")
     print(f"Cost per Success (Tokens): {format_num(summary['cost_per_success_tokens'])}")
+    print(f"Closed entries: {summary['entries']['closed_entries']}")
+    print(f"Entry successes: {summary['entries']['successes']}")
+    print(f"Entry fails: {summary['entries']['fails']}")
+    print(f"Entry Success Rate: {format_pct(summary['entries']['success_rate'])}")
     for task_type in ("product", "retro", "meta"):
-        type_summary = summary["by_task_type"][task_type]
-        print(f"{task_type.title()} tasks: {type_summary['closed_tasks']} closed, {type_summary['successes']} successes, {type_summary['fails']} fails")
+        type_summary = summary["by_goal_type"][task_type]
+        print(f"{task_type.title()} goals: {type_summary['closed_tasks']} closed, {type_summary['successes']} successes, {type_summary['fails']} fails")
+    if summary["entries"]["failure_reasons"]:
+        print("Entry failure reasons:")
+        for reason, count in summary["entries"]["failure_reasons"].items():
+            print(f"- {reason}: {count}")
 
 
 def sync_codex_usage(
@@ -961,7 +1258,7 @@ def sync_codex_usage(
     codex_thread_id: str | None,
 ) -> int:
     updated_tasks = 0
-    tasks: list[dict[str, Any]] = data["tasks"]
+    tasks: list[dict[str, Any]] = data["goals"]
     for task in tasks:
         auto_cost_usd, auto_total_tokens = resolve_codex_usage_window(
             state_path=codex_state_path,
@@ -982,7 +1279,7 @@ def sync_codex_usage(
             task["tokens_total"] = auto_total_tokens
             changed = True
         if changed:
-            validate_task_record(task)
+            validate_goal_record(task)
             updated_tasks += 1
     return updated_tasks
 
@@ -991,18 +1288,18 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
     if keep_task_id == drop_task_id:
         raise ValueError("keep_task_id and drop_task_id must be different")
 
-    tasks: list[dict[str, Any]] = data["tasks"]
+    tasks: list[dict[str, Any]] = data["goals"]
     keep_index = get_task_index(tasks, keep_task_id)
     drop_index = get_task_index(tasks, drop_task_id)
     if keep_index is None:
-        raise ValueError(f"Task not found: {keep_task_id}")
+        raise ValueError(f"Goal not found: {keep_task_id}")
     if drop_index is None:
-        raise ValueError(f"Task not found: {drop_task_id}")
+        raise ValueError(f"Goal not found: {drop_task_id}")
 
     kept_task = tasks[keep_index]
     dropped_task = tasks[drop_index]
     if kept_task["status"] not in {"success", "fail"} or dropped_task["status"] not in {"success", "fail"}:
-        raise ValueError("only closed tasks can be merged")
+        raise ValueError("only closed goals can be merged")
 
     kept_task["attempts"] = int(kept_task["attempts"]) + int(dropped_task["attempts"])
     kept_task["started_at"] = choose_earliest_timestamp(kept_task.get("started_at"), dropped_task.get("started_at"))
@@ -1010,15 +1307,15 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
     kept_task["cost_usd"] = combine_optional_cost(kept_task.get("cost_usd"), dropped_task.get("cost_usd"))
     kept_task["tokens_total"] = combine_optional_tokens(kept_task.get("tokens_total"), dropped_task.get("tokens_total"))
     kept_task["notes"] = build_merged_notes(kept_task, dropped_task)
-    if kept_task.get("supersedes_task_id") is None:
-        kept_task["supersedes_task_id"] = dropped_task.get("supersedes_task_id")
+    if kept_task.get("supersedes_goal_id") is None:
+        kept_task["supersedes_goal_id"] = dropped_task.get("supersedes_goal_id")
 
     if kept_task["status"] == "success":
         kept_task["failure_reason"] = None
     elif kept_task.get("failure_reason") is None:
         kept_task["failure_reason"] = dropped_task.get("failure_reason")
 
-    validate_task_record(kept_task)
+    validate_goal_record(kept_task)
     del tasks[drop_index]
     return kept_task
 
@@ -1037,6 +1334,7 @@ def main() -> int:
     if args.command == "show":
         metrics_path = Path(args.metrics_path)
         data = load_metrics(metrics_path)
+        refresh_entries_from_goals(data)
         recompute_summary(data)
         print_summary(data)
         return 0
@@ -1056,6 +1354,7 @@ def main() -> int:
             codex_logs_path=codex_logs_path,
             codex_thread_id=args.codex_thread_id,
         )
+        refresh_entries_from_goals(data)
         recompute_summary(data)
         save_metrics(metrics_path, data)
         save_report(report_path, data)
@@ -1072,10 +1371,11 @@ def main() -> int:
             keep_task_id=args.keep_task_id,
             drop_task_id=args.drop_task_id,
         )
+        refresh_entries_from_goals(data)
         recompute_summary(data)
         save_metrics(metrics_path, data)
         save_report(report_path, data)
-        print(f"Merged task {args.drop_task_id} into {args.keep_task_id}")
+        print(f"Merged goal {args.drop_task_id} into {args.keep_task_id}")
         print(f"Status: {task['status']}")
         print(f"Attempts: {task['attempts']}")
         print_summary(data)
@@ -1118,11 +1418,12 @@ def main() -> int:
             cwd=Path.cwd(),
         )
 
+        refresh_entries_from_goals(data)
         recompute_summary(data)
         save_metrics(metrics_path, data)
         save_report(report_path, data)
 
-        print(f"Updated task {task['task_id']}")
+        print(f"Updated goal {task['goal_id']}")
         print(f"Status: {task['status']}")
         print(f"Attempts: {task['attempts']}")
         print_summary(data)

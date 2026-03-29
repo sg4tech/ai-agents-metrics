@@ -25,7 +25,26 @@ def run_cmd(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 def read_json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if "goals" in data and "tasks" not in data:
+        data["tasks"] = [
+            {
+                "task_id": goal["goal_id"],
+                "title": goal["title"],
+                "task_type": goal["goal_type"],
+                "supersedes_task_id": goal.get("supersedes_goal_id"),
+                "status": goal["status"],
+                "attempts": goal["attempts"],
+                "started_at": goal["started_at"],
+                "finished_at": goal["finished_at"],
+                "cost_usd": goal["cost_usd"],
+                "tokens_total": goal["tokens_total"],
+                "failure_reason": goal["failure_reason"],
+                "notes": goal["notes"],
+            }
+            for goal in data["goals"]
+        ]
+    return data
 
 
 def create_codex_usage_sources(
@@ -153,6 +172,9 @@ def test_init_creates_files(repo: Path) -> None:
     assert report_path.exists()
 
     data = read_json(metrics_path)
+    assert "goals" in data
+    assert "entries" in data
+    assert "tasks" in data
     assert data["summary"]["closed_tasks"] == 0
     assert data["summary"]["by_task_type"]["product"]["closed_tasks"] == 0
     assert data["summary"]["by_task_type"]["retro"]["closed_tasks"] == 0
@@ -161,7 +183,7 @@ def test_init_creates_files(repo: Path) -> None:
 
     report = report_path.read_text(encoding="utf-8")
     assert "Codex Metrics" in report
-    assert "_No tasks recorded yet._" in report
+    assert "_No goals recorded yet._" in report
 
 
 def test_init_refuses_to_overwrite_without_force(repo: Path) -> None:
@@ -526,7 +548,7 @@ def test_invalid_metrics_file_format_fails(repo: Path) -> None:
     result = run_cmd(repo, "show")
 
     assert result.returncode != 0
-    assert "Missing required task field" in result.stderr
+    assert "Invalid type for goal field: goal_id" in result.stderr
 
 
 def test_existing_task_can_be_updated_without_title_and_keeps_started_at(repo: Path) -> None:
@@ -686,8 +708,9 @@ def test_show_command(repo: Path) -> None:
     result = run_cmd(repo, "show")
     assert result.returncode == 0
     assert "Codex Metrics Summary" in result.stdout
-    assert "Closed tasks: 0" in result.stdout
-    assert "Product tasks: 0 closed, 0 successes, 0 fails" in result.stdout
+    assert "Closed goals: 0" in result.stdout
+    assert "Closed entries: 0" in result.stdout
+    assert "Product goals: 0 closed, 0 successes, 0 fails" in result.stdout
 
 
 def test_task_type_can_be_set_to_retro_and_is_reported_separately(repo: Path) -> None:
@@ -716,7 +739,7 @@ def test_task_type_can_be_set_to_retro_and_is_reported_separately(repo: Path) ->
 
     report = (repo / "docs" / "codex-metrics.md").read_text(encoding="utf-8")
     assert "### retro" in report
-    assert "- Task type: retro" in report
+    assert "- Goal type: retro" in report
 
 
 def test_new_task_can_link_to_closed_previous_task(repo: Path) -> None:
@@ -761,7 +784,67 @@ def test_new_task_can_link_to_closed_previous_task(repo: Path) -> None:
     assert followup_task["supersedes_task_id"] == "original-task"
 
     report = (repo / "docs" / "codex-metrics.md").read_text(encoding="utf-8")
-    assert "- Supersedes task: original-task" in report
+    assert "- Supersedes goal: original-task" in report
+
+
+def test_superseded_goal_chain_counts_as_one_effective_goal(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "goal-a",
+        "--title",
+        "Goal A",
+        "--task-type",
+        "product",
+        "--status",
+        "fail",
+        "--attempts",
+        "1",
+        "--failure-reason",
+        "validation_failed",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "goal-b",
+        "--title",
+        "Goal B",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "goal-a",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+        "--cost-usd",
+        "0.25",
+        "--tokens",
+        "1000",
+    ).returncode == 0
+
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+
+    assert data["summary"]["closed_tasks"] == 1
+    assert data["summary"]["successes"] == 1
+    assert data["summary"]["fails"] == 0
+    assert data["summary"]["total_attempts"] == 2
+    assert data["summary"]["attempts_per_success"] == 2.0
+    assert data["summary"]["cost_per_success_usd"] is None
+    assert data["summary"]["by_task_type"]["product"]["closed_tasks"] == 1
+    assert data["summary"]["entries"]["closed_entries"] == 2
+    assert data["summary"]["entries"]["fails"] == 1
+    assert data["summary"]["entries"]["successes"] == 1
+    assert len(data["goals"]) == 2
+    assert len(data["entries"]) == 2
+
+    report = (repo / "docs" / "codex-metrics.md").read_text(encoding="utf-8")
+    assert "## Entry summary" in report
+    assert "- Closed entries: 2" in report
+    assert "- Fails: 1" in report
 
 
 def test_new_task_can_use_supersedes_alias(repo: Path) -> None:
@@ -921,7 +1004,7 @@ def test_legacy_metrics_without_task_type_are_normalized(repo: Path) -> None:
     result = run_cmd(repo, "show")
 
     assert result.returncode == 0, result.stderr
-    assert "Product tasks: 1 closed, 1 successes, 0 fails" in result.stdout
+    assert "Product goals: 1 closed, 1 successes, 0 fails" in result.stdout
 
     update_result = run_cmd(repo, "update", "--task-id", "legacy-task", "--notes", "Normalized")
     assert update_result.returncode == 0, update_result.stderr
@@ -1167,7 +1250,7 @@ def test_merge_tasks_rejects_in_progress_tasks(repo: Path) -> None:
     )
 
     assert result.returncode != 0
-    assert "only closed tasks can be merged" in result.stderr
+    assert "only closed goals can be merged" in result.stderr
 
 
 def test_report_sorts_tasks_by_started_at_descending(repo: Path) -> None:
