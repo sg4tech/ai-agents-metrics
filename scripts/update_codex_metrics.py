@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import fcntl
 import json
+import os
 import re
 import sqlite3
 import sys
+import tempfile
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
@@ -17,6 +22,7 @@ REPORT_MD_PATH = Path("docs/codex-metrics.md")
 PRICING_JSON_PATH = Path("pricing/model_pricing.json")
 CODEX_STATE_PATH = Path.home() / ".codex" / "state_5.sqlite"
 CODEX_LOGS_PATH = Path.home() / ".codex" / "logs_1.sqlite"
+LOCKFILE_SUFFIX = ".lock"
 
 
 ALLOWED_STATUSES = {"in_progress", "success", "fail"}
@@ -648,13 +654,46 @@ def load_metrics(path: Path) -> dict[str, Any]:
     return data
 
 
+def atomic_write_text(path: Path, content: str) -> None:
+    ensure_parent_dir(path)
+    with tempfile.NamedTemporaryFile(
+        "w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as tmp_file:
+        tmp_file.write(content)
+        tmp_path = Path(tmp_file.name)
+    tmp_path.replace(path)
+
+
 def save_metrics(path: Path, data: dict[str, Any]) -> None:
     ensure_parent_dir(path)
     data_to_save = dict(data)
     data_to_save.pop("tasks", None)
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(data_to_save, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+    serialized = json.dumps(data_to_save, ensure_ascii=False, indent=2) + "\n"
+    atomic_write_text(path, serialized)
+
+
+def metrics_lock_path(metrics_path: Path) -> Path:
+    return metrics_path.with_name(f"{metrics_path.name}{LOCKFILE_SUFFIX}")
+
+
+@contextlib.contextmanager
+def metrics_mutation_lock(metrics_path: Path) -> Any:
+    lock_path = metrics_lock_path(metrics_path)
+    ensure_parent_dir(lock_path)
+    with lock_path.open("a+", encoding="utf-8") as lock_file:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        debug_sleep_seconds = float(os.environ.get("CODEX_METRICS_DEBUG_LOCK_HOLD_SECONDS", "0"))
+        if debug_sleep_seconds > 0:
+            time.sleep(debug_sleep_seconds)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def validate_status(status: str) -> None:
@@ -1259,9 +1298,8 @@ def generate_report_md(data: dict[str, Any]) -> str:
 
 
 def save_report(path: Path, data: dict[str, Any]) -> None:
-    ensure_parent_dir(path)
     report = generate_report_md(data)
-    path.write_text(report, encoding="utf-8")
+    atomic_write_text(path, report)
 
 
 def get_goal_entries(entries: list[dict[str, Any]], goal_id: str) -> list[dict[str, Any]]:
@@ -1287,6 +1325,24 @@ def next_entry_id(entries: list[dict[str, Any]], goal_id: str) -> str:
         if candidate not in existing_ids:
             return candidate
         entry_number += 1
+
+
+def next_goal_id(tasks: list[dict[str, Any]], now: datetime | None = None) -> str:
+    current_time = now or now_utc_datetime()
+    date_prefix = current_time.date().isoformat()
+    prefix = f"{date_prefix}-"
+    max_suffix = 0
+
+    for task in tasks:
+        goal_id = task.get("goal_id")
+        if not isinstance(goal_id, str) or not goal_id.startswith(prefix):
+            continue
+        suffix = goal_id.removeprefix(prefix)
+        if len(suffix) != 3 or not suffix.isdigit():
+            continue
+        max_suffix = max(max_suffix, int(suffix))
+
+    return f"{date_prefix}-{max_suffix + 1:03d}"
 
 
 def compute_numeric_delta(previous_value: float | int | None, current_value: float | int | None) -> float | int | None:
@@ -1672,7 +1728,7 @@ def finalize_goal_update(task: GoalRecord) -> None:
 
 def upsert_task(
     data: dict[str, Any],
-    task_id: str,
+    task_id: str | None,
     title: str | None,
     task_type: str | None,
     continuation_of: str | None,
@@ -1700,12 +1756,20 @@ def upsert_task(
 ) -> dict[str, Any]:
     tasks: list[dict[str, Any]] = data["goals"]
     entries: list[dict[str, Any]] = data["entries"]
+    creating_new_task = task_id is None
+    if task_id is not None:
+        creating_new_task = get_task_index(tasks, task_id) is None
+    elif title is None and task_type is None:
+        raise ValueError("task_id is required when updating an existing task")
+    if task_id is None:
+        task_id = next_goal_id(tasks)
+
     task_index = get_task_index(tasks, task_id)
     linked_task_id = resolve_linked_task_reference(
         tasks=tasks,
         continuation_of=continuation_of,
         supersedes_task_id=supersedes_task_id,
-        creating_new_task=task_index is None,
+        creating_new_task=creating_new_task,
     )
 
     if task_index is None:
@@ -1778,7 +1842,7 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--force", action="store_true", help="Overwrite existing metrics files")
 
     update_parser = subparsers.add_parser("update", help="Create or update a task")
-    update_parser.add_argument("--task-id", required=True)
+    update_parser.add_argument("--task-id")
     update_parser.add_argument("--title")
     update_parser.add_argument("--task-type", choices=sorted(ALLOWED_TASK_TYPES))
     linked_task_group = update_parser.add_mutually_exclusive_group()
@@ -1969,7 +2033,8 @@ def main() -> int:
     if args.command == "init":
         metrics_path = Path(args.metrics_path)
         report_path = Path(args.report_path)
-        init_files(metrics_path, report_path, force=args.force)
+        with metrics_mutation_lock(metrics_path):
+            init_files(metrics_path, report_path, force=args.force)
         print(f"Initialized {metrics_path} and {report_path}")
         return 0
 
@@ -1986,18 +2051,19 @@ def main() -> int:
         pricing_path = Path(args.pricing_path)
         codex_state_path = Path(args.codex_state_path)
         codex_logs_path = Path(args.codex_logs_path)
-        data = load_metrics(metrics_path)
-        updated_tasks = sync_codex_usage(
-            data=data,
-            cwd=Path.cwd(),
-            pricing_path=pricing_path,
-            codex_state_path=codex_state_path,
-            codex_logs_path=codex_logs_path,
-            codex_thread_id=args.codex_thread_id,
-        )
-        recompute_summary(data)
-        save_metrics(metrics_path, data)
-        save_report(report_path, data)
+        with metrics_mutation_lock(metrics_path):
+            data = load_metrics(metrics_path)
+            updated_tasks = sync_codex_usage(
+                data=data,
+                cwd=Path.cwd(),
+                pricing_path=pricing_path,
+                codex_state_path=codex_state_path,
+                codex_logs_path=codex_logs_path,
+                codex_thread_id=args.codex_thread_id,
+            )
+            recompute_summary(data)
+            save_metrics(metrics_path, data)
+            save_report(report_path, data)
         print(f"Synchronized Codex usage for {updated_tasks} task(s)")
         print_summary(data)
         return 0
@@ -2005,15 +2071,16 @@ def main() -> int:
     if args.command == "merge-tasks":
         metrics_path = Path(args.metrics_path)
         report_path = Path(args.report_path)
-        data = load_metrics(metrics_path)
-        task = merge_tasks(
-            data=data,
-            keep_task_id=args.keep_task_id,
-            drop_task_id=args.drop_task_id,
-        )
-        recompute_summary(data)
-        save_metrics(metrics_path, data)
-        save_report(report_path, data)
+        with metrics_mutation_lock(metrics_path):
+            data = load_metrics(metrics_path)
+            task = merge_tasks(
+                data=data,
+                keep_task_id=args.keep_task_id,
+                drop_task_id=args.drop_task_id,
+            )
+            recompute_summary(data)
+            save_metrics(metrics_path, data)
+            save_report(report_path, data)
         print(f"Merged goal {args.drop_task_id} into {args.keep_task_id}")
         print(f"Status: {task['status']}")
         print(f"Attempts: {task['attempts']}")
@@ -2023,48 +2090,51 @@ def main() -> int:
     if args.command == "update":
         metrics_path = Path(args.metrics_path)
         report_path = Path(args.report_path)
-        data = load_metrics(metrics_path)
-        previous_task = None
-        existing_task = get_task(data["goals"], args.task_id)
-        if existing_task is not None:
-            previous_task = dict(existing_task)
         pricing_path = Path(args.pricing_path)
         codex_state_path = Path(args.codex_state_path)
         codex_logs_path = Path(args.codex_logs_path)
+        with metrics_mutation_lock(metrics_path):
+            data = load_metrics(metrics_path)
+            previous_task = None
+            existing_task = None
+            if args.task_id is not None:
+                existing_task = get_task(data["goals"], args.task_id)
+            if existing_task is not None:
+                previous_task = dict(existing_task)
 
-        task = upsert_task(
-            data=data,
-            task_id=args.task_id,
-            title=args.title,
-            task_type=args.task_type,
-            continuation_of=args.continuation_of,
-            supersedes_task_id=args.supersedes_task_id,
-            status=args.status,
-            attempts_delta=args.attempts_delta,
-            attempts_abs=args.attempts,
-            cost_usd_add=args.cost_usd_add,
-            cost_usd_set=args.cost_usd,
-            tokens_add=args.tokens_add,
-            tokens_set=args.tokens,
-            failure_reason=args.failure_reason,
-            notes=args.notes,
-            started_at=args.started_at,
-            finished_at=args.finished_at,
-            model=args.model,
-            input_tokens=args.input_tokens,
-            cached_input_tokens=args.cached_input_tokens,
-            output_tokens=args.output_tokens,
-            pricing_path=pricing_path,
-            codex_state_path=codex_state_path,
-            codex_logs_path=codex_logs_path,
-            codex_thread_id=args.codex_thread_id,
-            cwd=Path.cwd(),
-        )
+            task = upsert_task(
+                data=data,
+                task_id=args.task_id,
+                title=args.title,
+                task_type=args.task_type,
+                continuation_of=args.continuation_of,
+                supersedes_task_id=args.supersedes_task_id,
+                status=args.status,
+                attempts_delta=args.attempts_delta,
+                attempts_abs=args.attempts,
+                cost_usd_add=args.cost_usd_add,
+                cost_usd_set=args.cost_usd,
+                tokens_add=args.tokens_add,
+                tokens_set=args.tokens,
+                failure_reason=args.failure_reason,
+                notes=args.notes,
+                started_at=args.started_at,
+                finished_at=args.finished_at,
+                model=args.model,
+                input_tokens=args.input_tokens,
+                cached_input_tokens=args.cached_input_tokens,
+                output_tokens=args.output_tokens,
+                pricing_path=pricing_path,
+                codex_state_path=codex_state_path,
+                codex_logs_path=codex_logs_path,
+                codex_thread_id=args.codex_thread_id,
+                cwd=Path.cwd(),
+            )
 
-        sync_goal_attempt_entries(data, task, previous_task)
-        recompute_summary(data)
-        save_metrics(metrics_path, data)
-        save_report(report_path, data)
+            sync_goal_attempt_entries(data, task, previous_task)
+            recompute_summary(data)
+            save_metrics(metrics_path, data)
+            save_report(report_path, data)
 
         print(f"Updated goal {task['goal_id']}")
         print(f"Status: {task['status']}")

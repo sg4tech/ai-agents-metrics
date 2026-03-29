@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 64,
-    "successes": 64,
+    "closed_tasks": 66,
+    "successes": 66,
     "fails": 0,
-    "total_attempts": 66,
+    "total_attempts": 69,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.03125,
+    "attempts_per_closed_task": 1.0454545454545454,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 15,
+        "successes": 15,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 18,
         "total_cost_usd": 0.747974,
         "total_tokens": 1594794,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1428571428571428,
+        "attempts_per_closed_task": 1.2,
         "known_cost_successes": 2,
         "known_token_successes": 2,
         "complete_cost_successes": 0,
@@ -60,10 +60,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 15,
+        "successes": 15,
         "fails": 0,
-        "total_attempts": 14,
+        "total_attempts": 15,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 15,
+        "successes": 15,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 18,
         "total_cost_usd": 0.747974,
         "total_tokens": 1594794,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1428571428571428,
+        "attempts_per_closed_task": 1.2,
         "known_cost_successes": 2,
         "known_token_successes": 2,
         "complete_cost_successes": 0,
@@ -122,10 +122,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 15,
+        "successes": 15,
         "fails": 0,
-        "total_attempts": 14,
+        "total_attempts": 15,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 66,
-      "successes": 65,
+      "closed_entries": 69,
+      "successes": 68,
       "fails": 1,
-      "success_rate": 0.9848484848484849,
+      "success_rate": 0.9855072463768116,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -1095,17 +1095,45 @@
     },
     {
       "goal_id": "2026-03-29-069",
-      "title": "Remove placeholder bootstrap main.py",
+      "title": "Improve CLI usability help and examples",
       "goal_type": "product",
       "supersedes_goal_id": "2026-03-29-067",
       "status": "success",
-      "attempts": 1,
+      "attempts": 2,
       "started_at": "2026-03-29T12:55:45+00:00",
       "finished_at": "2026-03-29T12:56:02+00:00",
       "cost_usd": 0.109862,
       "tokens_total": 235388,
       "failure_reason": null,
-      "notes": "Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green."
+      "notes": "Improve argparse help text and examples so the tool is easier to adopt and reuse without changing CLI behavior."
+    },
+    {
+      "goal_id": "2026-03-29-070",
+      "title": "Auto-generate goal IDs and lock metrics mutations",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T13:00:46+00:00",
+      "finished_at": "2026-03-29T13:04:06+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation."
+    },
+    {
+      "goal_id": "2026-03-29-071",
+      "title": "Retrospective for concurrent goal-id collision fix",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T13:05:16+00:00",
+      "finished_at": "2026-03-29T13:05:36+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage."
     }
   ],
   "entries": [
@@ -1957,6 +1985,45 @@
       "tokens_total": 235388,
       "failure_reason": null,
       "notes": "Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green."
+    },
+    {
+      "entry_id": "2026-03-29-070-attempt-001",
+      "goal_id": "2026-03-29-070",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T13:00:46+00:00",
+      "finished_at": "2026-03-29T13:04:06+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation."
+    },
+    {
+      "entry_id": "2026-03-29-069-attempt-002",
+      "goal_id": "2026-03-29-069",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T12:55:45+00:00",
+      "finished_at": "2026-03-29T12:56:02+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Improve argparse help text and examples so the tool is easier to adopt and reuse without changing CLI behavior."
+    },
+    {
+      "entry_id": "2026-03-29-071-attempt-001",
+      "goal_id": "2026-03-29-071",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T13:05:16+00:00",
+      "finished_at": "2026-03-29T13:05:36+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage."
     }
   ]
 }

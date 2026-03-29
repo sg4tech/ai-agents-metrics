@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 64
-- Successes: 64
+- Closed goals: 66
+- Successes: 66
 - Fails: 0
-- Total attempts: 66
+- Total attempts: 69
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.03
-- Known cost coverage: 4/64 successful goals
-- Known token coverage: 4/64 successful goals
-- Complete cost coverage: 2/64 successful goals
-- Complete token coverage: 2/64 successful goals
+- Attempts per Closed Goal: 1.05
+- Known cost coverage: 4/66 successful goals
+- Known token coverage: 4/66 successful goals
+- Complete cost coverage: 2/66 successful goals
+- Complete token coverage: 2/66 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 66
-- Successes: 65
+- Closed entries: 69
+- Successes: 68
 - Fails: 1
-- Success Rate: 98.48%
+- Success Rate: 98.55%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -41,36 +41,36 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 14
-- Successes: 14
+- Closed goals: 15
+- Successes: 15
 - Fails: 0
-- Total attempts: 16
+- Total attempts: 18
 - Known total cost (USD): 0.747974
 - Known total tokens: 1594794
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.14
-- Known cost coverage: 2/14 successful goals
-- Known token coverage: 2/14 successful goals
-- Complete cost coverage: 0/14 successful goals
-- Complete token coverage: 0/14 successful goals
+- Attempts per Closed Goal: 1.20
+- Known cost coverage: 2/15 successful goals
+- Known token coverage: 2/15 successful goals
+- Complete cost coverage: 0/15 successful goals
+- Complete token coverage: 0/15 successful goals
 - Known Cost per Success (USD): 0.373987
 - Known Cost per Success (Tokens): 797397.00
 - Complete Cost per Covered Success (USD): n/a
 - Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
-- Closed goals: 14
-- Successes: 14
+- Closed goals: 15
+- Successes: 15
 - Fails: 0
-- Total attempts: 14
+- Total attempts: 15
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/14 successful goals
-- Known token coverage: 1/14 successful goals
-- Complete cost coverage: 1/14 successful goals
-- Complete token coverage: 1/14 successful goals
+- Known cost coverage: 1/15 successful goals
+- Known token coverage: 1/15 successful goals
+- Complete cost coverage: 1/15 successful goals
+- Complete token coverage: 1/15 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Covered Success (USD): 0.255454
@@ -96,17 +96,41 @@
 
 ## Goal log
 
-### 2026-03-29-069 — Remove placeholder bootstrap main.py
+### 2026-03-29-071 — Retrospective for concurrent goal-id collision fix
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:05:16+00:00
+- Finished at: 2026-03-29T13:05:36+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage.
+
+### 2026-03-29-070 — Auto-generate goal IDs and lock metrics mutations
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:00:46+00:00
+- Finished at: 2026-03-29T13:04:06+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation.
+
+### 2026-03-29-069 — Improve CLI usability help and examples
 - Goal type: product
 - Supersedes goal: 2026-03-29-067
 - Status: success
-- Attempts: 1
+- Attempts: 2
 - Started at: 2026-03-29T12:55:45+00:00
 - Finished at: 2026-03-29T12:56:02+00:00
 - Cost (USD): 0.109862
 - Tokens: 235388
 - Failure reason: n/a
-- Notes: Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green.
+- Notes: Improve argparse help text and examples so the tool is easier to adopt and reuse without changing CLI behavior.
 
 ### 2026-03-29-068 — Minimize and generalize Codex Metrics Policy
 - Goal type: meta
@@ -914,6 +938,28 @@
 
 ## Entry log
 
+### 2026-03-29-071-attempt-001 — 2026-03-29-071
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:05:16+00:00
+- Finished at: 2026-03-29T13:05:36+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added retrospective documenting the concurrent goal-id collision bug, its source-of-truth boundary failure, and the permanent fixes: internal id generation, mutation locking, atomic writes, and regression coverage.
+
+### 2026-03-29-070-attempt-001 — 2026-03-29-070
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:00:46+00:00
+- Finished at: 2026-03-29T13:04:06+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added internal goal ID generation for new tasks, made --task-id optional for creation, protected mutating commands with an exclusive metrics lock, switched report/metrics writes to atomic replace, and added regression coverage for auto-id and parallel creation.
+
 ### 2026-03-29-069-attempt-001 — 2026-03-29-069
 - Entry type: product
 - Inferred: no
@@ -924,6 +970,17 @@
 - Tokens: 235388
 - Failure reason: n/a
 - Notes: Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green.
+
+### 2026-03-29-069-attempt-002 — 2026-03-29-069
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:55:45+00:00
+- Finished at: 2026-03-29T12:56:02+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Improve argparse help text and examples so the tool is easier to adopt and reuse without changing CLI behavior.
 
 ### 2026-03-29-068-attempt-001 — 2026-03-29-068
 - Entry type: meta

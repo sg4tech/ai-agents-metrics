@@ -16,13 +16,11 @@ ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
 PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
 
-def run_cmd(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    env = os.environ.copy()
+def build_cmd(*args: str) -> list[str]:
     script = str(SCRIPT)
-    if env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
-        env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+    if os.environ.get("CODEX_SUBPROCESS_COVERAGE") == "1":
         script = str(ABS_SCRIPT)
-        cmd = [
+        return [
             sys.executable,
             "-m",
             "coverage",
@@ -33,8 +31,20 @@ def run_cmd(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
             script,
             *args,
         ]
-    else:
-        cmd = [sys.executable, script, *args]
+    return [sys.executable, script, *args]
+
+
+def run_cmd(
+    tmp_path: Path,
+    *args: str,
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    if env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
+        env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+    if extra_env is not None:
+        env.update(extra_env)
+    cmd = build_cmd(*args)
     return subprocess.run(
         cmd,
         cwd=tmp_path,
@@ -295,6 +305,46 @@ def test_create_task_and_close_success(repo: Path) -> None:
     assert task["finished_at"] is not None
 
 
+def test_create_task_auto_generates_goal_id(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--title",
+        "Auto ID task",
+        "--task-type",
+        "product",
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Updated goal " in result.stdout
+
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    assert len(data["tasks"]) == 1
+    created_task = data["tasks"][0]
+    assert created_task["task_id"].startswith("20")
+    assert created_task["title"] == "Auto ID task"
+    assert created_task["task_type"] == "product"
+
+
+def test_create_task_auto_id_increments_with_same_day_prefix(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    first = run_cmd(repo, "update", "--title", "First", "--task-type", "product")
+    second = run_cmd(repo, "update", "--title", "Second", "--task-type", "product")
+
+    assert first.returncode == 0, first.stderr
+    assert second.returncode == 0, second.stderr
+
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    created_ids = sorted(task["task_id"] for task in data["tasks"])
+    assert len(created_ids) == 2
+    first_suffix = int(created_ids[0].rsplit("-", 1)[1])
+    second_suffix = int(created_ids[1].rsplit("-", 1)[1])
+    assert second_suffix == first_suffix + 1
+
+
 def test_update_can_compute_cost_from_model_pricing(repo: Path) -> None:
     assert run_cmd(repo, "init", "--force").returncode == 0
 
@@ -378,6 +428,77 @@ def test_entries_track_single_attempt_lifecycle(repo: Path) -> None:
     assert entries[0]["cost_usd"] == 0.1
     assert entries[0]["tokens_total"] == 200
     assert entries[0]["finished_at"] is not None
+
+
+def test_update_existing_task_without_task_id_is_rejected(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--attempts-delta",
+        "1",
+    )
+
+    assert result.returncode == 1
+    assert "task_id is required when updating an existing task" in result.stderr
+
+
+def test_create_task_without_title_is_rejected_when_task_id_is_omitted(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-type",
+        "product",
+    )
+
+    assert result.returncode == 1
+    assert "title is required when creating a new task" in result.stderr
+
+
+def test_parallel_auto_id_creates_distinct_goals(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+
+    first_env = os.environ.copy()
+    first_env["CODEX_METRICS_DEBUG_LOCK_HOLD_SECONDS"] = "0.5"
+    if first_env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
+        first_env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+
+    second_env = os.environ.copy()
+    if second_env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
+        second_env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+
+    first_process = subprocess.Popen(
+        build_cmd("update", "--title", "Parallel A", "--task-type", "product"),
+        cwd=repo,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=first_env,
+    )
+    second_process = subprocess.Popen(
+        build_cmd("update", "--title", "Parallel B", "--task-type", "product"),
+        cwd=repo,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=second_env,
+    )
+
+    first_stdout, first_stderr = first_process.communicate(timeout=15)
+    second_stdout, second_stderr = second_process.communicate(timeout=15)
+
+    assert first_process.returncode == 0, first_stderr
+    assert second_process.returncode == 0, second_stderr
+    assert "Updated goal " in first_stdout
+    assert "Updated goal " in second_stdout
+
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    created_ids = [task["task_id"] for task in data["tasks"]]
+    assert len(created_ids) == 2
+    assert len(set(created_ids)) == 2
 
 
 def test_entries_preserve_prior_attempt_when_new_attempt_starts(repo: Path) -> None:

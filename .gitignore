@@ -16,3 +16,6 @@ venv/
 
 # OS-generated files
 .DS_Store
+
+# Runtime lock files
+*.lock
