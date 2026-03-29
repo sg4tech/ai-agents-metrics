@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 88
-- Successes: 88
+- Closed goals: 89
+- Successes: 89
 - Fails: 0
-- Total attempts: 92
+- Total attempts: 93
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.05
-- Known cost coverage: 4/88 successful goals
-- Known token coverage: 4/88 successful goals
-- Complete cost coverage: 2/88 successful goals
-- Complete token coverage: 2/88 successful goals
+- Attempts per Closed Goal: 1.04
+- Known cost coverage: 4/89 successful goals
+- Known token coverage: 4/89 successful goals
+- Complete cost coverage: 2/89 successful goals
+- Complete token coverage: 2/89 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 92
-- Successes: 91
+- Closed entries: 93
+- Successes: 92
 - Fails: 1
-- Success Rate: 98.91%
+- Success Rate: 98.92%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -59,18 +59,18 @@
 - Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
-- Closed goals: 19
-- Successes: 19
+- Closed goals: 20
+- Successes: 20
 - Fails: 0
-- Total attempts: 19
+- Total attempts: 20
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/19 successful goals
-- Known token coverage: 1/19 successful goals
-- Complete cost coverage: 1/19 successful goals
-- Complete token coverage: 1/19 successful goals
+- Known cost coverage: 1/20 successful goals
+- Known token coverage: 1/20 successful goals
+- Complete cost coverage: 1/20 successful goals
+- Complete token coverage: 1/20 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Covered Success (USD): 0.255454
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-095 — Retro for result-fit quality layer
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:44:51+00:00
+- Finished at: 2026-03-29T14:45:12+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Documented why result_fit was added, why status was preserved, and why backfill remained curated.
 
 ### 2026-03-29-094 — Add result fit quality layer
 - Goal type: product
@@ -1306,6 +1319,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-095-attempt-001 — 2026-03-29-095
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:44:51+00:00
+- Finished at: 2026-03-29T14:45:12+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented why result_fit was added, why status was preserved, and why backfill remained curated.
 
 ### 2026-03-29-094-attempt-001 — 2026-03-29-094
 - Entry type: product

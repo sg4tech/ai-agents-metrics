@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 88,
-    "successes": 88,
+    "closed_tasks": 89,
+    "successes": 89,
     "fails": 0,
-    "total_attempts": 92,
+    "total_attempts": 93,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0454545454545454,
+    "attempts_per_closed_task": 1.0449438202247192,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -60,10 +60,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 19,
-        "successes": 19,
+        "closed_tasks": 20,
+        "successes": 20,
         "fails": 0,
-        "total_attempts": 19,
+        "total_attempts": 20,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -122,10 +122,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 19,
-        "successes": 19,
+        "closed_tasks": 20,
+        "successes": 20,
         "fails": 0,
-        "total_attempts": 19,
+        "total_attempts": 20,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 92,
-      "successes": 91,
+      "closed_entries": 93,
+      "successes": 92,
       "fails": 1,
-      "success_rate": 0.9891304347826086,
+      "success_rate": 0.989247311827957,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -1549,6 +1549,21 @@
       "failure_reason": null,
       "notes": "Added the result_fit quality layer, exposed it through the CLI and report, and backfilled the clearest historical quality outcomes.",
       "result_fit": "exact_fit"
+    },
+    {
+      "goal_id": "2026-03-29-095",
+      "title": "Retro for result-fit quality layer",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:44:51+00:00",
+      "finished_at": "2026-03-29T14:45:12+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why result_fit was added, why status was preserved, and why backfill remained curated.",
+      "result_fit": null
     }
   ],
   "entries": [
@@ -2753,6 +2768,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added the result_fit quality layer, exposed it through the CLI and report, and backfilled the clearest historical quality outcomes."
+    },
+    {
+      "entry_id": "2026-03-29-095-attempt-001",
+      "goal_id": "2026-03-29-095",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:44:51+00:00",
+      "finished_at": "2026-03-29T14:45:12+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why result_fit was added, why status was preserved, and why backfill remained curated."
     }
   ]
 }
