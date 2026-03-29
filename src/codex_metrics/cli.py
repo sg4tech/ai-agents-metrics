@@ -502,7 +502,9 @@ def bootstrap_project(
         agents_path=agents_path,
         force=force,
         dry_run=dry_run,
-        init_files=init_files,
+        load_metrics=load_metrics,
+        default_metrics=default_metrics,
+        save_report=save_report,
     )
     return result.messages
 
@@ -969,9 +971,13 @@ def main() -> int:
     return 2
 
 
-if __name__ == "__main__":
+def console_main() -> int:
     try:
-        raise SystemExit(main())
+        return main()
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
-        raise SystemExit(1)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(console_main())

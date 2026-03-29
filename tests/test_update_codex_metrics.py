@@ -503,6 +503,138 @@ def test_bootstrap_force_replaces_existing_policy_file(repo: Path) -> None:
     assert "Codex Metrics Policy" in policy_text
 
 
+def test_bootstrap_completes_partial_scaffold_when_metrics_exist(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    (repo / "docs" / "codex-metrics.md").unlink()
+
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 0, result.stderr
+    assert "Keeping existing metrics file" in result.stdout
+    assert "Created report file" in result.stdout
+    assert (repo / "metrics" / "codex_metrics.json").exists()
+    assert (repo / "docs" / "codex-metrics.md").exists()
+    assert (repo / "docs" / "codex-metrics-policy.md").exists()
+    assert (repo / "AGENTS.md").exists()
+
+
+def test_bootstrap_completes_partial_scaffold_when_report_exists(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    (repo / "metrics" / "codex_metrics.json").unlink()
+
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 0, result.stderr
+    assert "Created metrics file" in result.stdout
+    assert "Replaced report file" in result.stdout
+    assert (repo / "metrics" / "codex_metrics.json").exists()
+    assert (repo / "docs" / "codex-metrics.md").exists()
+
+
+def test_bootstrap_conflicting_policy_is_non_destructive(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 1
+    assert not (repo / "metrics" / "codex_metrics.json").exists()
+    assert not (repo / "docs" / "codex-metrics.md").exists()
+    assert not (repo / "AGENTS.md").exists()
+
+
+def test_bootstrap_dry_run_reports_policy_conflict_without_writing(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_cmd(repo, "bootstrap", "--dry-run")
+
+    assert result.returncode == 0, result.stderr
+    assert "Would refuse to replace existing policy file without --force" in result.stdout
+    assert not (repo / "metrics" / "codex_metrics.json").exists()
+    assert not (repo / "docs" / "codex-metrics.md").exists()
+    assert not (repo / "AGENTS.md").exists()
+
+
+def test_bootstrap_custom_paths_render_relative_agents_links(repo: Path) -> None:
+    result = run_cmd(
+        repo,
+        "bootstrap",
+        "--metrics-path",
+        "custom/metrics.json",
+        "--report-path",
+        "custom/report.md",
+        "--policy-path",
+        "rules/policy.md",
+        "--agents-path",
+        "guide/AGENTS.md",
+    )
+
+    assert result.returncode == 0, result.stderr
+    agents_text = (repo / "guide" / "AGENTS.md").read_text(encoding="utf-8")
+    assert "`../custom/metrics.json`" in agents_text
+    assert "`../custom/report.md`" in agents_text
+    assert "`../rules/policy.md`" in agents_text
+
+
+def test_script_entrypoint_prints_clean_bootstrap_error(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 1
+    assert "Error: Policy file already exists with different content" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_module_entrypoint_prints_clean_bootstrap_error(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_module_cmd(repo, "bootstrap")
+
+    assert result.returncode == 1
+    assert "Error: Policy file already exists with different content" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_console_entrypoint_prints_clean_bootstrap_error(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH")
+    src_path = str(ABS_SRC)
+    env["PYTHONPATH"] = src_path if not existing_pythonpath else f"{src_path}{os.pathsep}{existing_pythonpath}"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys; "
+                "from codex_metrics.cli import console_main; "
+                "sys.argv=['codex-metrics', 'bootstrap']; "
+                "raise SystemExit(console_main())"
+            ),
+        ],
+        cwd=repo,
+        text=True,
+        capture_output=True,
+        check=False,
+        env=env,
+    )
+
+    assert result.returncode == 1
+    assert "Error: Policy file already exists with different content" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
 def test_create_task_and_close_success(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 

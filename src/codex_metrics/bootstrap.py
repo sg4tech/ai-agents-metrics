@@ -6,7 +6,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Protocol
 
-from codex_metrics.storage import atomic_write_text, ensure_parent_dir
+from codex_metrics.storage import atomic_write_text, ensure_parent_dir, save_metrics
 
 START_MARKER = "<!-- codex-metrics:start -->"
 END_MARKER = "<!-- codex-metrics:end -->"
@@ -17,8 +17,31 @@ class BootstrapResult:
     messages: list[str]
 
 
-class InitFilesCallable(Protocol):
-    def __call__(self, metrics_path: Path, report_path: Path, force: bool = False) -> None: ...
+class DefaultMetricsCallable(Protocol):
+    def __call__(self) -> dict[str, object]: ...
+
+
+class LoadMetricsCallable(Protocol):
+    def __call__(self, path: Path) -> dict[str, object]: ...
+
+
+class SaveReportCallable(Protocol):
+    def __call__(self, path: Path, data: dict[str, object]) -> None: ...
+
+
+@dataclass(frozen=True)
+class BootstrapPlan:
+    metrics_data: dict[str, object]
+    policy_content: str
+    agents_text: str
+    create_metrics: bool
+    create_report: bool
+    replace_report: bool
+    create_policy: bool
+    replace_policy: bool
+    policy_conflict: bool
+    create_agents: bool
+    write_agents: bool
 
 
 def load_policy_template() -> str:
@@ -87,6 +110,65 @@ def write_path(path: Path, content: str) -> None:
     atomic_write_text(path, content)
 
 
+def build_bootstrap_plan(
+    *,
+    metrics_path: Path,
+    report_path: Path,
+    policy_path: Path,
+    agents_path: Path,
+    force: bool,
+    dry_run: bool,
+    load_metrics: LoadMetricsCallable,
+    default_metrics: DefaultMetricsCallable,
+) -> BootstrapPlan:
+    if metrics_path.exists():
+        metrics_data = load_metrics(metrics_path)
+    else:
+        metrics_data = default_metrics()
+
+    policy_content = load_policy_template()
+    policy_conflict = False
+    if policy_path.exists():
+        existing_policy = policy_path.read_text(encoding="utf-8")
+        if existing_policy != policy_content and not force:
+            if not dry_run:
+                raise ValueError(
+                    f"Policy file already exists with different content: {policy_path}. Use --force to replace it."
+                )
+            policy_conflict = True
+        replace_policy = existing_policy != policy_content and not policy_conflict
+        create_policy = False
+    else:
+        create_policy = True
+        replace_policy = False
+
+    existing_agents_text = agents_path.read_text(encoding="utf-8") if agents_path.exists() else None
+    agents_text, _agents_action = upsert_agents_text(
+        existing_agents_text,
+        policy_path=path_for_agents(policy_path, agents_path=agents_path),
+        metrics_path=path_for_agents(metrics_path, agents_path=agents_path),
+        report_path=path_for_agents(report_path, agents_path=agents_path),
+    )
+
+    create_metrics = not metrics_path.exists()
+    create_report = not report_path.exists()
+    replace_report = metrics_path.exists() is False and report_path.exists()
+
+    return BootstrapPlan(
+        metrics_data=metrics_data,
+        policy_content=policy_content,
+        agents_text=agents_text,
+        create_metrics=create_metrics,
+        create_report=create_report,
+        replace_report=replace_report,
+        create_policy=create_policy,
+        replace_policy=replace_policy,
+        policy_conflict=policy_conflict,
+        create_agents=existing_agents_text is None,
+        write_agents=existing_agents_text != agents_text,
+    )
+
+
 def bootstrap_project(
     *,
     target_dir: Path,
@@ -96,75 +178,77 @@ def bootstrap_project(
     agents_path: Path,
     force: bool,
     dry_run: bool,
-    init_files: InitFilesCallable,
+    load_metrics: LoadMetricsCallable,
+    default_metrics: DefaultMetricsCallable,
+    save_report: SaveReportCallable,
 ) -> BootstrapResult:
     del target_dir
+    plan = build_bootstrap_plan(
+        metrics_path=metrics_path,
+        report_path=report_path,
+        policy_path=policy_path,
+        agents_path=agents_path,
+        force=force,
+        dry_run=dry_run,
+        load_metrics=load_metrics,
+        default_metrics=default_metrics,
+    )
     messages: list[str] = []
 
-    if metrics_path.exists() and report_path.exists():
-        messages.extend(
-            [
-                f"{'Would keep' if dry_run else 'Keeping'} existing metrics file: {metrics_path}",
-                f"{'Would keep' if dry_run else 'Keeping'} existing report file: {report_path}",
-            ]
-        )
+    if plan.create_metrics:
+        messages.append(f"{'Would create' if dry_run else 'Created'} metrics file: {metrics_path}")
     else:
-        if dry_run:
-            messages.append(f"Would create metrics file: {metrics_path}")
-            messages.append(f"Would create report file: {report_path}")
-        else:
-            init_files(metrics_path, report_path, force=False)
-            messages.append(f"Created metrics file: {metrics_path}")
-            messages.append(f"Created report file: {report_path}")
+        messages.append(f"{'Would keep' if dry_run else 'Keeping'} existing metrics file: {metrics_path}")
 
-    policy_template = load_policy_template()
-    if policy_path.exists():
-        existing_policy = policy_path.read_text(encoding="utf-8")
-        if existing_policy == policy_template:
-            messages.append(f"{'Would keep' if dry_run else 'Keeping'} existing policy file: {policy_path}")
-        elif dry_run and not force:
-            messages.append(
-                f"Would refuse to replace existing policy file without --force: {policy_path}"
-            )
-        elif not force:
-            raise ValueError(
-                f"Policy file already exists with different content: {policy_path}. Use --force to replace it."
-            )
-        elif dry_run:
+    if dry_run:
+        if plan.create_report:
+            messages.append(f"Would create report file: {report_path}")
+        elif plan.replace_report:
+            messages.append(f"Would replace report file: {report_path}")
+        else:
+            messages.append(f"Would keep existing report file: {report_path}")
+
+        if plan.create_policy:
+            messages.append(f"Would create policy file: {policy_path}")
+        elif plan.policy_conflict:
+            messages.append(f"Would refuse to replace existing policy file without --force: {policy_path}")
+        elif plan.replace_policy:
             messages.append(f"Would replace policy file: {policy_path}")
         else:
-            write_path(policy_path, policy_template)
-            messages.append(f"Replaced policy file: {policy_path}")
-    elif dry_run:
-        messages.append(f"Would create policy file: {policy_path}")
-    else:
-        write_path(policy_path, policy_template)
-        messages.append(f"Created policy file: {policy_path}")
+            messages.append(f"Would keep existing policy file: {policy_path}")
 
-    existing_agents_text = agents_path.read_text(encoding="utf-8") if agents_path.exists() else None
-    agents_text, agents_action = upsert_agents_text(
-        existing_agents_text,
-        policy_path=path_for_agents(policy_path, agents_path=agents_path),
-        metrics_path=path_for_agents(metrics_path, agents_path=agents_path),
-        report_path=path_for_agents(report_path, agents_path=agents_path),
-    )
-    if dry_run:
-        if existing_agents_text is None:
+        if not agents_path.exists():
             messages.append(f"Would create AGENTS.md: {agents_path}")
-        elif existing_agents_text == agents_text:
-            messages.append(f"Would keep AGENTS.md unchanged: {agents_path}")
+        elif plan.write_agents:
+            messages.append(f"Would update AGENTS.md: {agents_path}")
         else:
-            verb = "update" if agents_action == "update" else "append codex-metrics block to"
-            messages.append(f"Would {verb} AGENTS.md: {agents_path}")
+            messages.append(f"Would keep AGENTS.md unchanged: {agents_path}")
     else:
-        if existing_agents_text != agents_text:
-            write_path(agents_path, agents_text)
-            if existing_agents_text is None:
+        if plan.create_metrics:
+            save_metrics(metrics_path, plan.metrics_data)
+
+        if plan.create_report or plan.replace_report:
+            save_report(report_path, plan.metrics_data)
+            verb = "Created" if plan.create_report else "Replaced"
+            messages.append(f"{verb} report file: {report_path}")
+        else:
+            messages.append(f"Keeping existing report file: {report_path}")
+
+        if plan.create_policy:
+            write_path(policy_path, plan.policy_content)
+            messages.append(f"Created policy file: {policy_path}")
+        elif plan.replace_policy:
+            write_path(policy_path, plan.policy_content)
+            messages.append(f"Replaced policy file: {policy_path}")
+        else:
+            messages.append(f"Keeping existing policy file: {policy_path}")
+
+        if plan.write_agents:
+            write_path(agents_path, plan.agents_text)
+            if plan.create_agents:
                 messages.append(f"Created AGENTS.md: {agents_path}")
-            elif agents_action == "update":
-                messages.append(f"Updated managed codex-metrics block in AGENTS.md: {agents_path}")
             else:
-                messages.append(f"Appended managed codex-metrics block to AGENTS.md: {agents_path}")
+                messages.append(f"Updated AGENTS.md: {agents_path}")
         else:
             messages.append(f"Keeping AGENTS.md unchanged: {agents_path}")
 

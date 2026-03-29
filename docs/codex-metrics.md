@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 102
-- Successes: 102
+- Closed goals: 105
+- Successes: 105
 - Fails: 0
-- Total attempts: 106
-- Known total cost (USD): 137.934711
-- Known total tokens: 98861085
+- Total attempts: 109
+- Known total cost (USD): 142.720086
+- Known total tokens: 102278070
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 81/102 successful goals
-- Known token coverage: 81/102 successful goals
-- Complete cost coverage: 81/102 successful goals
-- Complete token coverage: 81/102 successful goals
-- Known Cost per Success (USD): 1.702898
-- Known Cost per Success (Tokens): 1220507.22
-- Complete Cost per Covered Success (USD): 1.702898
-- Complete Cost per Covered Success (Tokens): 1220507.22
+- Known cost coverage: 84/105 successful goals
+- Known token coverage: 84/105 successful goals
+- Complete cost coverage: 84/105 successful goals
+- Complete token coverage: 84/105 successful goals
+- Known Cost per Success (USD): 1.699049
+- Known Cost per Success (Tokens): 1217596.07
+- Complete Cost per Covered Success (USD): 1.699049
+- Complete Cost per Covered Success (Tokens): 1217596.07
 
 ## Entry summary
 
-- Closed entries: 106
-- Successes: 105
+- Closed entries: 109
+- Successes: 108
 - Fails: 1
-- Success Rate: 99.06%
-- Known total cost (USD): 137.037331
-- Known total tokens: 98145106
+- Success Rate: 99.08%
+- Known total cost (USD): 141.822706
+- Known total tokens: 101562091
 
 ## Operator review
 
@@ -41,40 +41,40 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 23
-- Successes: 23
+- Closed goals: 25
+- Successes: 25
 - Fails: 0
-- Total attempts: 27
-- Known total cost (USD): 44.858013
-- Known total tokens: 32201345
+- Total attempts: 29
+- Known total cost (USD): 49.230697
+- Known total tokens: 35325319
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.17
-- Known cost coverage: 19/23 successful goals
-- Known token coverage: 19/23 successful goals
-- Complete cost coverage: 19/23 successful goals
-- Complete token coverage: 19/23 successful goals
-- Known Cost per Success (USD): 2.360948
-- Known Cost per Success (Tokens): 1694807.63
-- Complete Cost per Covered Success (USD): 2.360948
-- Complete Cost per Covered Success (Tokens): 1694807.63
+- Attempts per Closed Goal: 1.16
+- Known cost coverage: 21/25 successful goals
+- Known token coverage: 21/25 successful goals
+- Complete cost coverage: 21/25 successful goals
+- Complete token coverage: 21/25 successful goals
+- Known Cost per Success (USD): 2.344319
+- Known Cost per Success (Tokens): 1682158.05
+- Complete Cost per Covered Success (USD): 2.344319
+- Complete Cost per Covered Success (Tokens): 1682158.05
 
 ### retro
-- Closed goals: 24
-- Successes: 24
+- Closed goals: 25
+- Successes: 25
 - Fails: 0
-- Total attempts: 24
-- Known total cost (USD): 7.964254
-- Known total tokens: 5663448
+- Total attempts: 25
+- Known total cost (USD): 8.376945
+- Known total tokens: 5956459
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 15/24 successful goals
-- Known token coverage: 15/24 successful goals
-- Complete cost coverage: 15/24 successful goals
-- Complete token coverage: 15/24 successful goals
-- Known Cost per Success (USD): 0.53095
-- Known Cost per Success (Tokens): 377563.20
-- Complete Cost per Covered Success (USD): 0.53095
-- Complete Cost per Covered Success (Tokens): 377563.20
+- Known cost coverage: 16/25 successful goals
+- Known token coverage: 16/25 successful goals
+- Complete cost coverage: 16/25 successful goals
+- Complete token coverage: 16/25 successful goals
+- Known Cost per Success (USD): 0.523559
+- Known Cost per Success (Tokens): 372278.69
+- Complete Cost per Covered Success (USD): 0.523559
+- Complete Cost per Covered Success (Tokens): 372278.69
 
 ### meta
 - Closed goals: 55
@@ -95,6 +95,45 @@
 - Complete Cost per Covered Success (Tokens): 1297793.45
 
 ## Goal log
+
+### 2026-03-29-111 — Write bootstrap QA hardening retrospective
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:05:39+00:00
+- Finished at: 2026-03-29T18:06:05+00:00
+- Cost (USD): 0.412691
+- Tokens: 293011
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Recorded a retrospective for the bootstrap QA hardening pass, covering partial scaffold failures, non-destructive conflict handling, and the need to route the installed console script through a canonical wrapped entrypoint.
+
+### 2026-03-29-110 — Fix installed console entrypoint error UX
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:04:13+00:00
+- Finished at: 2026-03-29T18:05:16+00:00
+- Cost (USD): 1.784453
+- Tokens: 1286016
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added a canonical console_main wrapper so the installed codex-metrics console script, python -m entrypoint, and script shim all share the same friendly ValueError handling. Updated project.scripts to point at the wrapped entrypoint, added regression coverage, and reran make verify.
+
+### 2026-03-29-109 — Fix bootstrap partial-scaffold safety and error UX
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T17:58:10+00:00
+- Finished at: 2026-03-29T18:01:00+00:00
+- Cost (USD): 2.588231
+- Tokens: 1837958
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Refactored bootstrap into a preflight/apply flow so conflicts are detected before writes, partial existing scaffold is completed safely, and report regeneration is explicit when metrics are recreated. Also normalized ValueError handling on script and module entrypoints, then verified with make verify and targeted QA temp-directory scenarios.
 
 ### 2026-03-29-108 — Add bootstrap/init command for project integration
 - Goal type: product
@@ -1488,6 +1527,39 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-111-attempt-001 — 2026-03-29-111
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:05:39+00:00
+- Finished at: 2026-03-29T18:06:05+00:00
+- Cost (USD): 0.412691
+- Tokens: 293011
+- Failure reason: n/a
+- Notes: Recorded a retrospective for the bootstrap QA hardening pass, covering partial scaffold failures, non-destructive conflict handling, and the need to route the installed console script through a canonical wrapped entrypoint.
+
+### 2026-03-29-110-attempt-001 — 2026-03-29-110
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:04:13+00:00
+- Finished at: 2026-03-29T18:05:16+00:00
+- Cost (USD): 1.784453
+- Tokens: 1286016
+- Failure reason: n/a
+- Notes: Added a canonical console_main wrapper so the installed codex-metrics console script, python -m entrypoint, and script shim all share the same friendly ValueError handling. Updated project.scripts to point at the wrapped entrypoint, added regression coverage, and reran make verify.
+
+### 2026-03-29-109-attempt-001 — 2026-03-29-109
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T17:58:10+00:00
+- Finished at: 2026-03-29T18:01:00+00:00
+- Cost (USD): 2.588231
+- Tokens: 1837958
+- Failure reason: n/a
+- Notes: Refactored bootstrap into a preflight/apply flow so conflicts are detected before writes, partial existing scaffold is completed safely, and report regeneration is explicit when metrics are recreated. Also normalized ValueError handling on script and module entrypoints, then verified with make verify and targeted QA temp-directory scenarios.
 
 ### 2026-03-29-108-attempt-001 — 2026-03-29-108
 - Entry type: product
