@@ -15,7 +15,7 @@ coverage:
 	./.venv/bin/coverage erase
 	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py
 	./.venv/bin/coverage combine
-	./.venv/bin/coverage report -m src/codex_metrics/cli.py scripts/update_codex_metrics.py
+	./.venv/bin/coverage report -m
 
 package:
 	rm -rf build dist src/codex_metrics.egg-info

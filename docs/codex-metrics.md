@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 73
-- Successes: 73
+- Closed goals: 82
+- Successes: 82
 - Fails: 0
-- Total attempts: 77
+- Total attempts: 86
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.05
-- Known cost coverage: 4/73 successful goals
-- Known token coverage: 4/73 successful goals
-- Complete cost coverage: 2/73 successful goals
-- Complete token coverage: 2/73 successful goals
+- Known cost coverage: 4/82 successful goals
+- Known token coverage: 4/82 successful goals
+- Complete cost coverage: 2/82 successful goals
+- Complete token coverage: 2/82 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 77
-- Successes: 76
+- Closed entries: 86
+- Successes: 85
 - Fails: 1
-- Success Rate: 98.70%
+- Success Rate: 98.84%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -77,24 +77,132 @@
 - Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
-- Closed goals: 40
-- Successes: 40
+- Closed goals: 49
+- Successes: 49
 - Fails: 0
-- Total attempts: 40
+- Total attempts: 49
 - Known total cost (USD): 0.2658
 - Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/40 successful goals
-- Known token coverage: 1/40 successful goals
-- Complete cost coverage: 1/40 successful goals
-- Complete token coverage: 1/40 successful goals
+- Known cost coverage: 1/49 successful goals
+- Known token coverage: 1/49 successful goals
+- Complete cost coverage: 1/49 successful goals
+- Complete token coverage: 1/49 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
 - Complete Cost per Covered Success (USD): 0.2658
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-088 — Extract domain helpers from CLI
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:04:18+00:00
+- Finished at: 2026-03-29T14:13:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted record models, validation, summary computation, and attempt-sync helpers into src/codex_metrics/domain.py while preserving the existing CLI surface via imports and re-exports; verify and coverage remained green after restoring datetime/timezone compatibility for the shim-exported module surface.
+
+### 2026-03-29-087 — Extract storage and mutation boundary
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:00:11+00:00
+- Finished at: 2026-03-29T14:04:14+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted storage and mutation helpers into src/codex_metrics/storage.py, kept CLI behavior unchanged via imports and re-exports, and verified the refactor with green lint, mypy, tests, and coverage.
+
+### 2026-03-29-086 — Extract command handlers from CLI main
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:58:07+00:00
+- Finished at: 2026-03-29T13:59:46+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted command handlers into src/codex_metrics/commands.py with a typed Protocol boundary and lazy import from cli.main; verify and coverage remained green after the refactor.
+
+### 2026-03-29-085 — Extract reporting layer from CLI
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:52:23+00:00
+- Finished at: 2026-03-29T13:57:33+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted the reporting/presentation layer into src/codex_metrics/reporting.py, kept CLI behavior unchanged via imports/re-exports, and verified the refactor with green lint, mypy, tests, and coverage.
+
+### 2026-03-29-084 — Add small high-value edge coverage
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:48:18+00:00
+- Finished at: 2026-03-29T13:49:20+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added focused domain coverage for malformed goal-id filtering and non-positive numeric deltas; coverage now reaches 90% total with 90% on the main CLI module.
+
+### 2026-03-29-083 — Increase entrypoint coverage
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:44:45+00:00
+- Finished at: 2026-03-29T13:46:56+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Improved coverage with a packaged-module init smoke test and subprocess coverage for python -m codex_metrics using the canonical src path; coverage report remains clean and stable.
+
+### 2026-03-29-082 — Fix coverage reporting accuracy
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:42:59+00:00
+- Finished at: 2026-03-29T13:44:07+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Fixed coverage reporting to follow the configured codex_metrics source set instead of manually including the compatibility shim; re-ran verify and coverage successfully.
+
+### 2026-03-29-081 — Engineering audit for ROI, bugs, and coverage
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:40:07+00:00
+- Finished at: 2026-03-29T13:41:26+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Completed an engineering-lead audit of the packaged CLI: verified green lint/typecheck/tests, measured coverage, identified high-ROI refactoring seams, and found no critical runtime bugs in the current review pass.
+
+### 2026-03-29-080 — Refresh external product audit
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:37:25+00:00
+- Finished at: 2026-03-29T13:38:24+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded a refreshed external-style audit covering the packaged CLI state, product maturity shift, remaining weaknesses, and updated recommendations in docs/audits/.
 
 ### 2026-03-29-079 — Write retro for manual goal id conflict UX
 - Goal type: retro
@@ -1033,6 +1141,105 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-088-attempt-001 — 2026-03-29-088
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:04:18+00:00
+- Finished at: 2026-03-29T14:13:30+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted record models, validation, summary computation, and attempt-sync helpers into src/codex_metrics/domain.py while preserving the existing CLI surface via imports and re-exports; verify and coverage remained green after restoring datetime/timezone compatibility for the shim-exported module surface.
+
+### 2026-03-29-087-attempt-001 — 2026-03-29-087
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:00:11+00:00
+- Finished at: 2026-03-29T14:04:14+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted storage and mutation helpers into src/codex_metrics/storage.py, kept CLI behavior unchanged via imports and re-exports, and verified the refactor with green lint, mypy, tests, and coverage.
+
+### 2026-03-29-086-attempt-001 — 2026-03-29-086
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:58:07+00:00
+- Finished at: 2026-03-29T13:59:46+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted command handlers into src/codex_metrics/commands.py with a typed Protocol boundary and lazy import from cli.main; verify and coverage remained green after the refactor.
+
+### 2026-03-29-085-attempt-001 — 2026-03-29-085
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:52:23+00:00
+- Finished at: 2026-03-29T13:57:33+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Extracted the reporting/presentation layer into src/codex_metrics/reporting.py, kept CLI behavior unchanged via imports/re-exports, and verified the refactor with green lint, mypy, tests, and coverage.
+
+### 2026-03-29-084-attempt-001 — 2026-03-29-084
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:48:18+00:00
+- Finished at: 2026-03-29T13:49:20+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added focused domain coverage for malformed goal-id filtering and non-positive numeric deltas; coverage now reaches 90% total with 90% on the main CLI module.
+
+### 2026-03-29-083-attempt-001 — 2026-03-29-083
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:44:45+00:00
+- Finished at: 2026-03-29T13:46:56+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Improved coverage with a packaged-module init smoke test and subprocess coverage for python -m codex_metrics using the canonical src path; coverage report remains clean and stable.
+
+### 2026-03-29-082-attempt-001 — 2026-03-29-082
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:42:59+00:00
+- Finished at: 2026-03-29T13:44:07+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Fixed coverage reporting to follow the configured codex_metrics source set instead of manually including the compatibility shim; re-ran verify and coverage successfully.
+
+### 2026-03-29-081-attempt-001 — 2026-03-29-081
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:40:07+00:00
+- Finished at: 2026-03-29T13:41:26+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Completed an engineering-lead audit of the packaged CLI: verified green lint/typecheck/tests, measured coverage, identified high-ROI refactoring seams, and found no critical runtime bugs in the current review pass.
+
+### 2026-03-29-080-attempt-001 — 2026-03-29-080
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:37:25+00:00
+- Finished at: 2026-03-29T13:38:24+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded a refreshed external-style audit covering the packaged CLI state, product maturity shift, remaining weaknesses, and updated recommendations in docs/audits/.
 
 ### 2026-03-29-079-attempt-001 — 2026-03-29-079
 - Entry type: retro

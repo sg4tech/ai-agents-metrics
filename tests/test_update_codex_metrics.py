@@ -64,12 +64,28 @@ def run_module_cmd(
 ) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     existing_pythonpath = env.get("PYTHONPATH")
-    src_path = str(tmp_path / "src")
+    src_path = str(ABS_SRC)
     env["PYTHONPATH"] = src_path if not existing_pythonpath else f"{src_path}{os.pathsep}{existing_pythonpath}"
+    if env.get("CODEX_SUBPROCESS_COVERAGE") == "1":
+        env["COVERAGE_FILE"] = str(WORKSPACE_ROOT / ".coverage")
+        cmd = [
+            sys.executable,
+            "-m",
+            "coverage",
+            "run",
+            "--rcfile",
+            str(WORKSPACE_ROOT / "pyproject.toml"),
+            "--parallel-mode",
+            "-m",
+            "codex_metrics",
+            *args,
+        ]
+    else:
+        cmd = [sys.executable, "-m", "codex_metrics", *args]
     if extra_env is not None:
         env.update(extra_env)
     return subprocess.run(
-        [sys.executable, "-m", "codex_metrics", *args],
+        cmd,
         cwd=tmp_path,
         text=True,
         capture_output=True,
@@ -246,6 +262,14 @@ def test_package_module_entrypoint_runs(repo: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     assert "Track goal, attempt, failure, and cost metrics" in result.stdout
+
+
+def test_package_module_entrypoint_can_initialize_files(repo: Path) -> None:
+    result = run_module_cmd(repo, "init")
+
+    assert result.returncode == 0, result.stderr
+    assert (repo / "metrics" / "codex_metrics.json").exists()
+    assert (repo / "docs" / "codex-metrics.md").exists()
 
 
 def test_init_refuses_to_overwrite_without_force(repo: Path) -> None:

@@ -262,6 +262,28 @@ def test_build_operator_review_surfaces_retry_and_cost_visibility() -> None:
     assert "Full cost coverage is still partial; treat complete covered-success averages as strict subset signals." in review
 
 
+def test_next_goal_id_ignores_malformed_and_other_day_ids() -> None:
+    goal_id = MODULE.next_goal_id(
+        [
+            {"goal_id": "2026-03-29-001"},
+            {"goal_id": "2026-03-29-0999"},
+            {"goal_id": "2026-03-29-abc"},
+            {"goal_id": "2026-03-28-999"},
+            {"goal_id": None},
+        ],
+        now=MODULE.datetime(2026, 3, 29, 12, 0, tzinfo=MODULE.timezone.utc),
+    )
+
+    assert goal_id == "2026-03-29-002"
+
+
+def test_compute_numeric_delta_returns_none_for_non_positive_change() -> None:
+    assert MODULE.compute_numeric_delta(5, 5) is None
+    assert MODULE.compute_numeric_delta(5, 4) is None
+    assert MODULE.compute_numeric_delta(None, 7) == 7
+    assert MODULE.compute_numeric_delta(5, 8) == 3
+
+
 def test_validate_metrics_data_rejects_supersession_cycle(tmp_path: Path) -> None:
     metrics_path = tmp_path / "metrics.json"
     data = {
