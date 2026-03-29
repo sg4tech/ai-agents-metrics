@@ -1,5 +1,5 @@
 - [x] не считаю прошлую задачу успешной, ибо не фига не появилось то, что нужно
-- переход на goal
+- [x] переход на goal
 
 ```commandline
 Read AGENTS.md and docs/codex-metrics-policy.md first.

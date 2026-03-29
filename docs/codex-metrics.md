@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 17
-- Successes: 17
+- Closed goals: 18
+- Successes: 18
 - Fails: 0
-- Total attempts: 18
+- Total attempts: 19
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 18
-- Successes: 17
+- Closed entries: 19
+- Successes: 18
 - Fails: 1
-- Success Rate: 94.44%
+- Success Rate: 94.74%
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 
@@ -40,10 +40,10 @@
 - Cost per Success (Tokens): n/a
 
 ### retro
-- Closed goals: 3
-- Successes: 3
+- Closed goals: 4
+- Successes: 4
 - Fails: 0
-- Total attempts: 3
+- Total attempts: 4
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -64,6 +64,18 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-020 — Write retrospective for transition to goals
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:03:48+00:00
+- Finished at: 2026-03-29T10:04:17+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly.
 
 ### 2026-03-29-019 — Add entry-level summary alongside goal metrics
 - Goal type: meta
@@ -282,6 +294,16 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-020 — 2026-03-29-020
+- Entry type: retro
+- Status: success
+- Started at: 2026-03-29T10:03:48+00:00
+- Finished at: 2026-03-29T10:04:17+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly.
 
 ### 2026-03-29-019 — 2026-03-29-019
 - Entry type: meta

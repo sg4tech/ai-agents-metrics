@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 17,
-    "successes": 17,
+    "closed_tasks": 18,
+    "successes": 18,
     "fails": 0,
-    "total_attempts": 18,
+    "total_attempts": 19,
     "total_cost_usd": 0.638112,
     "total_tokens": 1359406,
     "success_rate": 1.0,
-    "attempts_per_success": 1.0588235294117647,
+    "attempts_per_success": 1.0555555555555556,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
@@ -36,10 +36,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 3,
-        "successes": 3,
+        "closed_tasks": 4,
+        "successes": 4,
         "fails": 0,
-        "total_attempts": 3,
+        "total_attempts": 4,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -74,10 +74,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 3,
-        "successes": 3,
+        "closed_tasks": 4,
+        "successes": 4,
         "fails": 0,
-        "total_attempts": 3,
+        "total_attempts": 4,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 18,
-      "successes": 17,
+      "closed_entries": 19,
+      "successes": 18,
       "fails": 1,
-      "success_rate": 0.9444444444444444,
+      "success_rate": 0.9473684210526315,
       "total_cost_usd": 0.638112,
       "total_tokens": 1359406,
       "failure_reasons": {
@@ -350,6 +350,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added entry-level summary and failure-reason visibility alongside goal metrics, preserved effective goal-chain summaries, and validated the combined model with 40 passing tests plus CLI smoke."
+    },
+    {
+      "goal_id": "2026-03-29-020",
+      "title": "Write retrospective for transition to goals",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T10:03:48+00:00",
+      "finished_at": "2026-03-29T10:04:17+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly."
     }
   ],
   "entries": [
@@ -568,6 +582,18 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added entry-level summary and failure-reason visibility alongside goal metrics, preserved effective goal-chain summaries, and validated the combined model with 40 passing tests plus CLI smoke."
+    },
+    {
+      "entry_id": "2026-03-29-020",
+      "goal_id": "2026-03-29-020",
+      "entry_type": "retro",
+      "status": "success",
+      "started_at": "2026-03-29T10:03:48+00:00",
+      "finished_at": "2026-03-29T10:04:17+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Recorded a retrospective for the goals migration, concluded that the transition succeeded, and marked the related TODO item complete with remaining risks documented explicitly."
     }
   ]
 }
