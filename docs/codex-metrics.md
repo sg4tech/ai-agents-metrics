@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 26
-- Successes: 26
+- Closed goals: 27
+- Successes: 27
 - Fails: 0
-- Total attempts: 27
+- Total attempts: 28
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 27
-- Successes: 26
+- Closed entries: 28
+- Successes: 27
 - Fails: 1
-- Success Rate: 96.30%
+- Success Rate: 96.43%
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 16
-- Successes: 16
+- Closed goals: 17
+- Successes: 17
 - Fails: 0
-- Total attempts: 16
+- Total attempts: 17
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -64,6 +64,18 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-029 — Refactor updater application flow into smaller steps
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:34:28+00:00
+- Finished at: 2026-03-29T10:35:53+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green.
 
 ### 2026-03-29-028 — Write retrospective for testing and static analysis bootstrap
 - Goal type: retro
@@ -390,6 +402,16 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-029-attempt-001 — 2026-03-29-029
+- Entry type: meta
+- Status: success
+- Started at: 2026-03-29T10:34:28+00:00
+- Finished at: 2026-03-29T10:35:53+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green.
 
 ### 2026-03-29-028-attempt-001 — 2026-03-29-028
 - Entry type: retro

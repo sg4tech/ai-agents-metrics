@@ -1121,6 +1121,182 @@ def init_files(metrics_path: Path, report_path: Path, force: bool = False) -> No
     save_report(report_path, data)
 
 
+def create_goal_record(
+    *,
+    tasks: list[dict[str, Any]],
+    task_id: str,
+    title: str | None,
+    task_type: str | None,
+    linked_task_id: str | None,
+    started_at: str | None,
+) -> dict[str, Any]:
+    if title is None:
+        raise ValueError("title is required when creating a new task")
+    if task_type is None:
+        raise ValueError("task_type is required when creating a new task")
+
+    validate_task_type(task_type)
+    if linked_task_id is not None:
+        linked_task = get_task(tasks, linked_task_id)
+        if linked_task is not None and linked_task["goal_type"] != task_type:
+            raise ValueError("linked tasks must use the same task_type")
+
+    new_goal = GoalRecord(
+        goal_id=task_id,
+        title=title,
+        goal_type=task_type,
+        supersedes_goal_id=linked_task_id,
+        status="in_progress",
+        attempts=0,
+        started_at=started_at or now_utc_iso(),
+        finished_at=None,
+        cost_usd=None,
+        tokens_total=None,
+        failure_reason=None,
+        notes=None,
+    )
+    task = asdict(new_goal)
+    tasks.append(task)
+    return task
+
+
+def resolve_goal_usage_updates(
+    *,
+    task: dict[str, Any],
+    cost_usd_add: float | None,
+    cost_usd_set: float | None,
+    tokens_add: int | None,
+    tokens_set: int | None,
+    model: str | None,
+    input_tokens: int | None,
+    cached_input_tokens: int | None,
+    output_tokens: int | None,
+    pricing_path: Path,
+    codex_state_path: Path,
+    codex_logs_path: Path,
+    codex_thread_id: str | None,
+    cwd: Path,
+    started_at: str | None,
+    finished_at: str | None,
+) -> tuple[float | None, int | None, float | None, int | None]:
+    explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
+    explicit_token_fields_used = tokens_add is not None or tokens_set is not None
+    usage_cost_usd, usage_total_tokens = resolve_usage_costs(
+        pricing_path=pricing_path,
+        model=model,
+        input_tokens=input_tokens,
+        cached_input_tokens=cached_input_tokens,
+        output_tokens=output_tokens,
+        explicit_cost_fields_used=explicit_cost_fields_used,
+        explicit_token_fields_used=explicit_token_fields_used,
+    )
+
+    auto_cost_usd, auto_total_tokens = (None, None)
+    if usage_cost_usd is None and usage_total_tokens is None:
+        auto_cost_usd, auto_total_tokens = resolve_codex_usage_window(
+            state_path=codex_state_path,
+            logs_path=codex_logs_path,
+            cwd=cwd,
+            started_at=started_at if started_at is not None else task.get("started_at"),
+            finished_at=finished_at if finished_at is not None else task.get("finished_at"),
+            pricing_path=pricing_path,
+            thread_id=codex_thread_id,
+        )
+
+    return usage_cost_usd, usage_total_tokens, auto_cost_usd, auto_total_tokens
+
+
+def apply_goal_updates(
+    *,
+    task: dict[str, Any],
+    title: str | None,
+    task_type: str | None,
+    status: str | None,
+    attempts_delta: int | None,
+    attempts_abs: int | None,
+    cost_usd_add: float | None,
+    cost_usd_set: float | None,
+    tokens_add: int | None,
+    tokens_set: int | None,
+    usage_cost_usd: float | None,
+    usage_total_tokens: int | None,
+    auto_cost_usd: float | None,
+    auto_total_tokens: int | None,
+    failure_reason: str | None,
+    notes: str | None,
+    started_at: str | None,
+    finished_at: str | None,
+) -> None:
+    if title is not None:
+        if not title.strip():
+            raise ValueError("title cannot be empty")
+        task["title"] = title
+    if task_type is not None:
+        validate_task_type(task_type)
+        task["goal_type"] = task_type
+    if status is not None:
+        validate_status(status)
+        task["status"] = status
+    if attempts_abs is not None:
+        validate_non_negative_int(attempts_abs, "attempts")
+        task["attempts"] = attempts_abs
+    if attempts_delta is not None:
+        validate_non_negative_int(attempts_delta, "attempts_delta")
+        task["attempts"] = int(task.get("attempts") or 0) + attempts_delta
+
+    if cost_usd_set is not None:
+        validate_non_negative_float(cost_usd_set, "cost_usd")
+        task["cost_usd"] = cost_usd_set
+    elif cost_usd_add is not None:
+        validate_non_negative_float(cost_usd_add, "cost_usd_add")
+        current_cost = task.get("cost_usd") or 0.0
+        task["cost_usd"] = round_usd(float(current_cost) + cost_usd_add)
+    elif usage_cost_usd is not None:
+        current_cost = task.get("cost_usd") or 0.0
+        task["cost_usd"] = round_usd(float(current_cost) + usage_cost_usd)
+    elif auto_cost_usd is not None:
+        task["cost_usd"] = auto_cost_usd
+
+    if tokens_set is not None:
+        validate_non_negative_int(tokens_set, "tokens")
+        task["tokens_total"] = tokens_set
+    elif tokens_add is not None:
+        validate_non_negative_int(tokens_add, "tokens_add")
+        current_tokens = int(task.get("tokens_total") or 0)
+        task["tokens_total"] = current_tokens + tokens_add
+    elif usage_total_tokens is not None:
+        current_tokens = int(task.get("tokens_total") or 0)
+        task["tokens_total"] = current_tokens + usage_total_tokens
+    elif auto_total_tokens is not None:
+        task["tokens_total"] = auto_total_tokens
+
+    if failure_reason is not None:
+        validate_failure_reason(failure_reason)
+        task["failure_reason"] = failure_reason
+
+    if notes is not None:
+        task["notes"] = notes
+    if started_at is not None:
+        task["started_at"] = started_at
+    if finished_at is not None:
+        task["finished_at"] = finished_at
+
+
+def finalize_goal_update(task: dict[str, Any]) -> None:
+    if task["status"] in {"success", "fail"} and not task.get("finished_at"):
+        finished_dt = now_utc_datetime()
+        started_at_value = task.get("started_at")
+        if started_at_value is not None:
+            started_dt = parse_iso_datetime(started_at_value, "started_at")
+            if finished_dt < started_dt:
+                finished_dt = started_dt
+        task["finished_at"] = finished_dt.isoformat()
+    if task["status"] == "success":
+        task["failure_reason"] = None
+
+    validate_goal_record(task)
+
+
 def upsert_task(
     data: dict[str, Any],
     task_id: str,
@@ -1159,126 +1335,58 @@ def upsert_task(
     )
 
     if task_index is None:
-        if title is None:
-            raise ValueError("title is required when creating a new task")
-        if task_type is None:
-            raise ValueError("task_type is required when creating a new task")
-        resolved_task_type = task_type
-        validate_task_type(resolved_task_type)
-        if linked_task_id is not None:
-            linked_task = get_task(tasks, linked_task_id)
-            if linked_task is not None and linked_task["goal_type"] != resolved_task_type:
-                raise ValueError("linked tasks must use the same task_type")
-        new_goal = GoalRecord(
-            goal_id=task_id,
+        create_goal_record(
+            tasks=tasks,
+            task_id=task_id,
             title=title,
-            goal_type=resolved_task_type,
-            supersedes_goal_id=linked_task_id,
-            status="in_progress",
-            attempts=0,
-            started_at=started_at or now_utc_iso(),
-            finished_at=None,
-            cost_usd=None,
-            tokens_total=None,
-            failure_reason=None,
-            notes=None,
+            task_type=task_type,
+            linked_task_id=linked_task_id,
+            started_at=started_at,
         )
-        tasks.append(asdict(new_goal))
         task_index = len(tasks) - 1
 
     task: dict[str, Any] = tasks[task_index]
-
-    explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
-    explicit_token_fields_used = tokens_add is not None or tokens_set is not None
-    usage_cost_usd, usage_total_tokens = resolve_usage_costs(
-        pricing_path=pricing_path,
-        model=model,
-        input_tokens=input_tokens,
-        cached_input_tokens=cached_input_tokens,
-        output_tokens=output_tokens,
-        explicit_cost_fields_used=explicit_cost_fields_used,
-        explicit_token_fields_used=explicit_token_fields_used,
-    )
-    auto_cost_usd, auto_total_tokens = (None, None)
-    if usage_cost_usd is None and usage_total_tokens is None:
-        auto_cost_usd, auto_total_tokens = resolve_codex_usage_window(
-            state_path=codex_state_path,
-            logs_path=codex_logs_path,
-            cwd=cwd,
-            started_at=started_at if started_at is not None else task.get("started_at"),
-            finished_at=finished_at if finished_at is not None else task.get("finished_at"),
+    usage_cost_usd, usage_total_tokens, auto_cost_usd, auto_total_tokens = (
+        resolve_goal_usage_updates(
+            task=task,
+            cost_usd_add=cost_usd_add,
+            cost_usd_set=cost_usd_set,
+            tokens_add=tokens_add,
+            tokens_set=tokens_set,
+            model=model,
+            input_tokens=input_tokens,
+            cached_input_tokens=cached_input_tokens,
+            output_tokens=output_tokens,
             pricing_path=pricing_path,
-            thread_id=codex_thread_id,
+            codex_state_path=codex_state_path,
+            codex_logs_path=codex_logs_path,
+            codex_thread_id=codex_thread_id,
+            cwd=cwd,
+            started_at=started_at,
+            finished_at=finished_at,
         )
-
-    if title is not None:
-        if not title.strip():
-            raise ValueError("title cannot be empty")
-        task["title"] = title
-    if task_type is not None:
-        validate_task_type(task_type)
-        task["goal_type"] = task_type
-    if status is not None:
-        validate_status(status)
-        task["status"] = status
-    if attempts_abs is not None:
-        validate_non_negative_int(attempts_abs, "attempts")
-        task["attempts"] = attempts_abs
-    if attempts_delta is not None:
-        validate_non_negative_int(attempts_delta, "attempts_delta")
-        task["attempts"] = int(task.get("attempts") or 0) + attempts_delta
-
-    if cost_usd_set is not None:
-        validate_non_negative_float(cost_usd_set, "cost_usd")
-        task["cost_usd"] = cost_usd_set
-    elif cost_usd_add is not None:
-        validate_non_negative_float(cost_usd_add, "cost_usd_add")
-        current = task.get("cost_usd") or 0.0
-        task["cost_usd"] = round_usd(float(current) + cost_usd_add)
-    elif usage_cost_usd is not None:
-        current = task.get("cost_usd") or 0.0
-        task["cost_usd"] = round_usd(float(current) + usage_cost_usd)
-    elif auto_cost_usd is not None:
-        task["cost_usd"] = auto_cost_usd
-
-    if tokens_set is not None:
-        validate_non_negative_int(tokens_set, "tokens")
-        task["tokens_total"] = tokens_set
-    elif tokens_add is not None:
-        validate_non_negative_int(tokens_add, "tokens_add")
-        current = int(task.get("tokens_total") or 0)
-        task["tokens_total"] = current + tokens_add
-    elif usage_total_tokens is not None:
-        current = int(task.get("tokens_total") or 0)
-        task["tokens_total"] = current + usage_total_tokens
-    elif auto_total_tokens is not None:
-        task["tokens_total"] = auto_total_tokens
-
-    if failure_reason is not None:
-        validate_failure_reason(failure_reason)
-        task["failure_reason"] = failure_reason
-
-    if notes is not None:
-        task["notes"] = notes
-
-    if started_at is not None:
-        task["started_at"] = started_at
-
-    if finished_at is not None:
-        task["finished_at"] = finished_at
-
-    if task["status"] in {"success", "fail"} and not task.get("finished_at"):
-        finished_dt = now_utc_datetime()
-        started_at_value = task.get("started_at")
-        if started_at_value is not None:
-            started_dt = parse_iso_datetime(started_at_value, "started_at")
-            if finished_dt < started_dt:
-                finished_dt = started_dt
-        task["finished_at"] = finished_dt.isoformat()
-    if task["status"] == "success":
-        task["failure_reason"] = None
-
-    validate_goal_record(task)
+    )
+    apply_goal_updates(
+        task=task,
+        title=title,
+        task_type=task_type,
+        status=status,
+        attempts_delta=attempts_delta,
+        attempts_abs=attempts_abs,
+        cost_usd_add=cost_usd_add,
+        cost_usd_set=cost_usd_set,
+        tokens_add=tokens_add,
+        tokens_set=tokens_set,
+        usage_cost_usd=usage_cost_usd,
+        usage_total_tokens=usage_total_tokens,
+        auto_cost_usd=auto_cost_usd,
+        auto_total_tokens=auto_total_tokens,
+        failure_reason=failure_reason,
+        notes=notes,
+        started_at=started_at,
+        finished_at=finished_at,
+    )
+    finalize_goal_update(task)
 
     return task
 

@@ -1,21 +1,21 @@
 {
   "summary": {
-    "closed_tasks": 26,
-    "successes": 26,
+    "closed_tasks": 27,
+    "successes": 27,
     "fails": 0,
-    "total_attempts": 27,
+    "total_attempts": 28,
     "total_cost_usd": 0.638112,
     "total_tokens": 1359406,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0384615384615385,
+    "attempts_per_closed_task": 1.037037037037037,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 17,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -50,10 +50,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 17,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 27,
-      "successes": 26,
+      "closed_entries": 28,
+      "successes": 27,
       "fails": 1,
-      "success_rate": 0.9629629629629629,
+      "success_rate": 0.9642857142857143,
       "total_cost_usd": 0.638112,
       "total_tokens": 1359406,
       "failure_reasons": {
@@ -476,6 +476,20 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow."
+    },
+    {
+      "goal_id": "2026-03-29-029",
+      "title": "Refactor updater application flow into smaller steps",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T10:34:28+00:00",
+      "finished_at": "2026-03-29T10:35:53+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green."
     }
   ],
   "entries": [
@@ -802,6 +816,18 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow."
+    },
+    {
+      "entry_id": "2026-03-29-029-attempt-001",
+      "goal_id": "2026-03-29-029",
+      "entry_type": "meta",
+      "status": "success",
+      "started_at": "2026-03-29T10:34:28+00:00",
+      "finished_at": "2026-03-29T10:35:53+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Safely decomposed upsert_task into smaller internal steps for goal creation, usage resolution, update application, and final validation, while preserving CLI behavior and keeping ruff, mypy, and 46 tests green."
     }
   ]
 }
