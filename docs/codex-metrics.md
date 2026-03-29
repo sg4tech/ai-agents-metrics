@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 111
-- Successes: 111
+- Closed goals: 112
+- Successes: 112
 - Fails: 0
-- Total attempts: 115
-- Known total cost (USD): 149.382233
-- Known total tokens: 107074298
+- Total attempts: 116
+- Known total cost (USD): 150.90073
+- Known total tokens: 108172255
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 90/111 successful goals
-- Known token coverage: 90/111 successful goals
-- Complete cost coverage: 90/111 successful goals
-- Complete token coverage: 90/111 successful goals
-- Known Cost per Success (USD): 1.659803
-- Known Cost per Success (Tokens): 1189714.42
-- Complete Cost per Covered Success (USD): 1.659803
-- Complete Cost per Covered Success (Tokens): 1189714.42
+- Known cost coverage: 91/112 successful goals
+- Known token coverage: 91/112 successful goals
+- Complete cost coverage: 91/112 successful goals
+- Complete token coverage: 91/112 successful goals
+- Known Cost per Success (USD): 1.65825
+- Known Cost per Success (Tokens): 1188706.10
+- Complete Cost per Covered Success (USD): 1.65825
+- Complete Cost per Covered Success (Tokens): 1188706.10
 
 ## Entry summary
 
-- Closed entries: 115
-- Successes: 114
+- Closed entries: 116
+- Successes: 115
 - Fails: 1
-- Success Rate: 99.13%
-- Known total cost (USD): 148.484853
-- Known total tokens: 106358319
+- Success Rate: 99.14%
+- Known total cost (USD): 150.00335
+- Known total tokens: 107456276
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 27
-- Successes: 27
+- Closed goals: 28
+- Successes: 28
 - Fails: 0
-- Total attempts: 31
-- Known total cost (USD): 51.665776
-- Known total tokens: 37081665
+- Total attempts: 32
+- Known total cost (USD): 53.184273
+- Known total tokens: 38179622
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.15
-- Known cost coverage: 23/27 successful goals
-- Known token coverage: 23/27 successful goals
-- Complete cost coverage: 23/27 successful goals
-- Complete token coverage: 23/27 successful goals
-- Known Cost per Success (USD): 2.246338
-- Known Cost per Success (Tokens): 1612246.30
-- Complete Cost per Covered Success (USD): 2.246338
-- Complete Cost per Covered Success (Tokens): 1612246.30
+- Attempts per Closed Goal: 1.14
+- Known cost coverage: 24/28 successful goals
+- Known token coverage: 24/28 successful goals
+- Complete cost coverage: 24/28 successful goals
+- Complete token coverage: 24/28 successful goals
+- Known Cost per Success (USD): 2.216011
+- Known Cost per Success (Tokens): 1590817.58
+- Complete Cost per Covered Success (USD): 2.216011
+- Complete Cost per Covered Success (Tokens): 1590817.58
 
 ### retro
 - Closed goals: 27
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-118 — Add upgrade instructions for downstream repositories
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:19:25+00:00
+- Finished at: 2026-03-29T18:20:04+00:00
+- Cost (USD): 1.518497
+- Tokens: 1097957
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added README instructions for updating codex-metrics in an already bootstrapped downstream repository: upgrade the installed package, preview scaffold reconciliation with bootstrap --dry-run, apply bootstrap, and run show. Verified with make verify.
 
 ### 2026-03-29-117 — Unify package version metadata
 - Goal type: product
@@ -1605,6 +1618,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-118-attempt-001 — 2026-03-29-118
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:19:25+00:00
+- Finished at: 2026-03-29T18:20:04+00:00
+- Cost (USD): 1.518497
+- Tokens: 1097957
+- Failure reason: n/a
+- Notes: Added README instructions for updating codex-metrics in an already bootstrapped downstream repository: upgrade the installed package, preview scaffold reconciliation with bootstrap --dry-run, apply bootstrap, and run show. Verified with make verify.
 
 ### 2026-03-29-117-attempt-001 — 2026-03-29-117
 - Entry type: product

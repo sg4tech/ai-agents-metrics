@@ -162,6 +162,43 @@ codex-metrics show
 codex-metrics update --task-id <goal-id> --status success --notes "Done"
 ```
 
+## Update In Another Repository
+
+When a new version of `codex-metrics` is released, update the installed package first and then reconcile the scaffold in the target repository.
+
+Update from a local checkout:
+
+```bash
+python -m pip install --upgrade /Users/viktor/PycharmProjects/codex-metrics
+```
+
+Update from a built wheel or release artifact:
+
+```bash
+python -m pip install --upgrade /path/to/dist/codex_metrics-0.1.0-py3-none-any.whl
+```
+
+Then move into the already-bootstrapped target repository and preview what would change:
+
+```bash
+cd /path/to/another-repo
+codex-metrics bootstrap --dry-run
+```
+
+If the preview looks right, apply the update:
+
+```bash
+codex-metrics bootstrap
+```
+
+Recommended upgrade flow:
+
+1. update the installed package
+2. run `codex-metrics bootstrap --dry-run`
+3. review any managed-file changes
+4. run `codex-metrics bootstrap`
+5. run `codex-metrics show`
+
 ## Validation Commands
 
 Available `make` targets:
