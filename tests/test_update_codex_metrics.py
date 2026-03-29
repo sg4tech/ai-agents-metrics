@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 SCRIPT = Path("scripts/update_codex_metrics.py")
 PRICING = Path("pricing/model_pricing.json")
 

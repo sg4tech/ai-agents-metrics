@@ -2,16 +2,15 @@
 from __future__ import annotations
 
 import argparse
-from decimal import Decimal, ROUND_HALF_UP
 import json
 import re
 import sqlite3
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
-
 
 METRICS_JSON_PATH = Path("metrics/codex_metrics.json")
 REPORT_MD_PATH = Path("docs/codex-metrics.md")
@@ -87,7 +86,7 @@ def default_metrics() -> dict[str, Any]:
 
 
 def empty_summary_block(include_by_task_type: bool = False) -> dict[str, Any]:
-    summary = {
+    summary: dict[str, Any] = {
         "closed_tasks": 0,
         "successes": 0,
         "fails": 0,
@@ -139,7 +138,7 @@ def parse_iso_datetime(value: str, field_name: str) -> datetime:
 
 
 def validate_goal_record(goal: dict[str, Any]) -> None:
-    required_fields = {
+    required_fields: dict[str, type[Any] | tuple[type[Any], ...]] = {
         "goal_id": str,
         "title": str,
         "goal_type": str,
@@ -179,7 +178,7 @@ def validate_goal_record(goal: dict[str, Any]) -> None:
 
 
 def validate_entry_record(entry: dict[str, Any]) -> None:
-    required_fields = {
+    required_fields: dict[str, type[Any] | tuple[type[Any], ...]] = {
         "entry_id": str,
         "goal_id": str,
         "entry_type": str,
@@ -255,8 +254,8 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
     if "tasks" in data and "goals" not in data:
         tasks = data.get("tasks")
         if isinstance(tasks, list):
-            goals = []
-            entries = []
+            legacy_goals: list[dict[str, Any]] = []
+            legacy_entries: list[dict[str, Any]] = []
             for task in tasks:
                 if not isinstance(task, dict):
                     continue
@@ -279,8 +278,8 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
                     "failure_reason": task.get("failure_reason"),
                     "notes": task.get("notes"),
                 }
-                goals.append(goal)
-                entries.append(
+                legacy_goals.append(goal)
+                legacy_entries.append(
                     {
                         "entry_id": task_id,
                         "goal_id": task_id,
@@ -294,10 +293,10 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
                         "notes": task.get("notes"),
                     }
                 )
-            data["goals"] = goals
-            data["entries"] = entries
+            data["goals"] = legacy_goals
+            data["entries"] = legacy_entries
 
-    goals = data.get("goals")
+    goals: Any = data.get("goals")
     if isinstance(goals, list):
         for goal in goals:
             if isinstance(goal, dict) and "goal_type" not in goal:
@@ -307,7 +306,7 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
             if isinstance(goal, dict) and "supersedes_goal_id" not in goal:
                 goal["supersedes_goal_id"] = goal.pop("supersedes_task_id", None)
 
-    entries = data.get("entries")
+    entries: Any = data.get("entries")
     if not isinstance(entries, list) and isinstance(goals, list):
         data["entries"] = []
         entries = data["entries"]
@@ -1044,7 +1043,6 @@ def sync_goal_attempt_entries(
     goal_entries = get_goal_entries(entries, goal["goal_id"])
     goal_entries.sort(key=lambda entry: entry.get("started_at") or "")
 
-    previous_attempts = 0 if previous_goal is None else int(previous_goal.get("attempts") or 0)
     current_attempts = int(goal.get("attempts") or 0)
 
     while len(goal_entries) > current_attempts:
@@ -1171,7 +1169,7 @@ def upsert_task(
             linked_task = get_task(tasks, linked_task_id)
             if linked_task is not None and linked_task["goal_type"] != resolved_task_type:
                 raise ValueError("linked tasks must use the same task_type")
-        task = GoalRecord(
+        new_goal = GoalRecord(
             goal_id=task_id,
             title=title,
             goal_type=resolved_task_type,
@@ -1185,10 +1183,10 @@ def upsert_task(
             failure_reason=None,
             notes=None,
         )
-        tasks.append(asdict(task))
+        tasks.append(asdict(new_goal))
         task_index = len(tasks) - 1
 
-    task = tasks[task_index]
+    task: dict[str, Any] = tasks[task_index]
 
     explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
     explicit_token_fields_used = tokens_add is not None or tokens_set is not None

@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 23
-- Successes: 23
+- Closed goals: 26
+- Successes: 26
 - Fails: 0
-- Total attempts: 24
+- Total attempts: 27
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 24
-- Successes: 23
+- Closed entries: 27
+- Successes: 26
 - Fails: 1
-- Success Rate: 95.83%
+- Success Rate: 96.30%
 - Total cost (USD): 0.638112
 - Total tokens: 1359406
 
@@ -40,10 +40,10 @@
 - Cost per Success (Tokens): n/a
 
 ### retro
-- Closed goals: 4
-- Successes: 4
+- Closed goals: 5
+- Successes: 5
 - Fails: 0
-- Total attempts: 4
+- Total attempts: 5
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 14
-- Successes: 14
+- Closed goals: 16
+- Successes: 16
 - Fails: 0
-- Total attempts: 14
+- Total attempts: 16
 - Total cost (USD): 0.00
 - Total tokens: 0
 - Success Rate: 100.00%
@@ -64,6 +64,42 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-028 — Write retrospective for testing and static analysis bootstrap
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:32:31+00:00
+- Finished at: 2026-03-29T10:32:52+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow.
+
+### 2026-03-29-027 — Add static analysis tooling for safe refactoring
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:29:33+00:00
+- Finished at: 2026-03-29T10:31:54+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass.
+
+### 2026-03-29-026 — Add unit tests for metrics domain logic
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T10:26:26+00:00
+- Finished at: 2026-03-29T10:27:56+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests.
 
 ### 2026-03-29-025 — Audit historical goals for attempt-log backfill
 - Goal type: meta
@@ -354,6 +390,36 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-028-attempt-001 — 2026-03-29-028
+- Entry type: retro
+- Status: success
+- Started at: 2026-03-29T10:32:31+00:00
+- Finished at: 2026-03-29T10:32:52+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow.
+
+### 2026-03-29-027-attempt-001 — 2026-03-29-027
+- Entry type: meta
+- Status: success
+- Started at: 2026-03-29T10:29:33+00:00
+- Finished at: 2026-03-29T10:31:54+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass.
+
+### 2026-03-29-026-attempt-001 — 2026-03-29-026
+- Entry type: meta
+- Status: success
+- Started at: 2026-03-29T10:26:26+00:00
+- Finished at: 2026-03-29T10:27:56+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests.
 
 ### 2026-03-29-025-attempt-001 — 2026-03-29-025
 - Entry type: meta

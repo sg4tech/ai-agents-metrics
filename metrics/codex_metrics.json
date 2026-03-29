@@ -1,21 +1,21 @@
 {
   "summary": {
-    "closed_tasks": 23,
-    "successes": 23,
+    "closed_tasks": 26,
+    "successes": 26,
     "fails": 0,
-    "total_attempts": 24,
+    "total_attempts": 27,
     "total_cost_usd": 0.638112,
     "total_tokens": 1359406,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0434782608695652,
+    "attempts_per_closed_task": 1.0384615384615385,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 16,
+        "successes": 16,
         "fails": 0,
-        "total_attempts": 14,
+        "total_attempts": 16,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -36,10 +36,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 4,
-        "successes": 4,
+        "closed_tasks": 5,
+        "successes": 5,
         "fails": 0,
-        "total_attempts": 4,
+        "total_attempts": 5,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -50,10 +50,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 14,
-        "successes": 14,
+        "closed_tasks": 16,
+        "successes": 16,
         "fails": 0,
-        "total_attempts": 14,
+        "total_attempts": 16,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -74,10 +74,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 4,
-        "successes": 4,
+        "closed_tasks": 5,
+        "successes": 5,
         "fails": 0,
-        "total_attempts": 4,
+        "total_attempts": 5,
         "total_cost_usd": 0.0,
         "total_tokens": 0,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 24,
-      "successes": 23,
+      "closed_entries": 27,
+      "successes": 26,
       "fails": 1,
-      "success_rate": 0.9583333333333334,
+      "success_rate": 0.9629629629629629,
       "total_cost_usd": 0.638112,
       "total_tokens": 1359406,
       "failure_reasons": {
@@ -434,6 +434,48 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Audited historical goals after attempt-log migration. No additional structural backfill was required: all existing goals already have entry counts matching attempts, and the earlier failed-to-successful product path remains represented through separate linked goals 2026-03-29-007 -> 2026-03-29-008."
+    },
+    {
+      "goal_id": "2026-03-29-026",
+      "title": "Add unit tests for metrics domain logic",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T10:26:26+00:00",
+      "finished_at": "2026-03-29T10:27:56+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests."
+    },
+    {
+      "goal_id": "2026-03-29-027",
+      "title": "Add static analysis tooling for safe refactoring",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T10:29:33+00:00",
+      "finished_at": "2026-03-29T10:31:54+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass."
+    },
+    {
+      "goal_id": "2026-03-29-028",
+      "title": "Write retrospective for testing and static analysis bootstrap",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T10:32:31+00:00",
+      "finished_at": "2026-03-29T10:32:52+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow."
     }
   ],
   "entries": [
@@ -724,6 +766,42 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Audited historical goals after attempt-log migration. No additional structural backfill was required: all existing goals already have entry counts matching attempts, and the earlier failed-to-successful product path remains represented through separate linked goals 2026-03-29-007 -> 2026-03-29-008."
+    },
+    {
+      "entry_id": "2026-03-29-026-attempt-001",
+      "goal_id": "2026-03-29-026",
+      "entry_type": "meta",
+      "status": "success",
+      "started_at": "2026-03-29T10:26:26+00:00",
+      "finished_at": "2026-03-29T10:27:56+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added direct unit tests for summary math, effective goal chains, entry failure aggregation, and attempt-log synchronization; full suite now passes with 46 tests."
+    },
+    {
+      "entry_id": "2026-03-29-027-attempt-001",
+      "goal_id": "2026-03-29-027",
+      "entry_type": "meta",
+      "status": "success",
+      "started_at": "2026-03-29T10:29:33+00:00",
+      "finished_at": "2026-03-29T10:31:54+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added pyproject-based static analysis with ruff and mypy, installed both tools into .venv, tuned initial adoption to keep signal high, and verified ruff + mypy + 46 pytest checks all pass."
+    },
+    {
+      "entry_id": "2026-03-29-028-attempt-001",
+      "goal_id": "2026-03-29-028",
+      "entry_type": "retro",
+      "status": "success",
+      "started_at": "2026-03-29T10:32:31+00:00",
+      "finished_at": "2026-03-29T10:32:52+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a retrospective for the testing and static-analysis bootstrap, documenting why unit tests plus ruff/mypy were added before refactoring and what adoption scope was intentionally kept narrow."
     }
   ]
 }
