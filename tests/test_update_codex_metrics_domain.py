@@ -67,8 +67,12 @@ def test_compute_summary_block_uses_closed_goals_for_attempt_average() -> None:
     assert summary["attempts_per_closed_task"] == 3.0
     assert summary["known_cost_successes"] == 1
     assert summary["known_token_successes"] == 1
+    assert summary["complete_cost_successes"] == 1
+    assert summary["complete_token_successes"] == 1
     assert summary["known_cost_per_success_usd"] == 0.5
     assert summary["known_cost_per_success_tokens"] == 500.0
+    assert summary["complete_cost_per_covered_success_usd"] == 0.5
+    assert summary["complete_cost_per_covered_success_tokens"] == 500.0
     assert summary["cost_per_success_usd"] == 0.5
     assert summary["cost_per_success_tokens"] == 500.0
 
@@ -120,8 +124,12 @@ def test_compute_summary_block_separates_known_and_complete_cost_views() -> None
     assert summary["total_tokens"] == 1700
     assert summary["known_cost_successes"] == 2
     assert summary["known_token_successes"] == 2
+    assert summary["complete_cost_successes"] == 1
+    assert summary["complete_token_successes"] == 1
     assert summary["known_cost_per_success_usd"] == 0.75
     assert summary["known_cost_per_success_tokens"] == 850.0
+    assert summary["complete_cost_per_covered_success_usd"] == 0.5
+    assert summary["complete_cost_per_covered_success_tokens"] == 500.0
     assert summary["cost_per_success_usd"] is None
     assert summary["cost_per_success_tokens"] is None
 
@@ -233,7 +241,8 @@ def test_build_operator_review_surfaces_retry_and_cost_visibility() -> None:
             "successes": 3,
             "known_cost_successes": 1,
             "known_cost_per_success_usd": 0.25,
-            "cost_per_success_usd": None,
+            "complete_cost_successes": 1,
+            "complete_cost_per_covered_success_usd": 0.25,
             "by_goal_type": {
                 "product": {"closed_tasks": 2},
                 "retro": {"closed_tasks": 0},
@@ -250,7 +259,7 @@ def test_build_operator_review_surfaces_retry_and_cost_visibility() -> None:
     assert "Meta work still outweighs product delivery; validate changes on real product goals." in review
     assert "Retry pressure exists; inspect failed entries, especially unclear_task." in review
     assert "Cost visibility is partial; use known-cost metrics as directional, not final." in review
-    assert "Known average cost is available, but complete cost-per-success is still incomplete." in review
+    assert "Full cost coverage is still partial; treat complete covered-success averages as strict subset signals." in review
 
 
 def test_validate_metrics_data_rejects_supersession_cycle(tmp_path: Path) -> None:

@@ -255,12 +255,28 @@ If `known_cost_successes = 0`, set `known_cost_per_success_usd = null`.
 
 This is a practical operator-facing average across the successful goals where cost is known.
 
-### Complete Cost per Success (USD)
+### Complete Cost Coverage (USD)
+
+Track how many successful effective goals have full chain-complete USD cost.
+
 Formula:
 
-`cost_per_success_usd = total_cost_usd / successes`
+`complete_cost_successes = count(successful effective goals where full chain-complete USD cost exists)`
 
-If `successes = 0` or full chain-complete cost is unavailable for all successes, set `cost_per_success_usd = null`.
+This distinguishes:
+
+- partial known cost
+- from fully reconstructable end-to-end cost
+
+### Complete Cost per Covered Success (USD)
+
+Formula:
+
+`complete_cost_per_covered_success_usd = sum(chain-complete USD cost across successful effective goals with full coverage) / complete_cost_successes`
+
+If `complete_cost_successes = 0`, set `complete_cost_per_covered_success_usd = null`.
+
+This is the strict trustworthy average across the fully covered subset, without requiring full coverage for every success in repository history.
 
 ### Known Cost per Success (Tokens)
 
@@ -270,12 +286,21 @@ Formula:
 
 If `known_token_successes = 0`, set `known_cost_per_success_tokens = null`.
 
-### Complete Cost per Success (Tokens)
+### Complete Cost Coverage (Tokens)
+
+Track how many successful effective goals have full chain-complete token data.
+
 Formula:
 
-`cost_per_success_tokens = total_tokens / successes`
+`complete_token_successes = count(successful effective goals where full chain-complete token data exists)`
 
-If `successes = 0` or full chain-complete token data is unavailable for all successes, set `cost_per_success_tokens = null`.
+### Complete Cost per Covered Success (Tokens)
+
+Formula:
+
+`complete_cost_per_covered_success_tokens = sum(chain-complete tokens across successful effective goals with full coverage) / complete_token_successes`
+
+If `complete_token_successes = 0`, set `complete_cost_per_covered_success_tokens = null`.
 
 ## Minimum reporting standard
 
@@ -330,6 +355,14 @@ Validation must also be procedurally correct:
     "total_tokens": 0,
     "success_rate": null,
     "attempts_per_closed_task": null,
+    "known_cost_successes": 0,
+    "known_token_successes": 0,
+    "complete_cost_successes": 0,
+    "complete_token_successes": 0,
+    "known_cost_per_success_usd": null,
+    "known_cost_per_success_tokens": null,
+    "complete_cost_per_covered_success_usd": null,
+    "complete_cost_per_covered_success_tokens": null,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_task_type": {

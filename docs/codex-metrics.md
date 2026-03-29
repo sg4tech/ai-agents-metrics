@@ -2,27 +2,29 @@
 
 ## Goal summary
 
-- Closed goals: 59
-- Successes: 59
+- Closed goals: 60
+- Successes: 60
 - Fails: 0
-- Total attempts: 60
+- Total attempts: 61
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.02
-- Known cost coverage: 3/59 successful goals
-- Known token coverage: 3/59 successful goals
+- Known cost coverage: 3/60 successful goals
+- Known token coverage: 3/60 successful goals
+- Complete cost coverage: 2/60 successful goals
+- Complete token coverage: 2/60 successful goals
 - Known Cost per Success (USD): 0.386455
 - Known Cost per Success (Tokens): 820357.33
-- Complete Cost per Success (USD): n/a
-- Complete Cost per Success (Tokens): n/a
+- Complete Cost per Covered Success (USD): 0.260627
+- Complete Cost per Covered Success (Tokens): 550833.00
 
 ## Entry summary
 
-- Closed entries: 60
-- Successes: 59
+- Closed entries: 61
+- Successes: 60
 - Fails: 1
-- Success Rate: 98.33%
+- Success Rate: 98.36%
 - Known total cost (USD): 1.159366
 - Known total tokens: 2461072
 
@@ -31,7 +33,7 @@
 - Meta work still outweighs product delivery; validate changes on real product goals.
 - Retry pressure exists; inspect failed entries, especially unclear_task.
 - Cost visibility is partial; use known-cost metrics as directional, not final.
-- Known average cost is available, but complete cost-per-success is still incomplete.
+- Full cost coverage is still partial; treat complete covered-success averages as strict subset signals.
 
 ## By goal type
 
@@ -39,20 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 12
-- Successes: 12
+- Closed goals: 13
+- Successes: 13
 - Fails: 0
-- Total attempts: 13
+- Total attempts: 14
 - Known total cost (USD): 0.638112
 - Known total tokens: 1359406
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.08
-- Known cost coverage: 1/12 successful goals
-- Known token coverage: 1/12 successful goals
+- Known cost coverage: 1/13 successful goals
+- Known token coverage: 1/13 successful goals
+- Complete cost coverage: 0/13 successful goals
+- Complete token coverage: 0/13 successful goals
 - Known Cost per Success (USD): 0.638112
 - Known Cost per Success (Tokens): 1359406.00
-- Complete Cost per Success (USD): n/a
-- Complete Cost per Success (Tokens): n/a
+- Complete Cost per Covered Success (USD): n/a
+- Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
 - Closed goals: 13
@@ -65,10 +69,12 @@
 - Attempts per Closed Goal: 1.00
 - Known cost coverage: 1/13 successful goals
 - Known token coverage: 1/13 successful goals
+- Complete cost coverage: 1/13 successful goals
+- Complete token coverage: 1/13 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
-- Complete Cost per Success (USD): n/a
-- Complete Cost per Success (Tokens): n/a
+- Complete Cost per Covered Success (USD): 0.255454
+- Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
 - Closed goals: 34
@@ -81,12 +87,26 @@
 - Attempts per Closed Goal: 1.00
 - Known cost coverage: 1/34 successful goals
 - Known token coverage: 1/34 successful goals
+- Complete cost coverage: 1/34 successful goals
+- Complete token coverage: 1/34 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
-- Complete Cost per Success (USD): n/a
-- Complete Cost per Success (Tokens): n/a
+- Complete Cost per Covered Success (USD): 0.2658
+- Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-064 — Make complete cost reporting actionable
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:42:51+00:00
+- Finished at: 2026-03-29T12:45:43+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting.
 
 ### 2026-03-29-063 — Repeat code review and close TODO
 - Goal type: meta
@@ -833,6 +853,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-064-attempt-001 — 2026-03-29-064
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:42:51+00:00
+- Finished at: 2026-03-29T12:45:43+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Replaced brittle complete-cost display with complete coverage and covered-success averages, clarified the operator review wording, and closed the TODO item about always-null complete cost reporting.
 
 ### 2026-03-29-063-attempt-001 — 2026-03-29-063
 - Entry type: meta
