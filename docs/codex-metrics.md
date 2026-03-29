@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 119
-- Successes: 119
+- Closed goals: 123
+- Successes: 123
 - Fails: 0
-- Total attempts: 123
-- Known total cost (USD): 177.650892
-- Known total tokens: 127426468
+- Total attempts: 128
+- Known total cost (USD): 185.160793
+- Known total tokens: 132780556
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.03
-- Known cost coverage: 98/119 successful goals
-- Known token coverage: 98/119 successful goals
-- Complete cost coverage: 98/119 successful goals
-- Complete token coverage: 98/119 successful goals
-- Known Cost per Success (USD): 1.812764
-- Known Cost per Success (Tokens): 1300270.08
-- Complete Cost per Covered Success (USD): 1.812764
-- Complete Cost per Covered Success (Tokens): 1300270.08
+- Attempts per Closed Goal: 1.04
+- Known cost coverage: 102/123 successful goals
+- Known token coverage: 102/123 successful goals
+- Complete cost coverage: 102/123 successful goals
+- Complete token coverage: 102/123 successful goals
+- Known Cost per Success (USD): 1.815302
+- Known Cost per Success (Tokens): 1301770.16
+- Complete Cost per Covered Success (USD): 1.815302
+- Complete Cost per Covered Success (Tokens): 1301770.16
 
 ## Entry summary
 
-- Closed entries: 123
-- Successes: 122
+- Closed entries: 128
+- Successes: 127
 - Fails: 1
-- Success Rate: 99.19%
-- Known total cost (USD): 176.753512
-- Known total tokens: 126710489
+- Success Rate: 99.22%
+- Known total cost (USD): 184.263413
+- Known total tokens: 132064577
 
 ## Operator review
 
@@ -41,40 +41,40 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 34
-- Successes: 34
+- Closed goals: 37
+- Successes: 37
 - Fails: 0
-- Total attempts: 38
-- Known total cost (USD): 79.70353
-- Known total tokens: 57270236
+- Total attempts: 42
+- Known total cost (USD): 86.941149
+- Known total tokens: 62432655
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.12
-- Known cost coverage: 30/34 successful goals
-- Known token coverage: 30/34 successful goals
-- Complete cost coverage: 30/34 successful goals
-- Complete token coverage: 30/34 successful goals
-- Known Cost per Success (USD): 2.656784
-- Known Cost per Success (Tokens): 1909007.87
-- Complete Cost per Covered Success (USD): 2.656784
-- Complete Cost per Covered Success (Tokens): 1909007.87
+- Attempts per Closed Goal: 1.14
+- Known cost coverage: 33/37 successful goals
+- Known token coverage: 33/37 successful goals
+- Complete cost coverage: 33/37 successful goals
+- Complete token coverage: 33/37 successful goals
+- Known Cost per Success (USD): 2.63458
+- Known Cost per Success (Tokens): 1891898.64
+- Complete Cost per Covered Success (USD): 2.63458
+- Complete Cost per Covered Success (Tokens): 1891898.64
 
 ### retro
-- Closed goals: 28
-- Successes: 28
+- Closed goals: 29
+- Successes: 29
 - Fails: 0
-- Total attempts: 28
-- Known total cost (USD): 10.44747
-- Known total tokens: 7438418
+- Total attempts: 29
+- Known total cost (USD): 10.719752
+- Known total tokens: 7630087
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 19/28 successful goals
-- Known token coverage: 19/28 successful goals
-- Complete cost coverage: 19/28 successful goals
-- Complete token coverage: 19/28 successful goals
-- Known Cost per Success (USD): 0.549867
-- Known Cost per Success (Tokens): 391495.68
-- Complete Cost per Covered Success (USD): 0.549867
-- Complete Cost per Covered Success (Tokens): 391495.68
+- Known cost coverage: 20/29 successful goals
+- Known token coverage: 20/29 successful goals
+- Complete cost coverage: 20/29 successful goals
+- Complete token coverage: 20/29 successful goals
+- Known Cost per Success (USD): 0.535988
+- Known Cost per Success (Tokens): 381504.35
+- Complete Cost per Covered Success (USD): 0.535988
+- Complete Cost per Covered Success (Tokens): 381504.35
 
 ### meta
 - Closed goals: 57
@@ -95,6 +95,58 @@
 - Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-129 — Add self-install command for standalone binary
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 2
+- Started at: 2026-03-29T18:58:02+00:00
+- Finished at: 2026-03-29T19:02:55+00:00
+- Cost (USD): 4.633669
+- Tokens: 3296372
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Finalized install-self: it now installs a working launcher, warns when the target directory is not on PATH, prints the exact export PATH line for the current shell profile, and is covered by regression tests plus full verify.
+
+### 2026-03-29-128 — Document canonical symlink install path for standalone codex-metrics
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:55:59+00:00
+- Finished at: 2026-03-29T18:57:05+00:00
+- Cost (USD): 1.116775
+- Tokens: 800902
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Documented canonical standalone self-host install path via ~/bin/codex-metrics symlink in bootstrap-generated AGENTS guidance, exported policy template, and README rollout instructions; added regression assertions and verified with targeted bootstrap tests plus make verify.
+
+### 2026-03-29-127 — Strengthen bootstrap installer agent instructions
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:50:51+00:00
+- Finished at: 2026-03-29T18:52:03+00:00
+- Cost (USD): 1.487175
+- Tokens: 1065145
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Strengthened bootstrap installer output so the managed AGENTS.md block explains PATH-installed versus standalone-by-path invocation, the required Codex agent workflow, and retry/close/show commands; also updated the exported policy template with standalone path guidance and added bootstrap regression coverage; verified with targeted bootstrap tests and make verify.
+
+### 2026-03-29-126 — Shell completion and standalone invocation retrospective
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:46:56+00:00
+- Finished at: 2026-03-29T18:47:18+00:00
+- Cost (USD): 0.272282
+- Tokens: 191669
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added retrospective for shell completion and standalone self-host UX, covering PATH assumptions, missing autocomplete, corrected README guidance, and built-in completion support as a permanent CLI surface.
 
 ### 2026-03-29-125 — Add shell completion support for codex-metrics
 - Goal type: product
@@ -1709,6 +1761,61 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-129-attempt-001 — 2026-03-29-129
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:58:02+00:00
+- Finished at: 2026-03-29T19:02:55+00:00
+- Cost (USD): 4.633669
+- Tokens: 3296372
+- Failure reason: n/a
+- Notes: Added install-self command to install the current executable into a stable user-local entrypoint, defaulting to ~/bin/codex-metrics; for script/module invocations it now writes a working launcher, for standalone binaries it links or copies the artifact; updated bootstrap-generated AGENTS guidance, exported policy template, README rollout docs, and regression tests; verified with targeted install-self tests, live launcher smoke, and make verify.
+
+### 2026-03-29-129-attempt-002 — 2026-03-29-129
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:58:02+00:00
+- Finished at: 2026-03-29T19:02:55+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Finalized install-self: it now installs a working launcher, warns when the target directory is not on PATH, prints the exact export PATH line for the current shell profile, and is covered by regression tests plus full verify.
+
+### 2026-03-29-128-attempt-001 — 2026-03-29-128
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:55:59+00:00
+- Finished at: 2026-03-29T18:57:05+00:00
+- Cost (USD): 1.116775
+- Tokens: 800902
+- Failure reason: n/a
+- Notes: Documented canonical standalone self-host install path via ~/bin/codex-metrics symlink in bootstrap-generated AGENTS guidance, exported policy template, and README rollout instructions; added regression assertions and verified with targeted bootstrap tests plus make verify.
+
+### 2026-03-29-127-attempt-001 — 2026-03-29-127
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:50:51+00:00
+- Finished at: 2026-03-29T18:52:03+00:00
+- Cost (USD): 1.487175
+- Tokens: 1065145
+- Failure reason: n/a
+- Notes: Strengthened bootstrap installer output so the managed AGENTS.md block explains PATH-installed versus standalone-by-path invocation, the required Codex agent workflow, and retry/close/show commands; also updated the exported policy template with standalone path guidance and added bootstrap regression coverage; verified with targeted bootstrap tests and make verify.
+
+### 2026-03-29-126-attempt-001 — 2026-03-29-126
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:46:56+00:00
+- Finished at: 2026-03-29T18:47:18+00:00
+- Cost (USD): 0.272282
+- Tokens: 191669
+- Failure reason: n/a
+- Notes: Added retrospective for shell completion and standalone self-host UX, covering PATH assumptions, missing autocomplete, corrected README guidance, and built-in completion support as a permanent CLI surface.
 
 ### 2026-03-29-125-attempt-001 — 2026-03-29-125
 - Entry type: product

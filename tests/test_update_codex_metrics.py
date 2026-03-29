@@ -398,6 +398,58 @@ def test_package_module_entrypoint_supports_bootstrap(repo: Path) -> None:
     assert "Would create metrics file" in result.stdout
 
 
+def test_install_self_creates_launcher_in_target_dir(repo: Path) -> None:
+    install_dir = repo / "bin"
+
+    result = run_cmd(repo, "install-self", "--target-dir", str(install_dir))
+
+    assert result.returncode == 0, result.stderr
+    installed_path = install_dir / "codex-metrics"
+    installed_text = installed_path.read_text(encoding="utf-8")
+    assert installed_text.startswith("#!/bin/sh\n")
+    assert str((repo / "scripts" / "update_codex_metrics.py").resolve()) in installed_text
+    assert sys.executable in installed_text
+    assert f"{installed_path}" in result.stdout
+    assert f"Warning: {install_dir}" in result.stdout
+    assert "export PATH=" in result.stdout
+
+
+def test_install_self_replaces_existing_target(repo: Path) -> None:
+    install_dir = repo / "bin"
+    install_dir.mkdir(parents=True, exist_ok=True)
+    installed_path = install_dir / "codex-metrics"
+    installed_path.write_text("old\n", encoding="utf-8")
+
+    result = run_cmd(repo, "install-self", "--target-dir", str(install_dir))
+
+    assert result.returncode == 0, result.stderr
+    installed_text = installed_path.read_text(encoding="utf-8")
+    assert installed_text.startswith("#!/bin/sh\n")
+    assert str((repo / "scripts" / "update_codex_metrics.py").resolve()) in installed_text
+
+
+def test_module_install_self_creates_module_launcher(repo: Path) -> None:
+    install_dir = repo / "bin"
+
+    result = run_module_cmd(repo, "install-self", "--target-dir", str(install_dir))
+
+    assert result.returncode == 0, result.stderr
+    installed_path = install_dir / "codex-metrics"
+    installed_text = installed_path.read_text(encoding="utf-8")
+    assert installed_text.startswith("#!/bin/sh\n")
+    assert sys.executable in installed_text
+    assert f"export PYTHONPATH='{ABS_SRC}'" in installed_text
+    assert "-m codex_metrics" in installed_text
+
+
+def test_install_self_skips_path_warning_when_target_dir_is_already_on_path(repo: Path) -> None:
+    install_dir = repo / "bin"
+    result = run_cmd(repo, "install-self", "--target-dir", str(install_dir), extra_env={"PATH": f"{install_dir}{os.pathsep}{os.environ.get('PATH', '')}"})
+
+    assert result.returncode == 0, result.stderr
+    assert "Warning:" not in result.stdout
+
+
 def test_init_refuses_to_overwrite_without_force(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 
@@ -457,11 +509,19 @@ def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
     policy_text = policy_path.read_text(encoding="utf-8")
     assert "Codex Metrics Policy" in policy_text
     assert "Metrics bookkeeping is mandatory." in policy_text
+    assert "If you are using a standalone self-host binary that is not on `PATH`" in policy_text
+    assert "`~/bin/codex-metrics`" in policy_text
 
     agents_text = agents_path.read_text(encoding="utf-8")
     assert "# AGENTS.md" in agents_text
     assert "<!-- codex-metrics:start -->" in agents_text
     assert "docs/codex-metrics-policy.md" in agents_text
+    assert "Use `codex-metrics ...` if the CLI is installed on `PATH`." in agents_text
+    assert "./codex-metrics" in agents_text
+    assert "`~/bin/codex-metrics`" in agents_text
+    assert "install-self" in agents_text
+    assert "At the start of a meaningful task, create or continue a goal" in agents_text
+    assert "--attempts-delta 1 --notes \"Retry\"" in agents_text
     assert "codex-metrics update" in agents_text
 
 
@@ -639,6 +699,7 @@ def test_help_lists_completion_command(repo: Path) -> None:
     result = run_cmd(repo, "--help")
 
     assert result.returncode == 0
+    assert "install-self" in result.stdout
     assert "completion" in result.stdout
     assert "Print shell completion for bash or zsh" in result.stdout
 

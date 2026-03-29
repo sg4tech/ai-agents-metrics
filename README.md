@@ -50,6 +50,16 @@ chmod +x ./codex-metrics
 When you use the standalone binary directly, `codex-metrics` does not automatically appear in your shell `PATH`.
 Run it by path, for example `./codex-metrics ...` or `/path/to/codex-metrics ...`, unless you move it into a directory that is already on `PATH`.
 
+Recommended self-host install on macOS/Linux:
+
+```bash
+/absolute/path/to/codex-metrics install-self
+codex-metrics --help
+```
+
+This keeps one stable command on `PATH` and avoids copying a separate binary into each repository.
+If `~/bin` is not yet on `PATH`, `install-self` will print the exact `export PATH=...` line to add to your shell profile.
+
 Preferred install from source for a standalone CLI:
 
 ```bash
@@ -96,6 +106,12 @@ Bootstrap `codex-metrics` into another repository:
 
 ```bash
 codex-metrics bootstrap
+```
+
+Install the current executable into `~/bin/codex-metrics`:
+
+```bash
+/path/to/codex-metrics install-self
 ```
 
 Create or update a goal record:
@@ -160,6 +176,13 @@ Preferred install from a standalone release binary:
 
 # Windows
 C:\path\to\codex-metrics.exe bootstrap --dry-run
+```
+
+Recommended self-host setup on macOS/Linux before bootstrapping repositories:
+
+```bash
+/absolute/path/to/codex-metrics install-self
+codex-metrics --help
 ```
 
 Preferred install from source:
@@ -240,6 +263,17 @@ cd /path/to/another-repo
 /path/to/codex-metrics show
 ```
 
+Recommended self-host update on macOS/Linux when you keep a stable symlink in `~/bin`:
+
+```bash
+/path/to/new/codex-metrics install-self
+
+cd /path/to/another-repo
+codex-metrics bootstrap --dry-run
+codex-metrics bootstrap
+codex-metrics show
+```
+
 Update from a built wheel or release artifact:
 
 ```bash
@@ -286,6 +320,13 @@ Use one of these forms instead:
 ```
 
 Or move the binary into a directory on `PATH`, for example `~/bin` or `/usr/local/bin`, and then reopen your shell.
+For repeated self-host use on macOS/Linux, prefer a stable symlink at `~/bin/codex-metrics`.
+
+The fastest way to create that symlink is:
+
+```bash
+/path/to/codex-metrics install-self
+```
 
 To enable shell completion after `codex-metrics` is on `PATH`:
 

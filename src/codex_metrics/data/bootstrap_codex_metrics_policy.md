@@ -72,6 +72,11 @@ Use:
 
 ## Standard Commands
 
+Use `codex-metrics ...` if the CLI is installed on `PATH`.
+If you are using a standalone self-host binary that is not on `PATH`, invoke it by filesystem path instead, for example `./codex-metrics ...` or `/path/to/codex-metrics ...`.
+On macOS/Linux, prefer one shared entrypoint at `~/bin/codex-metrics`.
+If you have a standalone binary, run `/path/to/codex-metrics install-self` to create it instead of copying the binary into each repository.
+
 Initialize the scaffold:
 
 ```bash

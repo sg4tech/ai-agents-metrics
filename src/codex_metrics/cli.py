@@ -715,6 +715,19 @@ def build_parser() -> argparse.ArgumentParser:
     bootstrap_parser.add_argument("--force", action="store_true", help="Replace conflicting scaffold files")
     bootstrap_parser.add_argument("--dry-run", action="store_true", help="Preview planned changes without writing files")
 
+    install_self_parser = subparsers.add_parser(
+        "install-self",
+        help="Install this executable into ~/bin/codex-metrics",
+        description=(
+            "Install the current codex-metrics executable into a stable user-local location. "
+            "On macOS/Linux this defaults to a symlink at ~/bin/codex-metrics."
+        ),
+    )
+    install_self_parser.add_argument("--target-dir", default=str(Path.home() / "bin"))
+    install_self_parser.add_argument("--target-path")
+    install_self_parser.add_argument("--command-name", default="codex-metrics")
+    install_self_parser.add_argument("--copy", action="store_true", help="Copy the executable instead of creating a symlink")
+
     completion_parser = subparsers.add_parser(
         "completion",
         help="Print shell completion for bash or zsh",
@@ -973,6 +986,9 @@ def main() -> int:
 
     if args.command == "bootstrap":
         return commands.handle_bootstrap(args, sys.modules[__name__])
+
+    if args.command == "install-self":
+        return commands.handle_install_self(args, sys.modules[__name__])
 
     if args.command == "completion":
         print(render_completion(build_parser(), args.shell), end="")
