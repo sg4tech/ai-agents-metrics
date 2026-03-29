@@ -2,10 +2,10 @@
 
 ## Goal summary
 
-- Closed goals: 46
-- Successes: 46
+- Closed goals: 48
+- Successes: 48
 - Fails: 0
-- Total attempts: 47
+- Total attempts: 49
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 - Success Rate: 100.00%
@@ -15,10 +15,10 @@
 
 ## Entry summary
 
-- Closed entries: 47
-- Successes: 46
+- Closed entries: 49
+- Successes: 48
 - Fails: 1
-- Success Rate: 97.87%
+- Success Rate: 97.96%
 - Total cost (USD): 1.159366
 - Total tokens: 2461072
 
@@ -40,10 +40,10 @@
 - Cost per Success (Tokens): n/a
 
 ### retro
-- Closed goals: 10
-- Successes: 10
+- Closed goals: 11
+- Successes: 11
 - Fails: 0
-- Total attempts: 10
+- Total attempts: 11
 - Total cost (USD): 0.255454
 - Total tokens: 532598
 - Success Rate: 100.00%
@@ -52,10 +52,10 @@
 - Cost per Success (Tokens): n/a
 
 ### meta
-- Closed goals: 31
-- Successes: 31
+- Closed goals: 32
+- Successes: 32
 - Fails: 0
-- Total attempts: 31
+- Total attempts: 32
 - Total cost (USD): 0.2658
 - Total tokens: 569068
 - Success Rate: 100.00%
@@ -64,6 +64,30 @@
 - Cost per Success (Tokens): n/a
 
 ## Goal log
+
+### 2026-03-29-052 — Retro for critical invariant normalization
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:44:02+00:00
+- Finished at: 2026-03-29T11:44:02+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules.
+
+### 2026-03-29-051 — Fix critical metrics invariants
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T11:39:28+00:00
+- Finished at: 2026-03-29T11:42:39+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries.
 
 ### 2026-03-29-050 — Expand pricing and usage-sync coverage
 - Goal type: meta
@@ -654,6 +678,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-052-attempt-001 — 2026-03-29-052
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:44:02+00:00
+- Finished at: 2026-03-29T11:44:02+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules.
+
+### 2026-03-29-051-attempt-001 — 2026-03-29-051
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T11:39:28+00:00
+- Finished at: 2026-03-29T11:42:39+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries.
 
 ### 2026-03-29-050-attempt-001 — 2026-03-29-050
 - Entry type: meta

@@ -299,6 +299,7 @@ def validate_entry_record(entry: dict[str, Any]) -> None:
     if entry_record.tokens_total is not None:
         validate_non_negative_int(entry_record.tokens_total, "tokens_total")
     validate_failure_reason(entry_record.failure_reason)
+    validate_entry_business_rules(entry)
 
 
 def validate_metrics_data(data: dict[str, Any], path: Path) -> None:
@@ -679,12 +680,35 @@ def validate_task_business_rules(task: dict[str, Any]) -> None:
     started_at = task.get("started_at")
     finished_at = task.get("finished_at")
     status = task["status"]
+    attempts = task["attempts"]
     failure_reason = task.get("failure_reason")
 
     started_dt = parse_iso_datetime(started_at, "started_at") if started_at is not None else None
     finished_dt = parse_iso_datetime(finished_at, "finished_at") if finished_at is not None else None
 
     if status == "fail" and failure_reason is None:
+        raise ValueError("failure_reason is required when status is fail")
+    if status == "success" and failure_reason is not None:
+        raise ValueError("failure_reason must be empty when status is success")
+    if status in {"success", "fail"} and attempts == 0:
+        raise ValueError("closed goals must have at least one attempt")
+    if status == "in_progress" and finished_at is not None:
+        raise ValueError("finished_at must be empty when status is in_progress")
+    if started_dt is not None and finished_dt is not None and finished_dt < started_dt:
+        raise ValueError("finished_at cannot be earlier than started_at")
+
+
+def validate_entry_business_rules(entry: dict[str, Any]) -> None:
+    started_at = entry.get("started_at")
+    finished_at = entry.get("finished_at")
+    status = entry["status"]
+    failure_reason = entry.get("failure_reason")
+    inferred = bool(entry.get("inferred", False))
+
+    started_dt = parse_iso_datetime(started_at, "started_at") if started_at is not None else None
+    finished_dt = parse_iso_datetime(finished_at, "finished_at") if finished_at is not None else None
+
+    if status == "fail" and failure_reason is None and not inferred:
         raise ValueError("failure_reason is required when status is fail")
     if status == "success" and failure_reason is not None:
         raise ValueError("failure_reason must be empty when status is success")
@@ -1232,10 +1256,15 @@ def append_missing_attempt_entries(
         is_latest_attempt = len(goal_entries) + 1 == current_attempts
         inferred_failed_attempt = not is_latest_attempt
         entry_status = goal["status"] if is_latest_attempt else "fail"
+        inferred_timestamp = goal.get("started_at") or now_utc_iso()
         entry_finished_at = goal.get("finished_at") if entry_status in {"success", "fail"} else None
         if inferred_failed_attempt:
-            entry_finished_at = goal.get("started_at") or now_utc_iso()
+            entry_finished_at = inferred_timestamp
         started_at = goal.get("started_at") if not goal_entries else now_utc_iso()
+        if inferred_failed_attempt:
+            started_at = inferred_timestamp
+        elif entry_finished_at is not None:
+            started_at = goal.get("started_at") or entry_finished_at
         notes = goal.get("notes")
         if inferred_failed_attempt:
             notes = "Inferred historical failed attempt from attempts count."
@@ -1503,6 +1532,8 @@ def apply_goal_updates(
 
 
 def finalize_goal_update(task: GoalRecord) -> None:
+    if task.status in {"success", "fail"} and task.attempts == 0:
+        task.attempts = 1
     if task.status in {"success", "fail"} and not task.finished_at:
         finished_dt = now_utc_datetime()
         started_at_value = task.started_at
@@ -1777,6 +1808,10 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
         if entry.get("goal_id") == drop_task_id:
             entry["goal_id"] = keep_task_id
             validate_entry_record(entry)
+    for task in tasks:
+        if task.get("supersedes_goal_id") == drop_task_id:
+            task["supersedes_goal_id"] = keep_task_id
+            validate_goal_record(task)
     del tasks[drop_index]
     return kept_task
 

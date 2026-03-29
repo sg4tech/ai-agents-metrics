@@ -1,21 +1,21 @@
 {
   "summary": {
-    "closed_tasks": 46,
-    "successes": 46,
+    "closed_tasks": 48,
+    "successes": 48,
     "fails": 0,
-    "total_attempts": 47,
+    "total_attempts": 49,
     "total_cost_usd": 1.159366,
     "total_tokens": 2461072,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0217391304347827,
+    "attempts_per_closed_task": 1.0208333333333333,
     "cost_per_success_usd": null,
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 31,
-        "successes": 31,
+        "closed_tasks": 32,
+        "successes": 32,
         "fails": 0,
-        "total_attempts": 31,
+        "total_attempts": 32,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -36,10 +36,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 10,
-        "successes": 10,
+        "closed_tasks": 11,
+        "successes": 11,
         "fails": 0,
-        "total_attempts": 10,
+        "total_attempts": 11,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -50,10 +50,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 31,
-        "successes": 31,
+        "closed_tasks": 32,
+        "successes": 32,
         "fails": 0,
-        "total_attempts": 31,
+        "total_attempts": 32,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -74,10 +74,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 10,
-        "successes": 10,
+        "closed_tasks": 11,
+        "successes": 11,
         "fails": 0,
-        "total_attempts": 10,
+        "total_attempts": 11,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -87,10 +87,10 @@
       }
     },
     "entries": {
-      "closed_entries": 47,
-      "successes": 46,
+      "closed_entries": 49,
+      "successes": 48,
       "fails": 1,
-      "success_rate": 0.9787234042553191,
+      "success_rate": 0.9795918367346939,
       "total_cost_usd": 1.159366,
       "total_tokens": 2461072,
       "failure_reasons": {
@@ -784,6 +784,34 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Expanded high-ROI coverage for pricing validation and usage-sync no-op paths, then documented make verify as the canonical local validation flow."
+    },
+    {
+      "goal_id": "2026-03-29-051",
+      "title": "Fix critical metrics invariants",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:39:28+00:00",
+      "finished_at": "2026-03-29T11:42:39+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries."
+    },
+    {
+      "goal_id": "2026-03-29-052",
+      "title": "Retro for critical invariant normalization",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T11:44:02+00:00",
+      "finished_at": "2026-03-29T11:44:02+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules."
     }
   ],
   "entries": [
@@ -1388,6 +1416,32 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Expanded high-ROI coverage for pricing validation and usage-sync no-op paths, then documented make verify as the canonical local validation flow."
+    },
+    {
+      "entry_id": "2026-03-29-051-attempt-001",
+      "goal_id": "2026-03-29-051",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:39:28+00:00",
+      "finished_at": "2026-03-29T11:42:39+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Fixed critical invariants by auto-normalizing first closed attempt, rewriting downstream supersedes links during merge, and enforcing entry business rules without breaking inferred history entries."
+    },
+    {
+      "entry_id": "2026-03-29-052-attempt-001",
+      "goal_id": "2026-03-29-052",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T11:44:02+00:00",
+      "finished_at": "2026-03-29T11:44:02+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented why invariant fixes should normalize supported workflows instead of just forbidding states, and captured the resulting permanent rules."
     }
   ]
 }

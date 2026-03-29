@@ -916,6 +916,32 @@ def test_fail_status_requires_failure_reason(repo: Path) -> None:
     assert "failure_reason is required when status is fail" in result.stderr
 
 
+def test_closed_goal_auto_creates_first_attempt_when_closed_without_attempts(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "zero-attempt-success",
+        "--title",
+        "Zero Attempt Success",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task = data["tasks"][0]
+    entries = [entry for entry in data["entries"] if entry["goal_id"] == "zero-attempt-success"]
+
+    assert task["attempts"] == 1
+    assert len(entries) == 1
+    assert entries[0]["status"] == "success"
+
+
 def test_success_status_clears_existing_failure_reason(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
     assert run_cmd(repo, "update", "--task-id", "recover", "--title", "Recover Task", "--task-type", "product").returncode == 0
@@ -1646,6 +1672,72 @@ def test_merge_tasks_rejects_supersession_cycle(repo: Path) -> None:
     assert "merge would create a supersession cycle" in result.stderr
 
 
+def test_merge_tasks_rewrites_downstream_supersession_links(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-a",
+        "--title",
+        "Task A",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-b",
+        "--title",
+        "Task B",
+        "--task-type",
+        "product",
+        "--status",
+        "fail",
+        "--attempts",
+        "1",
+        "--failure-reason",
+        "model_mistake",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "task-c",
+        "--title",
+        "Task C",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "task-b",
+        "--status",
+        "success",
+        "--attempts",
+        "1",
+    ).returncode == 0
+
+    result = run_cmd(
+        repo,
+        "merge-tasks",
+        "--keep-task-id",
+        "task-a",
+        "--drop-task-id",
+        "task-b",
+    )
+
+    assert result.returncode == 0, result.stderr
+    show_result = run_cmd(repo, "show")
+    assert show_result.returncode == 0, show_result.stderr
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task_c = next(task for task in data["tasks"] if task["task_id"] == "task-c")
+    assert task_c["supersedes_task_id"] == "task-a"
+
+
 def test_report_sorts_tasks_by_started_at_descending(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 
@@ -1722,3 +1814,51 @@ def test_report_marks_inferred_entries(repo: Path) -> None:
     report = (repo / "docs" / "codex-metrics.md").read_text(encoding="utf-8")
     assert "- Inferred: yes" in report
     assert "- Inferred: no" in report
+
+
+def test_invalid_entry_business_state_fails(repo: Path) -> None:
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    metrics_path.write_text(
+        json.dumps(
+            {
+                "summary": {},
+                "goals": [
+                    {
+                        "goal_id": "goal-001",
+                        "title": "Goal 001",
+                        "goal_type": "product",
+                        "supersedes_goal_id": None,
+                        "status": "success",
+                        "attempts": 1,
+                        "started_at": "2026-03-29T09:00:00+00:00",
+                        "finished_at": "2026-03-29T09:10:00+00:00",
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": None,
+                        "notes": None,
+                    }
+                ],
+                "entries": [
+                    {
+                        "entry_id": "entry-001",
+                        "goal_id": "goal-001",
+                        "entry_type": "product",
+                        "inferred": False,
+                        "status": "success",
+                        "started_at": "2026-03-29T09:00:00+00:00",
+                        "finished_at": "2026-03-29T09:10:00+00:00",
+                        "cost_usd": None,
+                        "tokens_total": None,
+                        "failure_reason": "validation_failed",
+                        "notes": None,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode != 0
+    assert "failure_reason must be empty when status is success" in result.stderr
