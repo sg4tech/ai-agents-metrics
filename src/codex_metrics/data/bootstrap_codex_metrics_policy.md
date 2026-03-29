@@ -102,6 +102,19 @@ Do not edit generated metrics files manually when the CLI can regenerate them.
 3. Ensure cost and token totals are updated when available.
 4. Regenerate the human-readable report.
 
+## Recommended Commands
+
+Prefer the high-level task workflow commands:
+
+```bash
+codex-metrics start-task --title "Add CSV import" --task-type product
+codex-metrics continue-task --task-id <goal-id> --notes "Retry after review"
+codex-metrics finish-task --task-id <goal-id> --status success --notes "Validated"
+codex-metrics show
+```
+
+Use raw `update` only when you need a lower-level or less common mutation path.
+
 ## Validation Rules
 
 Use strict validation. Invalid state must fail loudly.

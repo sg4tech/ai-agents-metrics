@@ -549,8 +549,12 @@ def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
     assert "## Scope" in policy_text
     assert "## Core Model" in policy_text
     assert "## Required Workflow" in policy_text
+    assert "## Recommended Commands" in policy_text
     assert "## Validation Rules" in policy_text
     assert "Metrics bookkeeping is mandatory." in policy_text
+    assert "codex-metrics start-task" in policy_text
+    assert "codex-metrics continue-task" in policy_text
+    assert "codex-metrics finish-task" in policy_text
     assert "## Reporting Rules" in policy_text
     assert "## Anti-Gaming Rules" in policy_text
     assert "## Required Goal Fields" not in policy_text

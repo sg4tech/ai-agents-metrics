@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 137
-- Successes: 137
+- Closed goals: 139
+- Successes: 139
 - Fails: 0
-- Total attempts: 143
-- Known total cost (USD): 206.022869
-- Known total tokens: 147815880
+- Total attempts: 145
+- Known total cost (USD): 207.810835
+- Known total tokens: 149103180
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 115/137 successful goals
-- Known token coverage: 115/137 successful goals
-- Complete cost coverage: 115/137 successful goals
-- Complete token coverage: 115/137 successful goals
-- Known Cost per Success (USD): 1.791503
-- Known Cost per Success (Tokens): 1285355.48
-- Complete Cost per Covered Success (USD): 1.791503
-- Complete Cost per Covered Success (Tokens): 1285355.48
+- Known cost coverage: 117/139 successful goals
+- Known token coverage: 117/139 successful goals
+- Complete cost coverage: 117/139 successful goals
+- Complete token coverage: 117/139 successful goals
+- Known Cost per Success (USD): 1.776161
+- Known Cost per Success (Tokens): 1274386.15
+- Complete Cost per Covered Success (USD): 1.776161
+- Complete Cost per Covered Success (Tokens): 1274386.15
 
 ## Entry summary
 
-- Closed entries: 143
-- Successes: 142
+- Closed entries: 145
+- Successes: 144
 - Fails: 1
-- Success Rate: 99.30%
-- Known total cost (USD): 205.125489
-- Known total tokens: 147099901
+- Success Rate: 99.31%
+- Known total cost (USD): 206.913455
+- Known total tokens: 148387201
 
 ## Operator review
 
@@ -59,42 +59,68 @@
 - Complete Cost per Covered Success (Tokens): 1818097.20
 
 ### retro
-- Closed goals: 32
-- Successes: 32
+- Closed goals: 33
+- Successes: 33
 - Fails: 0
-- Total attempts: 32
-- Known total cost (USD): 12.044529
-- Known total tokens: 8572197
+- Total attempts: 33
+- Known total cost (USD): 12.453244
+- Known total tokens: 8863913
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 23/32 successful goals
-- Known token coverage: 23/32 successful goals
-- Complete cost coverage: 23/32 successful goals
-- Complete token coverage: 23/32 successful goals
-- Known Cost per Success (USD): 0.523675
-- Known Cost per Success (Tokens): 372704.22
-- Complete Cost per Covered Success (USD): 0.523675
-- Complete Cost per Covered Success (Tokens): 372704.22
+- Known cost coverage: 24/33 successful goals
+- Known token coverage: 24/33 successful goals
+- Complete cost coverage: 24/33 successful goals
+- Complete token coverage: 24/33 successful goals
+- Known Cost per Success (USD): 0.518885
+- Known Cost per Success (Tokens): 369329.71
+- Complete Cost per Covered Success (USD): 0.518885
+- Complete Cost per Covered Success (Tokens): 369329.71
 
 ### meta
-- Closed goals: 60
-- Successes: 60
+- Closed goals: 61
+- Successes: 61
 - Fails: 0
-- Total attempts: 60
-- Known total cost (USD): 92.743286
-- Known total tokens: 66519795
+- Total attempts: 61
+- Known total cost (USD): 94.122537
+- Known total tokens: 67515379
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 52/60 successful goals
-- Known token coverage: 52/60 successful goals
-- Complete cost coverage: 52/60 successful goals
-- Complete token coverage: 52/60 successful goals
-- Known Cost per Success (USD): 1.783525
-- Known Cost per Success (Tokens): 1279226.83
-- Complete Cost per Covered Success (USD): 1.783525
-- Complete Cost per Covered Success (Tokens): 1279226.83
+- Known cost coverage: 53/61 successful goals
+- Known token coverage: 53/61 successful goals
+- Complete cost coverage: 53/61 successful goals
+- Complete token coverage: 53/61 successful goals
+- Known Cost per Success (USD): 1.775897
+- Known Cost per Success (Tokens): 1273875.08
+- Complete Cost per Covered Success (USD): 1.775897
+- Complete Cost per Covered Success (Tokens): 1273875.08
 
 ## Goal log
+
+### 2026-03-29-145 — Retrospective for high-level task commands documentation gap
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T20:19:44+00:00
+- Finished at: 2026-03-29T20:20:07+00:00
+- Cost (USD): 0.408715
+- Tokens: 291716
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Recorded the gap where new workflow commands were documented in README but not in the agent-facing policy, and codified the recommended command flow there.
+
+### 2026-03-29-144 — Document high-level task commands in policy
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T20:18:41+00:00
+- Finished at: 2026-03-29T20:19:25+00:00
+- Cost (USD): 1.379251
+- Tokens: 995584
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added recommended start-task, continue-task, and finish-task flow to the agent-facing policy and kept the packaged mirror in sync.
 
 ### 2026-03-29-143 — Draft stage-based task lifecycle pilot
 - Goal type: product
@@ -1943,6 +1969,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-145-attempt-001 — 2026-03-29-145
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T20:19:44+00:00
+- Finished at: 2026-03-29T20:20:07+00:00
+- Cost (USD): 0.408715
+- Tokens: 291716
+- Failure reason: n/a
+- Notes: Recorded the gap where new workflow commands were documented in README but not in the agent-facing policy, and codified the recommended command flow there.
+
+### 2026-03-29-144-attempt-001 — 2026-03-29-144
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T20:18:41+00:00
+- Finished at: 2026-03-29T20:19:25+00:00
+- Cost (USD): 1.379251
+- Tokens: 995584
+- Failure reason: n/a
+- Notes: Added recommended start-task, continue-task, and finish-task flow to the agent-facing policy and kept the packaged mirror in sync.
 
 ### 2026-03-29-143-attempt-001 — 2026-03-29-143
 - Entry type: product
