@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 71,
-    "successes": 71,
+    "closed_tasks": 73,
+    "successes": 73,
     "fails": 0,
-    "total_attempts": 75,
+    "total_attempts": 77,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.056338028169014,
+    "attempts_per_closed_task": 1.0547945205479452,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -20,10 +20,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 39,
-        "successes": 39,
+        "closed_tasks": 40,
+        "successes": 40,
         "fails": 0,
-        "total_attempts": 39,
+        "total_attempts": 40,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -60,10 +60,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 17,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -82,10 +82,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 39,
-        "successes": 39,
+        "closed_tasks": 40,
+        "successes": 40,
         "fails": 0,
-        "total_attempts": 39,
+        "total_attempts": 40,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -122,10 +122,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 16,
-        "successes": 16,
+        "closed_tasks": 17,
+        "successes": 17,
         "fails": 0,
-        "total_attempts": 16,
+        "total_attempts": 17,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 75,
-      "successes": 74,
+      "closed_entries": 77,
+      "successes": 76,
       "fails": 1,
-      "success_rate": 0.9866666666666667,
+      "success_rate": 0.987012987012987,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -1218,6 +1218,34 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Clarified auto-id default path and manual id conflict guidance"
+    },
+    {
+      "goal_id": "2026-03-29-078",
+      "title": "Close packaging TODO and split follow-up release tasks",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T13:33:04+00:00",
+      "finished_at": "2026-03-29T13:33:15+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation."
+    },
+    {
+      "goal_id": "2026-03-29-079",
+      "title": "Write retro for manual goal id conflict UX",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T13:34:03+00:00",
+      "finished_at": "2026-03-29T13:34:25+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Captured manual goal id conflict UX retro and permanent workflow guidance"
     }
   ],
   "entries": [
@@ -2199,6 +2227,32 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Clarified auto-id default path and manual id conflict guidance"
+    },
+    {
+      "entry_id": "2026-03-29-078-attempt-001",
+      "goal_id": "2026-03-29-078",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T13:33:04+00:00",
+      "finished_at": "2026-03-29T13:33:15+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation."
+    },
+    {
+      "entry_id": "2026-03-29-079-attempt-001",
+      "goal_id": "2026-03-29-079",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T13:34:03+00:00",
+      "finished_at": "2026-03-29T13:34:25+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Captured manual goal id conflict UX retro and permanent workflow guidance"
     }
   ]
 }

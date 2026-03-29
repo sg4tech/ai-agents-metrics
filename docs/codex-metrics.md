@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 71
-- Successes: 71
+- Closed goals: 73
+- Successes: 73
 - Fails: 0
-- Total attempts: 75
+- Total attempts: 77
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.06
-- Known cost coverage: 4/71 successful goals
-- Known token coverage: 4/71 successful goals
-- Complete cost coverage: 2/71 successful goals
-- Complete token coverage: 2/71 successful goals
+- Attempts per Closed Goal: 1.05
+- Known cost coverage: 4/73 successful goals
+- Known token coverage: 4/73 successful goals
+- Complete cost coverage: 2/73 successful goals
+- Complete token coverage: 2/73 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 75
-- Successes: 74
+- Closed entries: 77
+- Successes: 76
 - Fails: 1
-- Success Rate: 98.67%
+- Success Rate: 98.70%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -59,42 +59,66 @@
 - Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
-- Closed goals: 16
-- Successes: 16
+- Closed goals: 17
+- Successes: 17
 - Fails: 0
-- Total attempts: 16
+- Total attempts: 17
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/16 successful goals
-- Known token coverage: 1/16 successful goals
-- Complete cost coverage: 1/16 successful goals
-- Complete token coverage: 1/16 successful goals
+- Known cost coverage: 1/17 successful goals
+- Known token coverage: 1/17 successful goals
+- Complete cost coverage: 1/17 successful goals
+- Complete token coverage: 1/17 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Covered Success (USD): 0.255454
 - Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
-- Closed goals: 39
-- Successes: 39
+- Closed goals: 40
+- Successes: 40
 - Fails: 0
-- Total attempts: 39
+- Total attempts: 40
 - Known total cost (USD): 0.2658
 - Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/39 successful goals
-- Known token coverage: 1/39 successful goals
-- Complete cost coverage: 1/39 successful goals
-- Complete token coverage: 1/39 successful goals
+- Known cost coverage: 1/40 successful goals
+- Known token coverage: 1/40 successful goals
+- Complete cost coverage: 1/40 successful goals
+- Complete token coverage: 1/40 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
 - Complete Cost per Covered Success (USD): 0.2658
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-079 — Write retro for manual goal id conflict UX
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:34:03+00:00
+- Finished at: 2026-03-29T13:34:25+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Captured manual goal id conflict UX retro and permanent workflow guidance
+
+### 2026-03-29-078 — Close packaging TODO and split follow-up release tasks
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T13:33:04+00:00
+- Finished at: 2026-03-29T13:33:15+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation.
 
 ### 2026-03-29-077 — Clarify manual goal id conflicts
 - Goal type: meta
@@ -1009,6 +1033,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-079-attempt-001 — 2026-03-29-079
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:34:03+00:00
+- Finished at: 2026-03-29T13:34:25+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Captured manual goal id conflict UX retro and permanent workflow guidance
+
+### 2026-03-29-078-attempt-001 — 2026-03-29-078
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T13:33:04+00:00
+- Finished at: 2026-03-29T13:33:15+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Closed the broad packaging TODO now that installable build artifacts, package docs, and CI packaging flow exist; added narrower follow-up tasks for GitHub Release automation, PyPI publish path, and standalone binary evaluation.
 
 ### 2026-03-29-077-attempt-001 — 2026-03-29-077
 - Entry type: meta
