@@ -82,6 +82,14 @@ When editing `scripts/update_codex_metrics.py`:
 - validate inputs strictly
 - fail loudly on invalid state instead of silently continuing
 
+For repository-initializer or bootstrap-style commands:
+
+- treat them as public-facing initializer flows, not just internal helpers
+- design them to support safe reruns and partial existing scaffold states
+- separate preflight validation from write execution so conflicts are detected before mutation
+- prefer non-destructive failure over partial scaffold writes
+- use one canonical wrapped entrypoint for user-facing error handling instead of fixing UX separately per launch surface
+
 ## Validation
 
 After changing `scripts/update_codex_metrics.py`:
@@ -107,6 +115,13 @@ make verify
 ```
 
 After structural refactors, include an entrypoint or compatibility-path check in validation, not just direct module tests.
+For bootstrap or initializer commands, do not stop at the empty-repo happy path. Also validate:
+
+- rerun behavior
+- partial existing scaffold states
+- conflict handling
+- `--dry-run` behavior
+- the real installed or packaged entrypoint, not only local shims
 
 When running `init` or any destructive regeneration smoke check during validation, prefer temporary metrics/report paths instead of real repository artifacts unless the task explicitly requires regenerating the tracked files.
 Generated metrics files are production-like artifacts and must not be casually overwritten during smoke testing.
@@ -129,6 +144,14 @@ If `update` output and a parallel `show` disagree, first rerun `show` sequential
   - retrospective
   - conclusions
   - permanent changes
+- When a retrospective proposes improvements, classify each proposed change before codifying it:
+  - local `AGENTS.md`
+  - reusable external policy
+  - tests or code guardrails
+  - retrospective only
+  - no action
+- Default retrospective follow-up to the narrowest correct scope.
+- Do not promote a lesson into reusable policy unless it is genuinely reusable beyond this repository's local development workflow.
 - `AGENTS.md` stores project rules; `docs/retros/` stores incident history and lessons.
 - After a meaningful task is completed successfully and the retrospective is logged, create a git commit for the finished checkpoint.
 - Do not create a commit just because lint passed or only a partial technical check succeeded; commit only after the actual task outcome is complete and stabilized.

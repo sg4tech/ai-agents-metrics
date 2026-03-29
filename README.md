@@ -118,6 +118,50 @@ codex-metrics update --title "Add CSV import" --task-type product --attempts-del
 codex-metrics show
 ```
 
+## Bootstrap Another Repository
+
+Use this flow when you want to add `codex-metrics` to a different local repository.
+
+Install from this checkout:
+
+```bash
+python -m pip install /Users/viktor/PycharmProjects/codex-metrics
+```
+
+Move into the target repository and preview the scaffold:
+
+```bash
+cd /path/to/another-repo
+codex-metrics bootstrap --dry-run
+```
+
+Apply the scaffold:
+
+```bash
+codex-metrics bootstrap
+```
+
+This creates or updates:
+
+- `metrics/codex_metrics.json`
+- `docs/codex-metrics.md`
+- `docs/codex-metrics-policy.md`
+- `AGENTS.md` with a managed `codex-metrics` block
+
+If the target repo already has a conflicting `docs/codex-metrics-policy.md` and you intentionally want to replace it with the packaged template:
+
+```bash
+codex-metrics bootstrap --force
+```
+
+First-task flow after bootstrap:
+
+```bash
+codex-metrics update --title "My first task" --task-type product --attempts-delta 1
+codex-metrics show
+codex-metrics update --task-id <goal-id> --status success --notes "Done"
+```
+
 ## Validation Commands
 
 Available `make` targets:

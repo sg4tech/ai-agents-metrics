@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 105
-- Successes: 105
+- Closed goals: 111
+- Successes: 111
 - Fails: 0
-- Total attempts: 109
-- Known total cost (USD): 142.720086
-- Known total tokens: 102278070
+- Total attempts: 115
+- Known total cost (USD): 149.382233
+- Known total tokens: 107074298
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 84/105 successful goals
-- Known token coverage: 84/105 successful goals
-- Complete cost coverage: 84/105 successful goals
-- Complete token coverage: 84/105 successful goals
-- Known Cost per Success (USD): 1.699049
-- Known Cost per Success (Tokens): 1217596.07
-- Complete Cost per Covered Success (USD): 1.699049
-- Complete Cost per Covered Success (Tokens): 1217596.07
+- Known cost coverage: 90/111 successful goals
+- Known token coverage: 90/111 successful goals
+- Complete cost coverage: 90/111 successful goals
+- Complete token coverage: 90/111 successful goals
+- Known Cost per Success (USD): 1.659803
+- Known Cost per Success (Tokens): 1189714.42
+- Complete Cost per Covered Success (USD): 1.659803
+- Complete Cost per Covered Success (Tokens): 1189714.42
 
 ## Entry summary
 
-- Closed entries: 109
-- Successes: 108
+- Closed entries: 115
+- Successes: 114
 - Fails: 1
-- Success Rate: 99.08%
-- Known total cost (USD): 141.822706
-- Known total tokens: 101562091
+- Success Rate: 99.13%
+- Known total cost (USD): 148.484853
+- Known total tokens: 106358319
 
 ## Operator review
 
@@ -41,60 +41,138 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 25
-- Successes: 25
+- Closed goals: 27
+- Successes: 27
 - Fails: 0
-- Total attempts: 29
-- Known total cost (USD): 49.230697
-- Known total tokens: 35325319
+- Total attempts: 31
+- Known total cost (USD): 51.665776
+- Known total tokens: 37081665
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.16
-- Known cost coverage: 21/25 successful goals
-- Known token coverage: 21/25 successful goals
-- Complete cost coverage: 21/25 successful goals
-- Complete token coverage: 21/25 successful goals
-- Known Cost per Success (USD): 2.344319
-- Known Cost per Success (Tokens): 1682158.05
-- Complete Cost per Covered Success (USD): 2.344319
-- Complete Cost per Covered Success (Tokens): 1682158.05
+- Attempts per Closed Goal: 1.15
+- Known cost coverage: 23/27 successful goals
+- Known token coverage: 23/27 successful goals
+- Complete cost coverage: 23/27 successful goals
+- Complete token coverage: 23/27 successful goals
+- Known Cost per Success (USD): 2.246338
+- Known Cost per Success (Tokens): 1612246.30
+- Complete Cost per Covered Success (USD): 2.246338
+- Complete Cost per Covered Success (Tokens): 1612246.30
 
 ### retro
-- Closed goals: 25
-- Successes: 25
+- Closed goals: 27
+- Successes: 27
 - Fails: 0
-- Total attempts: 25
-- Known total cost (USD): 8.376945
-- Known total tokens: 5956459
+- Total attempts: 27
+- Known total cost (USD): 10.216565
+- Known total tokens: 7274819
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 16/25 successful goals
-- Known token coverage: 16/25 successful goals
-- Complete cost coverage: 16/25 successful goals
-- Complete token coverage: 16/25 successful goals
-- Known Cost per Success (USD): 0.523559
-- Known Cost per Success (Tokens): 372278.69
-- Complete Cost per Covered Success (USD): 0.523559
-- Complete Cost per Covered Success (Tokens): 372278.69
+- Known cost coverage: 18/27 successful goals
+- Known token coverage: 18/27 successful goals
+- Complete cost coverage: 18/27 successful goals
+- Complete token coverage: 18/27 successful goals
+- Known Cost per Success (USD): 0.567587
+- Known Cost per Success (Tokens): 404156.61
+- Complete Cost per Covered Success (USD): 0.567587
+- Complete Cost per Covered Success (Tokens): 404156.61
 
 ### meta
-- Closed goals: 55
-- Successes: 55
+- Closed goals: 57
+- Successes: 57
 - Fails: 0
-- Total attempts: 55
-- Known total cost (USD): 85.112444
-- Known total tokens: 60996292
+- Total attempts: 57
+- Known total cost (USD): 87.499892
+- Known total tokens: 62717814
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 47/55 successful goals
-- Known token coverage: 47/55 successful goals
-- Complete cost coverage: 47/55 successful goals
-- Complete token coverage: 47/55 successful goals
-- Known Cost per Success (USD): 1.810903
-- Known Cost per Success (Tokens): 1297793.45
-- Complete Cost per Covered Success (USD): 1.810903
-- Complete Cost per Covered Success (Tokens): 1297793.45
+- Known cost coverage: 49/57 successful goals
+- Known token coverage: 49/57 successful goals
+- Complete cost coverage: 49/57 successful goals
+- Complete token coverage: 49/57 successful goals
+- Known Cost per Success (USD): 1.785712
+- Known Cost per Success (Tokens): 1279955.39
+- Complete Cost per Covered Success (USD): 1.785712
+- Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-117 — Unify package version metadata
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:17:46+00:00
+- Finished at: 2026-03-29T18:18:16+00:00
+- Cost (USD): 1.234009
+- Tokens: 890810
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Switched package metadata to a single source of truth for versioning by making pyproject read codex_metrics.__version__. This keeps future updates to one version location instead of duplicated metadata. Verified with make verify.
+
+### 2026-03-29-116 — Add new-project bootstrap instructions to README
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:16:15+00:00
+- Finished at: 2026-03-29T18:16:50+00:00
+- Cost (USD): 1.20107
+- Tokens: 865536
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added a README section with copy-paste instructions for installing codex-metrics into another repository, previewing bootstrap with --dry-run, applying the scaffold, and running the first goal workflow. Verified with make verify.
+
+### 2026-03-29-115 — Write meta-retro for external policy overreach
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:12:59+00:00
+- Finished at: 2026-03-29T18:13:20+00:00
+- Cost (USD): 0.47226
+- Tokens: 335571
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Recorded a focused incident retrospective for the external policy overreach mistake: a local bootstrap lesson was incorrectly promoted into the reusable policy layer. The permanent rule is to treat external policy changes as opt-in and require explicit reusability justification before promoting a lesson out of local rules or tests.
+
+### 2026-03-29-114 — Write retro about retro-output classification failure
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:10:59+00:00
+- Finished at: 2026-03-29T18:11:48+00:00
+- Cost (USD): 1.36736
+- Tokens: 982789
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Recorded a retrospective about retro-output classification failure and codified a local AGENTS.md rule requiring explicit scope classification for retrospective follow-up actions before they are promoted into rules, policy, tests, or left as incident history. Verified with make verify.
+
+### 2026-03-29-113 — Keep bootstrap guardrails local to AGENTS
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:09:20+00:00
+- Finished at: 2026-03-29T18:09:50+00:00
+- Cost (USD): 1.100526
+- Tokens: 794523
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Kept the bootstrap initializer guardrails only in local AGENTS.md and removed them from the reusable external policy file, then reran make verify to confirm the scope correction stayed clean.
+
+### 2026-03-29-112 — Codify bootstrap initializer guardrails in repo rules
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:07:44+00:00
+- Finished at: 2026-03-29T18:08:24+00:00
+- Cost (USD): 1.286922
+- Tokens: 926999
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Codified bootstrap initializer guardrails in AGENTS.md and codex-metrics-policy.md: preflight-before-write, safe reruns, partial scaffold support, non-destructive conflict handling, and validation through real installed entrypoints. Verified with make verify.
 
 ### 2026-03-29-111 — Write bootstrap QA hardening retrospective
 - Goal type: retro
@@ -1527,6 +1605,72 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-117-attempt-001 — 2026-03-29-117
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:17:46+00:00
+- Finished at: 2026-03-29T18:18:16+00:00
+- Cost (USD): 1.234009
+- Tokens: 890810
+- Failure reason: n/a
+- Notes: Switched package metadata to a single source of truth for versioning by making pyproject read codex_metrics.__version__. This keeps future updates to one version location instead of duplicated metadata. Verified with make verify.
+
+### 2026-03-29-116-attempt-001 — 2026-03-29-116
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:16:15+00:00
+- Finished at: 2026-03-29T18:16:50+00:00
+- Cost (USD): 1.20107
+- Tokens: 865536
+- Failure reason: n/a
+- Notes: Added a README section with copy-paste instructions for installing codex-metrics into another repository, previewing bootstrap with --dry-run, applying the scaffold, and running the first goal workflow. Verified with make verify.
+
+### 2026-03-29-115-attempt-001 — 2026-03-29-115
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:12:59+00:00
+- Finished at: 2026-03-29T18:13:20+00:00
+- Cost (USD): 0.47226
+- Tokens: 335571
+- Failure reason: n/a
+- Notes: Recorded a focused incident retrospective for the external policy overreach mistake: a local bootstrap lesson was incorrectly promoted into the reusable policy layer. The permanent rule is to treat external policy changes as opt-in and require explicit reusability justification before promoting a lesson out of local rules or tests.
+
+### 2026-03-29-114-attempt-001 — 2026-03-29-114
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:10:59+00:00
+- Finished at: 2026-03-29T18:11:48+00:00
+- Cost (USD): 1.36736
+- Tokens: 982789
+- Failure reason: n/a
+- Notes: Recorded a retrospective about retro-output classification failure and codified a local AGENTS.md rule requiring explicit scope classification for retrospective follow-up actions before they are promoted into rules, policy, tests, or left as incident history. Verified with make verify.
+
+### 2026-03-29-113-attempt-001 — 2026-03-29-113
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:09:20+00:00
+- Finished at: 2026-03-29T18:09:50+00:00
+- Cost (USD): 1.100526
+- Tokens: 794523
+- Failure reason: n/a
+- Notes: Kept the bootstrap initializer guardrails only in local AGENTS.md and removed them from the reusable external policy file, then reran make verify to confirm the scope correction stayed clean.
+
+### 2026-03-29-112-attempt-001 — 2026-03-29-112
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:07:44+00:00
+- Finished at: 2026-03-29T18:08:24+00:00
+- Cost (USD): 1.286922
+- Tokens: 926999
+- Failure reason: n/a
+- Notes: Codified bootstrap initializer guardrails in AGENTS.md and codex-metrics-policy.md: preflight-before-write, safe reruns, partial scaffold support, non-destructive conflict handling, and validation through real installed entrypoints. Verified with make verify.
 
 ### 2026-03-29-111-attempt-001 — 2026-03-29-111
 - Entry type: retro
