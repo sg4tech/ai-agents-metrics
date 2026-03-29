@@ -1,0 +1,40 @@
+{
+  "summary": {
+    "closed_tasks": 2,
+    "successes": 2,
+    "fails": 0,
+    "total_attempts": 2,
+    "total_cost_usd": 0.0,
+    "total_tokens": 0,
+    "success_rate": 1.0,
+    "attempts_per_success": 1.0,
+    "cost_per_success_usd": null,
+    "cost_per_success_tokens": null
+  },
+  "tasks": [
+    {
+      "task_id": "2026-03-29-002",
+      "title": "Harden codex metrics updater validation",
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T08:31:25+00:00",
+      "finished_at": "2026-03-29T08:31:31+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv."
+    },
+    {
+      "task_id": "2026-03-29-003",
+      "title": "Add first retrospective and checkpoint commit",
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T08:38:27+00:00",
+      "finished_at": "2026-03-29T08:39:27+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added first retrospective, verified 10 passing tests, and completed serialized smoke flow for init/update/show before creating a checkpoint commit."
+    }
+  ]
+}

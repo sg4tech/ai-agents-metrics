@@ -1,0 +1,89 @@
+# AGENTS.md
+
+## Read first
+
+Before starting or continuing any engineering task, always read:
+
+- `AGENTS.md`
+- `docs/codex-metrics-policy.md`
+
+The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
+
+## Core working style
+
+- First understand what currently works.
+- Prefer small, reviewable, reversible changes.
+- Do not rewrite working code without a clear reason.
+- Preserve backward compatibility unless explicitly asked to change it.
+- Treat assumptions as risks until verified.
+
+## Metrics tooling
+
+Do not edit metrics files manually when the updater script can regenerate them.
+
+Use:
+
+`python scripts/update_codex_metrics.py ...`
+
+Generated files:
+- `metrics/codex_metrics.json`
+- `docs/codex-metrics.md`
+
+## Metrics workflow
+
+For every engineering task involving the metrics system:
+
+1. create or continue a task record
+2. update attempts on each new implementation pass
+3. update cost or tokens when available
+4. close the task as `success` or `fail`
+5. regenerate:
+   - `metrics/codex_metrics.json`
+   - `docs/codex-metrics.md`
+
+Metrics bookkeeping is part of the definition of done.
+
+## Script editing rules
+
+When editing `scripts/update_codex_metrics.py`:
+
+- preserve CLI behavior unless explicitly asked otherwise
+- prefer additive changes over breaking changes
+- keep the code simple and readable
+- add or update tests together with behavior changes
+- do not manually patch generated outputs when the script can regenerate them
+- validate inputs strictly
+- fail loudly on invalid state instead of silently continuing
+
+## Validation
+
+After changing `scripts/update_codex_metrics.py`:
+
+- run the relevant tests
+- run a CLI smoke test
+- verify that the script can regenerate both:
+  - `metrics/codex_metrics.json`
+  - `docs/codex-metrics.md`
+
+Minimum validation commands:
+
+```bash
+python -m pytest tests/test_update_codex_metrics.py
+python scripts/update_codex_metrics.py init
+python scripts/update_codex_metrics.py show
+```
+
+## Retros Rules
+
+- If the user asks to "сделай ретру" or otherwise requests a retrospective, also log it to a file in `docs/retros/`.
+- Each notable incident or debugging episode should be stored as a separate markdown file.
+- Retros should capture at minimum:
+  - situation
+  - what happened
+  - root cause
+  - retrospective
+  - conclusions
+  - permanent changes
+- `AGENTS.md` stores project rules; `docs/retros/` stores incident history and lessons.
+- After a meaningful task is completed successfully and the retrospective is logged, create a git commit for the finished checkpoint.
+- Do not create a commit just because lint passed or only a partial technical check succeeded; commit only after the actual task outcome is complete and stabilized.
