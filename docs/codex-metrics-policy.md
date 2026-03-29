@@ -1,78 +1,87 @@
 # Codex Metrics Policy
 
-This file defines the mandatory metrics policy for AI-driven development tasks.
-Its rules are part of the project operating instructions and must be followed on every task.
+This document defines the mandatory policy for measuring Codex-driven engineering work.
+
+It is written to be reusable across projects. Repository-specific defaults for this repo are included only where needed.
 
 ## Purpose
 
-The goal of this policy is to measure how effectively tasks are completed through Codex without manual code editing.
+The policy exists to answer four questions reliably:
 
-This policy optimizes for:
-- reliable task completion
+1. Are requested outcomes being completed successfully?
+2. How much retry pressure is required to get there?
+3. What are the dominant failure modes?
+4. What known cost was spent to achieve the result?
+
+The policy optimizes for:
+
+- trustworthy delivery reporting
 - low retry count
-- reasonable cost per completed task
-- visibility into the main failure modes
+- visible failure modes
+- practical cost visibility
 
 ## Scope
 
-This policy applies to every engineering task performed through Codex.
+Apply this policy to engineering work where Codex materially contributes to a user-visible or developer-visible outcome, including:
 
-A task is considered in scope if Codex:
-- changes code
-- changes configuration
-- changes tests
-- changes scripts
-- performs implementation or bug fixing work intended to produce a user-visible or developer-visible result
+- code changes
+- configuration changes
+- test changes
+- script changes
+- bug fixing
+- implementation work
 
-## Core principles
+## Core Principles
 
 - Metrics bookkeeping is mandatory.
-- Metrics are tracked per task, not per message.
-- Manual code editing by the user is assumed to be zero.
-- A task is not done until its metrics are updated.
-- Summary metrics must always be derived from task records, not edited manually.
+- Metrics are tracked per goal, not per message.
+- Summary values must always be derived from stored records, not edited manually.
+- A goal is not done until metrics and reporting are updated.
+- Honest partial visibility is better than brittle all-or-nothing reporting.
+- Goal-level success must not hide retry pressure from the underlying attempt history.
 
-## Definitions
+## Core Model
 
 ### Goal
-One user-visible or developer-visible requested outcome.
 
-Examples:
-- add CSV import for portfolio data
-- fix login redirect bug
-- add test coverage for billing service
+One requested outcome.
 
-A goal may require multiple attempts or linked follow-up records.
+A goal may require multiple attempts or linked follow-up goals.
 
-### Attempt
-One independent Codex execution cycle for the same goal.
+### Attempt Entry
 
-A new attempt starts when Codex takes a new implementation pass after failure, clarification, rollback, or a significant re-plan.
+One execution pass or inferred history record for the same goal.
+
+Entries exist to preserve attempt history and failure visibility. They are not a mirrored copy of final goal state.
 
 ### Success
-A goal is marked as `success` when:
+
+A goal is `success` when:
+
 - the intended outcome is implemented
-- required validation has been completed
+- required validation is complete
 - the result is accepted
-- no manual code edits were required from the user
 
 ### Fail
-A goal is marked as `fail` when:
+
+A goal is `fail` when:
+
 - the goal is abandoned
-- the goal is reverted
+- the result is unusable
 - the goal cannot be completed in the current session
-- the result is unusable after attempts
-- the goal must be restarted as a new goal instead of continued
+- the work must restart as a new goal instead of continuing
 
 ### Cost
-Cost is the total resource usage across all attempts for the goal.
+
+Cost is total resource usage across the goal chain.
 
 Preferred order:
+
 1. USD cost
 2. token count
-3. if neither is available, keep cost as null
+3. null if neither is available
 
-## Required goal fields
+## Required Goal Fields
 
 Each goal record must contain:
 
@@ -89,7 +98,7 @@ Each goal record must contain:
 - `failure_reason`
 - `notes`
 
-## Required entry fields
+## Required Entry Fields
 
 Each entry record must contain:
 
@@ -104,34 +113,33 @@ Each entry record must contain:
 - `failure_reason`
 - `notes`
 
-Entries are attempt-history records.
-They must not be treated as a mirrored copy of final goal state when the goal has multiple attempts.
-If attempt history must be inferred from counts rather than observed directly, those inferred entries are operational history only and must not distort diagnostic failure-reason metrics.
+Optional inferred history is allowed, but inferred failed entries must not pollute diagnostic failure-reason reporting.
 
-## Allowed goal types
+## Allowed Goal Types
 
 - `product`
 - `retro`
 - `meta`
 
 Use:
-- `product` for product or engineering delivery
-- `retro` for retrospectives and retrospective writeups
-- `meta` for bookkeeping, audits, policy/tooling governance, and other support work that should not be mixed with product delivery metrics
 
-For new goal records, `goal_type` must always be set explicitly.
-If a new goal intentionally continues or supersedes a prior closed goal instead of remaining one goal with more attempts, that relationship must be recorded explicitly.
-After attempt-history entries exist for a goal, `goal_type` must not be changed in place. If classification was wrong, create a new linked goal instead of rewriting history semantics.
+- `product` for delivery work
+- `retro` for retrospective analysis and writeups
+- `meta` for bookkeeping, policy, audits, tooling governance, and support work
 
-## Allowed status values
+Rules:
+
+- always set `goal_type` explicitly for new goals
+- if a new goal intentionally continues or supersedes a prior closed goal, record the link explicitly
+- once attempt history exists, do not change `goal_type` in place; start a new linked goal instead
+
+## Allowed Status Values
 
 - `in_progress`
 - `success`
 - `fail`
 
-## Allowed failure reasons
-
-Use one primary reason when a task fails, or when an extra attempt was needed.
+## Allowed Failure Reasons
 
 - `unclear_task`
 - `missing_context`
@@ -142,263 +150,188 @@ Use one primary reason when a task fails, or when an extra attempt was needed.
 - `tooling_issue`
 - `other`
 
-## Source of truth
+Use one primary reason for a failed goal or failed attempt.
 
-The source of truth for metrics is:
+## Source Of Truth
 
-`metrics/codex_metrics.json`
+The source of truth is the structured metrics file.
 
-Human-readable summaries may also be written to:
+For this repository:
 
-`docs/codex-metrics.md`
+- source of truth: `metrics/codex_metrics.json`
+- generated human-readable report: `docs/codex-metrics.md`
 
-If there is any mismatch, `metrics/codex_metrics.json` is the source of truth.
+If there is a mismatch, the structured metrics file wins.
 
-Generated metrics files are production-like artifacts for this repository.
-During validation, destructive smoke checks such as `init` should prefer temporary metrics/report paths unless the task explicitly requires regenerating the tracked repository files.
-Dependent updater commands must be validated sequentially.
-Do not run flows such as `update -> show` or `init -> update` in parallel, because the later command can observe stale file state and create a false bug report.
-Parallelism is appropriate only for independent inspections and checks that do not depend on updater writes.
+## Required Workflow
 
-When the repository provides a canonical local validation entrypoint such as `make verify`, prefer that command for the standard lint + typecheck + test stack before adding extra targeted smoke checks.
+### At Goal Start
 
-## Required per-goal workflow
+1. Detect whether the work belongs to an existing goal or a new goal.
+2. Create a new goal if needed.
+3. If the new goal intentionally replaces or continues a prior closed goal, record that link explicitly.
+4. Set status to `in_progress`.
+5. Initialize attempts to `0`.
 
-### At goal start
-Codex must:
-1. detect whether the work belongs to an existing open goal or a new goal
-2. create a new goal record if needed
-3. if a new goal intentionally replaces or continues a prior closed goal, record that link explicitly
-4. set status to `in_progress`
-5. initialize attempts to `0`
+### On Each Attempt
 
-### On each attempt
-Codex must:
-1. increment `attempts`
-2. update notes if useful
-3. update partial cost if available
-4. record the dominant failure reason if the attempt did not succeed
-5. append or update attempt-history entry data so entry-level reporting remains diagnostic
+1. Increment `attempts`.
+2. Update notes if useful.
+3. Update partial cost if available.
+4. Record the dominant failure reason if the attempt did not succeed.
+5. Append or update attempt-history entries so retry pressure stays visible.
 
-### On goal completion
-Codex must:
-1. set final status to `success` or `fail`
-2. set `finished_at`
-3. ensure total cost fields are updated if available
-4. recompute summary metrics
-5. update the human-readable report
+### On Goal Completion
 
-### Required test design for mutating commands
+1. Set final status to `success` or `fail`.
+2. Set `finished_at`.
+3. Ensure cost and token totals are updated if available.
+4. Recompute summary metrics.
+5. Regenerate the human-readable report.
 
-For commands that mutate goal history, entry history, classification, or summary state, test coverage should include all three categories when practical:
+## Validation Rules
+
+Use strict validation. Invalid state must fail loudly.
+
+At minimum:
+
+- `success` must not have `failure_reason`
+- `fail` must have `failure_reason`
+- closed goals must have at least one attempt
+- `finished_at` must be empty for `in_progress`
+- `finished_at` must not be earlier than `started_at`
+- linked supersession references must resolve
+- supersession graphs must remain acyclic
+
+Apply the same business honesty to entry records where relevant.
+
+## Testing Standard
+
+For mutating commands such as update, merge, and sync flows, cover three test buckets when practical:
 
 1. happy path
 2. invalid-state rejection
-3. summary/report consistency after mutation
+3. summary and report consistency after mutation
 
-This rule is especially important for commands such as `update`, `merge-tasks`, and usage sync flows.
+When the repository provides a canonical local verify entrypoint, prefer it.
 
-## Summary metrics
+For this repository, the standard command is:
 
-The following summary metrics must be recalculated after every closed effective goal.
+```bash
+make verify
+```
 
-They must be available both:
+Dependent updater commands must be validated sequentially, not in parallel.
+
+## Summary Metrics
+
+Recalculate summary metrics after every closed effective goal.
+
+They must be available:
+
 - overall
 - per `goal_type`
 
-Reports must not present effective goal-level success alone when the raw entry history still contains failed attempts.
-Entry-level summary and failure reasons should remain visible alongside goal-level summary so retry pressure is not hidden by supersession or successful later replacements.
-Failure-reason breakdown should count diagnostic failed entries, not synthetic inferred failures created only to preserve attempt history shape.
+Reports must surface both:
+
+- effective goal outcomes
+- raw entry-level retry pressure
 
 ### Success Rate
-Formula:
 
 `success_rate = successes / closed_goals`
 
 Where:
-- `successes` = number of effective goals with status `success`
-- `closed_goals` = number of effective goals with status `success` or `fail`
 
-If `closed_goals = 0`, set `success_rate = null`.
+- `successes` = effective goals with status `success`
+- `closed_goals` = effective goals with status `success` or `fail`
 
-### Attempts per Closed Goal
-Formula:
+If `closed_goals = 0`, set to `null`.
 
-`attempts_per_closed_task = total_attempts / closed_goals`
+### Attempts Per Closed Goal
 
-Where:
-- `total_attempts` = sum of attempts across closed effective goals
-- `closed_goals` = number of effective goals with status `success` or `fail`
+`attempts_per_closed_goal = total_attempts / closed_goals`
 
-If `closed_goals = 0`, set `attempts_per_closed_task = null`.
+If `closed_goals = 0`, set to `null`.
 
-### Known Cost Coverage (USD)
+### Failure Reasons
 
-Track how many successful effective goals have any known USD cost.
+Count failure reasons from diagnostic failed entries only.
 
-Formula:
+Do not count synthetic inferred failures created only to preserve attempt history shape.
 
-`known_cost_successes = count(successful effective goals where known USD cost exists)`
+### Known Cost Coverage
 
-This helps distinguish:
+Track how many successful effective goals have any known cost.
 
-- “we know no cost”
-- from “we know some cost, but not enough for a complete chain-based KPI”
+Required fields:
 
-### Known Cost per Success (USD)
+- `known_cost_successes`
+- `known_token_successes`
 
-Formula:
+### Known Cost Per Success
 
-`known_cost_per_success_usd = sum(known USD cost across successful effective goals with known cost) / known_cost_successes`
+Average cost across successful effective goals with any known cost.
 
-If `known_cost_successes = 0`, set `known_cost_per_success_usd = null`.
+Required fields:
 
-This is a practical operator-facing average across the successful goals where cost is known.
+- `known_cost_per_success_usd`
+- `known_cost_per_success_tokens`
 
-### Complete Cost Coverage (USD)
+### Complete Cost Coverage
 
-Track how many successful effective goals have full chain-complete USD cost.
+Track how many successful effective goals have full chain-complete cost coverage.
 
-Formula:
+Required fields:
 
-`complete_cost_successes = count(successful effective goals where full chain-complete USD cost exists)`
+- `complete_cost_successes`
+- `complete_token_successes`
 
-This distinguishes:
+### Complete Cost Per Covered Success
 
-- partial known cost
-- from fully reconstructable end-to-end cost
+Average cost across the successful effective goals whose chains are fully covered.
 
-### Complete Cost per Covered Success (USD)
+Required fields:
 
-Formula:
+- `complete_cost_per_covered_success_usd`
+- `complete_cost_per_covered_success_tokens`
 
-`complete_cost_per_covered_success_usd = sum(chain-complete USD cost across successful effective goals with full coverage) / complete_cost_successes`
+This is a strict subset metric. It should not require complete coverage across all repository history.
 
-If `complete_cost_successes = 0`, set `complete_cost_per_covered_success_usd = null`.
+## Reporting Standard
 
-This is the strict trustworthy average across the fully covered subset, without requiring full coverage for every success in repository history.
-
-### Known Cost per Success (Tokens)
-
-Formula:
-
-`known_cost_per_success_tokens = sum(known tokens across successful effective goals with known token data) / known_token_successes`
-
-If `known_token_successes = 0`, set `known_cost_per_success_tokens = null`.
-
-### Complete Cost Coverage (Tokens)
-
-Track how many successful effective goals have full chain-complete token data.
-
-Formula:
-
-`complete_token_successes = count(successful effective goals where full chain-complete token data exists)`
-
-### Complete Cost per Covered Success (Tokens)
-
-Formula:
-
-`complete_cost_per_covered_success_tokens = sum(chain-complete tokens across successful effective goals with full coverage) / complete_token_successes`
-
-If `complete_token_successes = 0`, set `complete_cost_per_covered_success_tokens = null`.
-
-## Minimum reporting standard
-
-At the end of each completed task, Codex must provide in its final response:
+At task completion, the final response should report at least:
 
 - goal status
 - goal type
-- attempts for the goal
+- attempts
 - current success rate
 - current attempts per closed goal
-- current cost per success if available
+- current cost metrics when available
 
-## Definition of done
+Human-readable reporting should make the following visible:
 
-A task is not done until all of the following are true:
-- implementation work is complete
-- validation work is complete
-- goal and entry records are updated in `metrics/codex_metrics.json`
-- summary metrics are recalculated
-- readable report is updated in `docs/codex-metrics.md`
+- goal-level outcome summary
+- entry-level summary
+- failure reasons
+- cost coverage semantics when data is partial
 
-Validation must also be procedurally correct:
-- dependent updater commands are executed sequentially
-- any suspected mismatch between `update` output and `show` is rechecked with a sequential `show` before it is treated as a product defect
+## Anti-Gaming Rules
 
-## Anti-gaming rules
-
-- Do not split one coherent goal into many tiny goals just to inflate success rate.
+- Do not split one coherent goal into many tiny goals to inflate success rate.
 - Do not classify retrospective or bookkeeping work as product delivery.
-- Do not keep failed work as `in_progress` forever to hide failures.
-- Do not edit summary values directly without updating the underlying goal and entry records.
-- Do not mark a goal as success if validation has not been completed.
-- Do not ignore bookkeeping because implementation “already works”.
+- Do not keep failed work as `in_progress` forever to hide failure.
+- Do not mark a goal as success before validation is complete.
+- Do not edit summary fields directly without updating the underlying records.
+- Do not let a pretty goal summary hide failed attempts underneath.
 
-## Preferred file structure
+## Repository Defaults For This Repo
 
-- `AGENTS.md`
-- `docs/codex-metrics-policy.md`
-- `docs/codex-metrics.md`
-- `metrics/codex_metrics.json`
+This repository currently uses:
 
-## Recommended JSON structure
+- `AGENTS.md` for local operating rules
+- `docs/codex-metrics-policy.md` for this policy
+- `metrics/codex_metrics.json` as source of truth
+- `docs/codex-metrics.md` as generated report
 
-```json
-{
-  "summary": {
-    "closed_tasks": 0,
-    "successes": 0,
-    "fails": 0,
-    "total_attempts": 0,
-    "total_cost_usd": 0,
-    "total_tokens": 0,
-    "success_rate": null,
-    "attempts_per_closed_task": null,
-    "known_cost_successes": 0,
-    "known_token_successes": 0,
-    "complete_cost_successes": 0,
-    "complete_token_successes": 0,
-    "known_cost_per_success_usd": null,
-    "known_cost_per_success_tokens": null,
-    "complete_cost_per_covered_success_usd": null,
-    "complete_cost_per_covered_success_tokens": null,
-    "cost_per_success_usd": null,
-    "cost_per_success_tokens": null,
-    "by_task_type": {
-      "product": {},
-      "retro": {},
-      "meta": {}
-    }
-  },
-  "goals": [
-    {
-      "goal_id": "2026-03-29-g001",
-      "title": "Example task",
-      "goal_type": "product",
-      "supersedes_goal_id": null,
-      "status": "success",
-      "attempts": 1,
-      "started_at": "2026-03-29T09:00:00+00:00",
-      "finished_at": "2026-03-29T09:10:00+00:00",
-      "cost_usd": null,
-      "tokens_total": null,
-      "failure_reason": null,
-      "notes": "Example task record"
-    }
-  ],
-  "entries": [
-    {
-      "entry_id": "2026-03-29-e001",
-      "goal_id": "2026-03-29-g001",
-      "entry_type": "product",
-      "status": "success",
-      "started_at": "2026-03-29T09:00:00+00:00",
-      "finished_at": "2026-03-29T09:10:00+00:00",
-      "cost_usd": null,
-      "tokens_total": null,
-      "failure_reason": null,
-      "notes": "Example entry record"
-    }
-  ]
-}
+Generated metrics files should be treated as production-like artifacts. Prefer temporary paths for destructive smoke checks unless the task explicitly requires regenerating tracked files.

@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 63
-- Successes: 63
+- Closed goals: 64
+- Successes: 64
 - Fails: 0
-- Total attempts: 64
-- Known total cost (USD): 1.159366
-- Known total tokens: 2461072
+- Total attempts: 66
+- Known total cost (USD): 1.269228
+- Known total tokens: 2696460
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.02
-- Known cost coverage: 3/63 successful goals
-- Known token coverage: 3/63 successful goals
-- Complete cost coverage: 2/63 successful goals
-- Complete token coverage: 2/63 successful goals
-- Known Cost per Success (USD): 0.386455
-- Known Cost per Success (Tokens): 820357.33
+- Attempts per Closed Goal: 1.03
+- Known cost coverage: 4/64 successful goals
+- Known token coverage: 4/64 successful goals
+- Complete cost coverage: 2/64 successful goals
+- Complete token coverage: 2/64 successful goals
+- Known Cost per Success (USD): 0.317307
+- Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
 - Complete Cost per Covered Success (Tokens): 550833.00
 
 ## Entry summary
 
-- Closed entries: 64
-- Successes: 63
+- Closed entries: 66
+- Successes: 65
 - Fails: 1
-- Success Rate: 98.44%
-- Known total cost (USD): 1.159366
-- Known total tokens: 2461072
+- Success Rate: 98.48%
+- Known total cost (USD): 1.269228
+- Known total tokens: 2696460
 
 ## Operator review
 
@@ -44,17 +44,17 @@
 - Closed goals: 14
 - Successes: 14
 - Fails: 0
-- Total attempts: 15
-- Known total cost (USD): 0.638112
-- Known total tokens: 1359406
+- Total attempts: 16
+- Known total cost (USD): 0.747974
+- Known total tokens: 1594794
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.07
-- Known cost coverage: 1/14 successful goals
-- Known token coverage: 1/14 successful goals
+- Attempts per Closed Goal: 1.14
+- Known cost coverage: 2/14 successful goals
+- Known token coverage: 2/14 successful goals
 - Complete cost coverage: 0/14 successful goals
 - Complete token coverage: 0/14 successful goals
-- Known Cost per Success (USD): 0.638112
-- Known Cost per Success (Tokens): 1359406.00
+- Known Cost per Success (USD): 0.373987
+- Known Cost per Success (Tokens): 797397.00
 - Complete Cost per Covered Success (USD): n/a
 - Complete Cost per Covered Success (Tokens): n/a
 
@@ -77,24 +77,48 @@
 - Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
-- Closed goals: 35
-- Successes: 35
+- Closed goals: 36
+- Successes: 36
 - Fails: 0
-- Total attempts: 35
+- Total attempts: 36
 - Known total cost (USD): 0.2658
 - Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/35 successful goals
-- Known token coverage: 1/35 successful goals
-- Complete cost coverage: 1/35 successful goals
-- Complete token coverage: 1/35 successful goals
+- Known cost coverage: 1/36 successful goals
+- Known token coverage: 1/36 successful goals
+- Complete cost coverage: 1/36 successful goals
+- Complete token coverage: 1/36 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
 - Complete Cost per Covered Success (USD): 0.2658
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-069 — Remove placeholder bootstrap main.py
+- Goal type: product
+- Supersedes goal: 2026-03-29-067
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:55:45+00:00
+- Finished at: 2026-03-29T12:56:02+00:00
+- Cost (USD): 0.109862
+- Tokens: 235388
+- Failure reason: n/a
+- Notes: Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green.
+
+### 2026-03-29-068 — Minimize and generalize Codex Metrics Policy
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T12:54:36+00:00
+- Finished at: 2026-03-29T12:55:52+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Rewrote the metrics policy into a shorter reusable version, removed bloated local detail, preserved core invariants, and closed the TODO item for policy minimization.
 
 ### 2026-03-29-067 — Add minimal public-facing README skeleton
 - Goal type: product
@@ -889,6 +913,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-069-attempt-001 — 2026-03-29-069
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:55:45+00:00
+- Finished at: 2026-03-29T12:56:02+00:00
+- Cost (USD): 0.109862
+- Tokens: 235388
+- Failure reason: n/a
+- Notes: Removed unused PyCharm bootstrap main.py after confirming it had no repo references or runtime role; validation stayed green.
+
+### 2026-03-29-068-attempt-001 — 2026-03-29-068
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T12:54:36+00:00
+- Finished at: 2026-03-29T12:55:52+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Rewrote the metrics policy into a shorter reusable version, removed bloated local detail, preserved core invariants, and closed the TODO item for policy minimization.
 
 ### 2026-03-29-067-attempt-001 — 2026-03-29-067
 - Entry type: product
