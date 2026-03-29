@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 84
-- Successes: 84
+- Closed goals: 87
+- Successes: 87
 - Fails: 0
-- Total attempts: 88
+- Total attempts: 91
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.05
-- Known cost coverage: 4/84 successful goals
-- Known token coverage: 4/84 successful goals
-- Complete cost coverage: 2/84 successful goals
-- Complete token coverage: 2/84 successful goals
+- Known cost coverage: 4/87 successful goals
+- Known token coverage: 4/87 successful goals
+- Complete cost coverage: 2/87 successful goals
+- Complete token coverage: 2/87 successful goals
 - Known Cost per Success (USD): 0.317307
 - Known Cost per Success (Tokens): 674115.00
 - Complete Cost per Covered Success (USD): 0.260627
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 88
-- Successes: 87
+- Closed entries: 91
+- Successes: 90
 - Fails: 1
-- Success Rate: 98.86%
+- Success Rate: 98.90%
 - Known total cost (USD): 1.269228
 - Known total tokens: 2696460
 
@@ -59,42 +59,78 @@
 - Complete Cost per Covered Success (Tokens): n/a
 
 ### retro
-- Closed goals: 18
-- Successes: 18
+- Closed goals: 19
+- Successes: 19
 - Fails: 0
-- Total attempts: 18
+- Total attempts: 19
 - Known total cost (USD): 0.255454
 - Known total tokens: 532598
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/18 successful goals
-- Known token coverage: 1/18 successful goals
-- Complete cost coverage: 1/18 successful goals
-- Complete token coverage: 1/18 successful goals
+- Known cost coverage: 1/19 successful goals
+- Known token coverage: 1/19 successful goals
+- Complete cost coverage: 1/19 successful goals
+- Complete token coverage: 1/19 successful goals
 - Known Cost per Success (USD): 0.255454
 - Known Cost per Success (Tokens): 532598.00
 - Complete Cost per Covered Success (USD): 0.255454
 - Complete Cost per Covered Success (Tokens): 532598.00
 
 ### meta
-- Closed goals: 50
-- Successes: 50
+- Closed goals: 52
+- Successes: 52
 - Fails: 0
-- Total attempts: 50
+- Total attempts: 52
 - Known total cost (USD): 0.2658
 - Known total tokens: 569068
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 1/50 successful goals
-- Known token coverage: 1/50 successful goals
-- Complete cost coverage: 1/50 successful goals
-- Complete token coverage: 1/50 successful goals
+- Known cost coverage: 1/52 successful goals
+- Known token coverage: 1/52 successful goals
+- Complete cost coverage: 1/52 successful goals
+- Complete token coverage: 1/52 successful goals
 - Known Cost per Success (USD): 0.2658
 - Known Cost per Success (Tokens): 569068.00
 - Complete Cost per Covered Success (USD): 0.2658
 - Complete Cost per Covered Success (Tokens): 569068.00
 
 ## Goal log
+
+### 2026-03-29-093 — Retro for history audit command integration
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:31:13+00:00
+- Finished at: 2026-03-29T14:31:39+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented the history audit command checkpoint, modular integration path, and verification changes.
+
+### 2026-03-29-092 — Integrate history audit command cleanly
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:28:03+00:00
+- Finished at: 2026-03-29T14:30:57+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular.
+
+### 2026-03-29-091 — Add compatibility rule from refactor retro to AGENTS
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T14:19:33+00:00
+- Finished at: 2026-03-29T14:20:07+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully.
 
 ### 2026-03-29-090 — Write retro for domain coverage and layered refactor
 - Goal type: retro
@@ -1165,6 +1201,39 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-093-attempt-001 — 2026-03-29-093
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:31:13+00:00
+- Finished at: 2026-03-29T14:31:39+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Documented the history audit command checkpoint, modular integration path, and verification changes.
+
+### 2026-03-29-092-attempt-001 — 2026-03-29-092
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:28:03+00:00
+- Finished at: 2026-03-29T14:30:57+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular.
+
+### 2026-03-29-091-attempt-001 — 2026-03-29-091
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T14:19:33+00:00
+- Finished at: 2026-03-29T14:20:07+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully.
 
 ### 2026-03-29-090-attempt-001 — 2026-03-29-090
 - Entry type: retro

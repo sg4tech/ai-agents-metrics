@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 84,
-    "successes": 84,
+    "closed_tasks": 87,
+    "successes": 87,
     "fails": 0,
-    "total_attempts": 88,
+    "total_attempts": 91,
     "total_cost_usd": 1.269228,
     "total_tokens": 2696460,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0476190476190477,
+    "attempts_per_closed_task": 1.0459770114942528,
     "known_cost_successes": 4,
     "known_token_successes": 4,
     "complete_cost_successes": 2,
@@ -20,10 +20,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 50,
-        "successes": 50,
+        "closed_tasks": 52,
+        "successes": 52,
         "fails": 0,
-        "total_attempts": 50,
+        "total_attempts": 52,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -60,10 +60,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 18,
-        "successes": 18,
+        "closed_tasks": 19,
+        "successes": 19,
         "fails": 0,
-        "total_attempts": 18,
+        "total_attempts": 19,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -82,10 +82,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 50,
-        "successes": 50,
+        "closed_tasks": 52,
+        "successes": 52,
         "fails": 0,
-        "total_attempts": 50,
+        "total_attempts": 52,
         "total_cost_usd": 0.2658,
         "total_tokens": 569068,
         "success_rate": 1.0,
@@ -122,10 +122,10 @@
         "cost_per_success_tokens": null
       },
       "retro": {
-        "closed_tasks": 18,
-        "successes": 18,
+        "closed_tasks": 19,
+        "successes": 19,
         "fails": 0,
-        "total_attempts": 18,
+        "total_attempts": 19,
         "total_cost_usd": 0.255454,
         "total_tokens": 532598,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 88,
-      "successes": 87,
+      "closed_entries": 91,
+      "successes": 90,
       "fails": 1,
-      "success_rate": 0.9886363636363636,
+      "success_rate": 0.989010989010989,
       "total_cost_usd": 1.269228,
       "total_tokens": 2696460,
       "failure_reasons": {
@@ -1400,6 +1400,48 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Logged the retrospective for the layered CLI decomposition and the follow-up domain coverage pass in docs/retros, then reran the repository verify flow successfully."
+    },
+    {
+      "goal_id": "2026-03-29-091",
+      "title": "Add compatibility rule from refactor retro to AGENTS",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:19:33+00:00",
+      "finished_at": "2026-03-29T14:20:07+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully."
+    },
+    {
+      "goal_id": "2026-03-29-092",
+      "title": "Integrate history audit command cleanly",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:28:03+00:00",
+      "finished_at": "2026-03-29T14:30:57+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular."
+    },
+    {
+      "goal_id": "2026-03-29-093",
+      "title": "Retro for history audit command integration",
+      "goal_type": "retro",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-29T14:31:13+00:00",
+      "finished_at": "2026-03-29T14:31:39+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented the history audit command checkpoint, modular integration path, and verification changes."
     }
   ],
   "entries": [
@@ -2550,6 +2592,45 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Logged the retrospective for the layered CLI decomposition and the follow-up domain coverage pass in docs/retros, then reran the repository verify flow successfully."
+    },
+    {
+      "entry_id": "2026-03-29-091-attempt-001",
+      "goal_id": "2026-03-29-091",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:19:33+00:00",
+      "finished_at": "2026-03-29T14:20:07+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added compatibility and validation guardrails from the layered refactor retro to AGENTS.md, then reran the repository verify flow successfully."
+    },
+    {
+      "entry_id": "2026-03-29-092-attempt-001",
+      "goal_id": "2026-03-29-092",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:28:03+00:00",
+      "finished_at": "2026-03-29T14:30:57+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Integrated history audit as a first-class command, extended verify coverage, and kept the implementation modular."
+    },
+    {
+      "entry_id": "2026-03-29-093-attempt-001",
+      "goal_id": "2026-03-29-093",
+      "entry_type": "retro",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-29T14:31:13+00:00",
+      "finished_at": "2026-03-29T14:31:39+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Documented the history audit command checkpoint, modular integration path, and verification changes."
     }
   ]
 }

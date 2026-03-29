@@ -1618,11 +1618,65 @@ def test_help_includes_goal_language_and_examples(repo: Path) -> None:
     assert "Create or update a goal record" in result.stdout
     assert "Print current summary and operator review" in result.stdout
     assert "Examples:" in result.stdout
+    assert "audit-history" in result.stdout
     assert "--supersedes-task-id" in update_help.stdout
     assert "Stable goal identifier." in update_help.stdout
     assert "Omit this for new goals" in update_help.stdout
     assert "%(prog)s --title \"Improve CLI help\"" not in update_help.stdout
     assert "--title \"Improve CLI help\" --task-type product --attempts-delta 1" in update_help.stdout
+
+
+def test_audit_history_command_reports_suspicious_goals(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "cost-fail",
+        "--title",
+        "Cost workflow attempt",
+        "--task-type",
+        "product",
+        "--attempts-delta",
+        "1",
+        "--status",
+        "fail",
+        "--failure-reason",
+        "unclear_task",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "cost-recovery",
+        "--title",
+        "Cost workflow recovery",
+        "--task-type",
+        "product",
+        "--supersedes-task-id",
+        "cost-fail",
+        "--status",
+        "success",
+    ).returncode == 0
+
+    result = run_cmd(repo, "audit-history")
+
+    assert result.returncode == 0, result.stderr
+    assert "Audit candidates" in result.stdout
+    assert "[likely_miss]" in result.stdout
+    assert "cost-fail | product | fail" in result.stdout
+    assert "[likely_partial_fit]" in result.stdout
+    assert "cost-recovery | product | success" in result.stdout
+    assert "suggested_result_fit: partial_fit" in result.stdout
+
+
+def test_package_module_supports_audit_history(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_module_cmd(repo, "audit-history")
+
+    assert result.returncode == 0, result.stderr
+    assert "Audit candidates" in result.stdout
 
 
 def test_sync_codex_usage_backfills_existing_tasks(repo: Path) -> None:

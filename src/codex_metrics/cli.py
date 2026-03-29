@@ -12,14 +12,22 @@ from pathlib import Path
 from typing import Any
 
 from codex_metrics import domain, reporting, storage
+from codex_metrics.history_audit import (
+    audit_history as build_history_audit_report,
+)
+from codex_metrics.history_audit import (
+    render_audit_report as render_history_audit_report,
+)
 
 build_operator_review = reporting.build_operator_review
+audit_history = build_history_audit_report
 format_coverage = reporting.format_coverage
 format_num = reporting.format_num
 format_pct = reporting.format_pct
 format_usd = reporting.format_usd
 generate_report_md = reporting.generate_report_md
 print_summary = reporting.print_summary
+render_audit_report = render_history_audit_report
 
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
 ALLOWED_TASK_TYPES = domain.ALLOWED_TASK_TYPES
@@ -334,6 +342,8 @@ def resolve_usage_costs(
 def save_report(path: Path, data: dict[str, Any]) -> None:
     report = generate_report_md(data)
     atomic_write_text(path, report)
+
+
 def init_files(metrics_path: Path, report_path: Path, force: bool = False) -> None:
     if not force:
         existing_paths = [path for path in (metrics_path, report_path) if path.exists()]
@@ -580,6 +590,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     show_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
 
+    audit_parser = subparsers.add_parser(
+        "audit-history",
+        help="Flag suspicious history patterns for manual review",
+        description=(
+            "Analyze stored goal history and print audit candidates such as likely misses, "
+            "partial-fit recoveries, stale in-progress goals, and low-cost-coverage product goals."
+        ),
+    )
+    audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+
     sync_parser = subparsers.add_parser(
         "sync-codex-usage",
         help="Backfill usage and cost from local Codex logs",
@@ -716,6 +736,9 @@ def main() -> int:
 
     if args.command == "show":
         return commands.handle_show(args, sys.modules[__name__])
+
+    if args.command == "audit-history":
+        return commands.handle_audit_history(args, sys.modules[__name__])
 
     if args.command == "sync-codex-usage":
         return commands.handle_sync_codex_usage(args, sys.modules[__name__])

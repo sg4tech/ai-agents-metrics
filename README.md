@@ -79,6 +79,12 @@ Show the current summary:
 codex-metrics show
 ```
 
+Audit stored history for likely misses, partial-fit recoveries, stale in-progress goals, and low cost coverage:
+
+```bash
+codex-metrics audit-history
+```
+
 Backfill usage and cost from local Codex logs:
 
 ```bash

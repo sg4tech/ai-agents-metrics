@@ -81,6 +81,8 @@ def find_likely_partial_fit_candidates(goals: list[GoalRecord]) -> list[AuditCan
     candidates: list[AuditCandidate] = []
 
     for goal in goals:
+        if goal.goal_type != "product":
+            continue
         if goal.status != "success":
             continue
 

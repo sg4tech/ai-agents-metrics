@@ -15,6 +15,8 @@ The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this r
 - Prefer small, reviewable, reversible changes.
 - Do not rewrite working code without a clear reason.
 - Preserve backward compatibility unless explicitly asked to change it.
+- During module splits or structural refactors, preserve the existing import/export surface until a breaking change is explicitly intended and validated.
+- Treat shim modules, entrypoints, and re-exported symbols that are exercised by tests or automation as part of the compatibility contract, not as disposable implementation details.
 - Treat assumptions as risks until verified.
 - When product framing or success criteria are not yet confirmed by the user, treat drafts as hypotheses, not settled truth.
 - Treat “adjacent but not requested” output as a primary quality failure, even if the implementation is otherwise technically strong.
@@ -103,6 +105,8 @@ Prefer the repository's canonical local validation entrypoint when available:
 ```bash
 make verify
 ```
+
+After structural refactors, include an entrypoint or compatibility-path check in validation, not just direct module tests.
 
 When running `init` or any destructive regeneration smoke check during validation, prefer temporary metrics/report paths instead of real repository artifacts unless the task explicitly requires regenerating the tracked files.
 Generated metrics files are production-like artifacts and must not be casually overwritten during smoke testing.

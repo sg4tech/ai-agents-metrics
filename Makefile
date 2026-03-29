@@ -7,13 +7,13 @@ typecheck:
 	./.venv/bin/mypy src scripts
 
 test:
-	./.venv/bin/python -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py
+	./.venv/bin/python -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py tests/test_history_audit.py
 
 verify: lint typecheck test
 
 coverage:
 	./.venv/bin/coverage erase
-	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py
+	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py tests/test_history_audit.py
 	./.venv/bin/coverage combine
 	./.venv/bin/coverage report -m
 
