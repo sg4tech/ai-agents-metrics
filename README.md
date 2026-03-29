@@ -47,6 +47,9 @@ chmod +x ./codex-metrics
 .\codex-metrics.exe --help
 ```
 
+When you use the standalone binary directly, `codex-metrics` does not automatically appear in your shell `PATH`.
+Run it by path, for example `./codex-metrics ...` or `/path/to/codex-metrics ...`, unless you move it into a directory that is already on `PATH`.
+
 Preferred install from source for a standalone CLI:
 
 ```bash
@@ -131,6 +134,12 @@ Merge a split or superseded goal record:
 codex-metrics merge-tasks --help
 ```
 
+Print shell completion for `bash` or `zsh`:
+
+```bash
+codex-metrics completion zsh
+```
+
 Typical end-to-end flow:
 
 ```bash
@@ -173,13 +182,13 @@ Move into the target repository and preview the scaffold:
 
 ```bash
 cd /path/to/another-repo
-codex-metrics bootstrap --dry-run
+/path/to/codex-metrics bootstrap --dry-run
 ```
 
 Apply the scaffold:
 
 ```bash
-codex-metrics bootstrap
+/path/to/codex-metrics bootstrap
 ```
 
 This creates or updates:
@@ -192,16 +201,18 @@ This creates or updates:
 If the target repo already has a conflicting `docs/codex-metrics-policy.md` and you intentionally want to replace it with the packaged template:
 
 ```bash
-codex-metrics bootstrap --force
+/path/to/codex-metrics bootstrap --force
 ```
 
 First-task flow after bootstrap:
 
 ```bash
-codex-metrics update --title "My first task" --task-type product --attempts-delta 1
-codex-metrics show
-codex-metrics update --task-id <goal-id> --status success --notes "Done"
+/path/to/codex-metrics update --title "My first task" --task-type product --attempts-delta 1
+/path/to/codex-metrics show
+/path/to/codex-metrics update --task-id <goal-id> --status success --notes "Done"
 ```
+
+If you instead installed the package with `pipx` or `pip`, then the shorter `codex-metrics ...` form should work because the command is placed on `PATH`.
 
 ## Update In Another Repository
 
@@ -246,13 +257,13 @@ Then move into the already-bootstrapped target repository and preview what would
 
 ```bash
 cd /path/to/another-repo
-codex-metrics bootstrap --dry-run
+/path/to/codex-metrics bootstrap --dry-run
 ```
 
 If the preview looks right, apply the update:
 
 ```bash
-codex-metrics bootstrap
+/path/to/codex-metrics bootstrap
 ```
 
 Recommended upgrade flow:
@@ -262,6 +273,45 @@ Recommended upgrade flow:
 3. review any managed-file changes
 4. run `codex-metrics bootstrap`
 5. run `codex-metrics show`
+
+## Troubleshooting
+
+If you see `zsh: command not found: codex-metrics` after downloading a standalone binary, that usually means the binary is not installed on your shell `PATH`.
+
+Use one of these forms instead:
+
+```bash
+./codex-metrics --help
+/path/to/codex-metrics bootstrap
+```
+
+Or move the binary into a directory on `PATH`, for example `~/bin` or `/usr/local/bin`, and then reopen your shell.
+
+To enable shell completion after `codex-metrics` is on `PATH`:
+
+```bash
+# zsh
+mkdir -p ~/.zfunc
+codex-metrics completion zsh > ~/.zfunc/_codex-metrics
+echo 'fpath=(~/.zfunc $fpath)' >> ~/.zshrc
+echo 'autoload -Uz compinit && compinit' >> ~/.zshrc
+exec $SHELL -l
+```
+
+```bash
+# bash
+mkdir -p ~/.local/share/bash-completion/completions
+codex-metrics completion bash > ~/.local/share/bash-completion/completions/codex-metrics
+exec $SHELL -l
+```
+
+If you are using a standalone binary by path, either invoke it by path when generating the completion script:
+
+```bash
+/path/to/codex-metrics completion zsh > ~/.zfunc/_codex-metrics
+```
+
+or move/symlink it into a directory on `PATH` before enabling shell completion.
 
 ## Validation Commands
 

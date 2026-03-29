@@ -14,6 +14,7 @@ from typing import Any
 
 from codex_metrics import domain, reporting, storage
 from codex_metrics.bootstrap import bootstrap_project as run_bootstrap_project
+from codex_metrics.completion import render_completion
 from codex_metrics.cost_audit import (
     CostAuditReport,
 )
@@ -687,8 +688,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     init_parser = subparsers.add_parser(
         "init",
-        help="Initialize metrics and report files",
-        description="Create empty metrics and report files.",
+        help="Create only the metrics JSON and markdown report files",
+        description=(
+            "Create the low-level metrics artifacts only: metrics/codex_metrics.json and "
+            "docs/codex-metrics.md. This does not scaffold repository policy or AGENTS.md."
+        ),
     )
     init_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     init_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
@@ -696,10 +700,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     bootstrap_parser = subparsers.add_parser(
         "bootstrap",
-        help="Initialize codex-metrics scaffold in the current repository",
+        help="Scaffold codex-metrics into a repository, including AGENTS.md and policy",
         description=(
-            "Create the minimal codex-metrics scaffold for a repository: metrics/report artifacts, "
-            "a reusable policy file, and a managed codex-metrics block inside AGENTS.md."
+            "Create the full codex-metrics repository scaffold: metrics/report artifacts, "
+            "docs/codex-metrics-policy.md, and a managed codex-metrics block inside AGENTS.md. "
+            "Use this to integrate codex-metrics into a new or existing repository."
         ),
     )
     bootstrap_parser.add_argument("--target-dir", default=".", help="Repository root to initialize")
@@ -709,6 +714,16 @@ def build_parser() -> argparse.ArgumentParser:
     bootstrap_parser.add_argument("--agents-path", default="AGENTS.md")
     bootstrap_parser.add_argument("--force", action="store_true", help="Replace conflicting scaffold files")
     bootstrap_parser.add_argument("--dry-run", action="store_true", help="Preview planned changes without writing files")
+
+    completion_parser = subparsers.add_parser(
+        "completion",
+        help="Print shell completion for bash or zsh",
+        description=(
+            "Print a shell completion script for codex-metrics. "
+            "Use this to enable command and option completion in bash or zsh."
+        ),
+    )
+    completion_parser.add_argument("shell", choices=("bash", "zsh"))
 
     update_parser = subparsers.add_parser(
         "update",
@@ -958,6 +973,10 @@ def main() -> int:
 
     if args.command == "bootstrap":
         return commands.handle_bootstrap(args, sys.modules[__name__])
+
+    if args.command == "completion":
+        print(render_completion(build_parser(), args.shell), end="")
+        return 0
 
     if args.command == "audit-history":
         return commands.handle_audit_history(args, sys.modules[__name__])

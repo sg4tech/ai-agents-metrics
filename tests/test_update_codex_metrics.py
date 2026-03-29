@@ -635,6 +635,34 @@ def test_console_entrypoint_prints_clean_bootstrap_error(repo: Path) -> None:
     assert "Traceback" not in result.stderr
 
 
+def test_help_lists_completion_command(repo: Path) -> None:
+    result = run_cmd(repo, "--help")
+
+    assert result.returncode == 0
+    assert "completion" in result.stdout
+    assert "Print shell completion for bash or zsh" in result.stdout
+
+
+def test_completion_bash_outputs_completion_function(repo: Path) -> None:
+    result = run_cmd(repo, "completion", "bash")
+
+    assert result.returncode == 0, result.stderr
+    assert "_codex_metrics_completion()" in result.stdout
+    assert "complete -F _codex_metrics_completion codex-metrics" in result.stdout
+    assert "bootstrap" in result.stdout
+    assert "--metrics-path" in result.stdout
+
+
+def test_completion_zsh_outputs_compdef_script(repo: Path) -> None:
+    result = run_cmd(repo, "completion", "zsh")
+
+    assert result.returncode == 0, result.stderr
+    assert "#compdef codex-metrics" in result.stdout
+    assert "_describe 'command' commands" in result.stdout
+    assert "completion)" in result.stdout
+    assert "--policy-path" in result.stdout
+
+
 def test_create_task_and_close_success(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 

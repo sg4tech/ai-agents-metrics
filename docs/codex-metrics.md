@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 116
-- Successes: 116
+- Closed goals: 119
+- Successes: 119
 - Fails: 0
-- Total attempts: 120
-- Known total cost (USD): 174.394005
-- Known total tokens: 125112387
+- Total attempts: 123
+- Known total cost (USD): 177.650892
+- Known total tokens: 127426468
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 95/116 successful goals
-- Known token coverage: 95/116 successful goals
-- Complete cost coverage: 95/116 successful goals
-- Complete token coverage: 95/116 successful goals
-- Known Cost per Success (USD): 1.835726
-- Known Cost per Success (Tokens): 1316972.49
-- Complete Cost per Covered Success (USD): 1.835726
-- Complete Cost per Covered Success (Tokens): 1316972.49
+- Known cost coverage: 98/119 successful goals
+- Known token coverage: 98/119 successful goals
+- Complete cost coverage: 98/119 successful goals
+- Complete token coverage: 98/119 successful goals
+- Known Cost per Success (USD): 1.812764
+- Known Cost per Success (Tokens): 1300270.08
+- Complete Cost per Covered Success (USD): 1.812764
+- Complete Cost per Covered Success (Tokens): 1300270.08
 
 ## Entry summary
 
-- Closed entries: 120
-- Successes: 119
+- Closed entries: 123
+- Successes: 122
 - Fails: 1
-- Success Rate: 99.17%
-- Known total cost (USD): 173.496625
-- Known total tokens: 124396408
+- Success Rate: 99.19%
+- Known total cost (USD): 176.753512
+- Known total tokens: 126710489
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 31
-- Successes: 31
+- Closed goals: 34
+- Successes: 34
 - Fails: 0
-- Total attempts: 35
-- Known total cost (USD): 76.446643
-- Known total tokens: 54956155
+- Total attempts: 38
+- Known total cost (USD): 79.70353
+- Known total tokens: 57270236
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.13
-- Known cost coverage: 27/31 successful goals
-- Known token coverage: 27/31 successful goals
-- Complete cost coverage: 27/31 successful goals
-- Complete token coverage: 27/31 successful goals
-- Known Cost per Success (USD): 2.831357
-- Known Cost per Success (Tokens): 2035413.15
-- Complete Cost per Covered Success (USD): 2.831357
-- Complete Cost per Covered Success (Tokens): 2035413.15
+- Attempts per Closed Goal: 1.12
+- Known cost coverage: 30/34 successful goals
+- Known token coverage: 30/34 successful goals
+- Complete cost coverage: 30/34 successful goals
+- Complete token coverage: 30/34 successful goals
+- Known Cost per Success (USD): 2.656784
+- Known Cost per Success (Tokens): 1909007.87
+- Complete Cost per Covered Success (USD): 2.656784
+- Complete Cost per Covered Success (Tokens): 1909007.87
 
 ### retro
 - Closed goals: 28
@@ -95,6 +95,45 @@
 - Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-125 — Add shell completion support for codex-metrics
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:42:21+00:00
+- Finished at: 2026-03-29T18:44:54+00:00
+- Cost (USD): 2.139006
+- Tokens: 1514047
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added built-in shell completion support via codex-metrics completion bash|zsh, covered it with automated tests, and updated README with activation instructions for PATH-installed and standalone-by-path usage; verified with make verify.
+
+### 2026-03-29-124 — Clarify standalone binary invocation docs
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:41:07+00:00
+- Finished at: 2026-03-29T18:41:55+00:00
+- Cost (USD): 0.672788
+- Tokens: 482777
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Clarified README for standalone self-host usage: direct binaries must be invoked by path unless moved onto PATH, updated bootstrap and upgrade examples to use /path/to/codex-metrics, and added troubleshooting for zsh command-not-found; verified with make verify.
+
+### 2026-03-29-123 — Clarify init vs bootstrap CLI help text
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:39:57+00:00
+- Finished at: 2026-03-29T18:40:30+00:00
+- Cost (USD): 0.445093
+- Tokens: 317257
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Clarified CLI help text so init is described as metrics/report-only initialization and bootstrap is described as full repository scaffold integration with AGENTS.md and policy; verified with source-tree help output and make verify.
 
 ### 2026-03-29-122 — Standalone binaries retrospective
 - Goal type: retro
@@ -1670,6 +1709,39 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-125-attempt-001 — 2026-03-29-125
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:42:21+00:00
+- Finished at: 2026-03-29T18:44:54+00:00
+- Cost (USD): 2.139006
+- Tokens: 1514047
+- Failure reason: n/a
+- Notes: Added built-in shell completion support via codex-metrics completion bash|zsh, covered it with automated tests, and updated README with activation instructions for PATH-installed and standalone-by-path usage; verified with make verify.
+
+### 2026-03-29-124-attempt-001 — 2026-03-29-124
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:41:07+00:00
+- Finished at: 2026-03-29T18:41:55+00:00
+- Cost (USD): 0.672788
+- Tokens: 482777
+- Failure reason: n/a
+- Notes: Clarified README for standalone self-host usage: direct binaries must be invoked by path unless moved onto PATH, updated bootstrap and upgrade examples to use /path/to/codex-metrics, and added troubleshooting for zsh command-not-found; verified with make verify.
+
+### 2026-03-29-123-attempt-001 — 2026-03-29-123
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:39:57+00:00
+- Finished at: 2026-03-29T18:40:30+00:00
+- Cost (USD): 0.445093
+- Tokens: 317257
+- Failure reason: n/a
+- Notes: Clarified CLI help text so init is described as metrics/report-only initialization and bootstrap is described as full repository scaffold integration with AGENTS.md and policy; verified with source-tree help output and make verify.
 
 ### 2026-03-29-122-attempt-001 — 2026-03-29-122
 - Entry type: retro
