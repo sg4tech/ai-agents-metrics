@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 115
-- Successes: 115
+- Closed goals: 116
+- Successes: 116
 - Fails: 0
-- Total attempts: 119
-- Known total cost (USD): 174.1631
-- Known total tokens: 124948788
+- Total attempts: 120
+- Known total cost (USD): 174.394005
+- Known total tokens: 125112387
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 94/115 successful goals
-- Known token coverage: 94/115 successful goals
-- Complete cost coverage: 94/115 successful goals
-- Complete token coverage: 94/115 successful goals
-- Known Cost per Success (USD): 1.852799
-- Known Cost per Success (Tokens): 1329242.43
-- Complete Cost per Covered Success (USD): 1.852799
-- Complete Cost per Covered Success (Tokens): 1329242.43
+- Known cost coverage: 95/116 successful goals
+- Known token coverage: 95/116 successful goals
+- Complete cost coverage: 95/116 successful goals
+- Complete token coverage: 95/116 successful goals
+- Known Cost per Success (USD): 1.835726
+- Known Cost per Success (Tokens): 1316972.49
+- Complete Cost per Covered Success (USD): 1.835726
+- Complete Cost per Covered Success (Tokens): 1316972.49
 
 ## Entry summary
 
-- Closed entries: 119
-- Successes: 118
+- Closed entries: 120
+- Successes: 119
 - Fails: 1
-- Success Rate: 99.16%
-- Known total cost (USD): 173.26572
-- Known total tokens: 124232809
+- Success Rate: 99.17%
+- Known total cost (USD): 173.496625
+- Known total tokens: 124396408
 
 ## Operator review
 
@@ -59,22 +59,22 @@
 - Complete Cost per Covered Success (Tokens): 2035413.15
 
 ### retro
-- Closed goals: 27
-- Successes: 27
+- Closed goals: 28
+- Successes: 28
 - Fails: 0
-- Total attempts: 27
-- Known total cost (USD): 10.216565
-- Known total tokens: 7274819
+- Total attempts: 28
+- Known total cost (USD): 10.44747
+- Known total tokens: 7438418
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 18/27 successful goals
-- Known token coverage: 18/27 successful goals
-- Complete cost coverage: 18/27 successful goals
-- Complete token coverage: 18/27 successful goals
-- Known Cost per Success (USD): 0.567587
-- Known Cost per Success (Tokens): 404156.61
-- Complete Cost per Covered Success (USD): 0.567587
-- Complete Cost per Covered Success (Tokens): 404156.61
+- Known cost coverage: 19/28 successful goals
+- Known token coverage: 19/28 successful goals
+- Complete cost coverage: 19/28 successful goals
+- Complete token coverage: 19/28 successful goals
+- Known Cost per Success (USD): 0.549867
+- Known Cost per Success (Tokens): 391495.68
+- Complete Cost per Covered Success (USD): 0.549867
+- Complete Cost per Covered Success (Tokens): 391495.68
 
 ### meta
 - Closed goals: 57
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1279955.39
 
 ## Goal log
+
+### 2026-03-29-122 — Standalone binaries retrospective
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T18:35:08+00:00
+- Finished at: 2026-03-29T18:35:42+00:00
+- Cost (USD): 0.230905
+- Tokens: 163599
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added standalone binaries retrospective covering frozen-resource handling, PyInstaller local build friction, CI matrix artifact generation, standalone smoke checks, and downstream install/update guidance.
 
 ### 2026-03-29-121 — Build standalone codex-metrics binaries for macOS, Linux, and Windows
 - Goal type: product
@@ -1657,6 +1670,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-122-attempt-001 — 2026-03-29-122
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T18:35:08+00:00
+- Finished at: 2026-03-29T18:35:42+00:00
+- Cost (USD): 0.230905
+- Tokens: 163599
+- Failure reason: n/a
+- Notes: Added standalone binaries retrospective covering frozen-resource handling, PyInstaller local build friction, CI matrix artifact generation, standalone smoke checks, and downstream install/update guidance.
 
 ### 2026-03-29-121-attempt-001 — 2026-03-29-121
 - Entry type: product
