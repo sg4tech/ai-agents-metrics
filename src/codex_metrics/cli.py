@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from codex_metrics import domain, reporting, storage
+from codex_metrics.bootstrap import bootstrap_project as run_bootstrap_project
 from codex_metrics.cost_audit import (
     CostAuditReport,
 )
@@ -483,6 +484,29 @@ def init_files(metrics_path: Path, report_path: Path, force: bool = False) -> No
     save_report(report_path, data)
 
 
+def bootstrap_project(
+    *,
+    target_dir: Path,
+    metrics_path: Path,
+    report_path: Path,
+    policy_path: Path,
+    agents_path: Path,
+    force: bool = False,
+    dry_run: bool = False,
+) -> list[str]:
+    result = run_bootstrap_project(
+        target_dir=target_dir,
+        metrics_path=metrics_path,
+        report_path=report_path,
+        policy_path=policy_path,
+        agents_path=agents_path,
+        force=force,
+        dry_run=dry_run,
+        init_files=init_files,
+    )
+    return result.messages
+
+
 def resolve_goal_usage_updates(
     *,
     task: GoalRecord,
@@ -660,6 +684,22 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     init_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
     init_parser.add_argument("--force", action="store_true", help="Overwrite existing metrics files")
+
+    bootstrap_parser = subparsers.add_parser(
+        "bootstrap",
+        help="Initialize codex-metrics scaffold in the current repository",
+        description=(
+            "Create the minimal codex-metrics scaffold for a repository: metrics/report artifacts, "
+            "a reusable policy file, and a managed codex-metrics block inside AGENTS.md."
+        ),
+    )
+    bootstrap_parser.add_argument("--target-dir", default=".", help="Repository root to initialize")
+    bootstrap_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    bootstrap_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
+    bootstrap_parser.add_argument("--policy-path", default="docs/codex-metrics-policy.md")
+    bootstrap_parser.add_argument("--agents-path", default="AGENTS.md")
+    bootstrap_parser.add_argument("--force", action="store_true", help="Replace conflicting scaffold files")
+    bootstrap_parser.add_argument("--dry-run", action="store_true", help="Preview planned changes without writing files")
 
     update_parser = subparsers.add_parser(
         "update",
@@ -906,6 +946,9 @@ def main() -> int:
 
     if args.command == "show":
         return commands.handle_show(args, sys.modules[__name__])
+
+    if args.command == "bootstrap":
+        return commands.handle_bootstrap(args, sys.modules[__name__])
 
     if args.command == "audit-history":
         return commands.handle_audit_history(args, sys.modules[__name__])

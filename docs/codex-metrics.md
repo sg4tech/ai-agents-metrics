@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 101
-- Successes: 101
+- Closed goals: 102
+- Successes: 102
 - Fails: 0
-- Total attempts: 105
-- Known total cost (USD): 135.076254
-- Known total tokens: 96857586
+- Total attempts: 106
+- Known total cost (USD): 137.934711
+- Known total tokens: 98861085
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 80/101 successful goals
-- Known token coverage: 80/101 successful goals
-- Complete cost coverage: 80/101 successful goals
-- Complete token coverage: 80/101 successful goals
-- Known Cost per Success (USD): 1.688453
-- Known Cost per Success (Tokens): 1210719.82
-- Complete Cost per Covered Success (USD): 1.688453
-- Complete Cost per Covered Success (Tokens): 1210719.82
+- Known cost coverage: 81/102 successful goals
+- Known token coverage: 81/102 successful goals
+- Complete cost coverage: 81/102 successful goals
+- Complete token coverage: 81/102 successful goals
+- Known Cost per Success (USD): 1.702898
+- Known Cost per Success (Tokens): 1220507.22
+- Complete Cost per Covered Success (USD): 1.702898
+- Complete Cost per Covered Success (Tokens): 1220507.22
 
 ## Entry summary
 
-- Closed entries: 105
-- Successes: 104
+- Closed entries: 106
+- Successes: 105
 - Fails: 1
-- Success Rate: 99.05%
-- Known total cost (USD): 134.178874
-- Known total tokens: 96141607
+- Success Rate: 99.06%
+- Known total cost (USD): 137.037331
+- Known total tokens: 98145106
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 22
-- Successes: 22
+- Closed goals: 23
+- Successes: 23
 - Fails: 0
-- Total attempts: 26
-- Known total cost (USD): 41.999556
-- Known total tokens: 30197846
+- Total attempts: 27
+- Known total cost (USD): 44.858013
+- Known total tokens: 32201345
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.18
-- Known cost coverage: 18/22 successful goals
-- Known token coverage: 18/22 successful goals
-- Complete cost coverage: 18/22 successful goals
-- Complete token coverage: 18/22 successful goals
-- Known Cost per Success (USD): 2.333309
-- Known Cost per Success (Tokens): 1677658.11
-- Complete Cost per Covered Success (USD): 2.333309
-- Complete Cost per Covered Success (Tokens): 1677658.11
+- Attempts per Closed Goal: 1.17
+- Known cost coverage: 19/23 successful goals
+- Known token coverage: 19/23 successful goals
+- Complete cost coverage: 19/23 successful goals
+- Complete token coverage: 19/23 successful goals
+- Known Cost per Success (USD): 2.360948
+- Known Cost per Success (Tokens): 1694807.63
+- Complete Cost per Covered Success (USD): 2.360948
+- Complete Cost per Covered Success (Tokens): 1694807.63
 
 ### retro
 - Closed goals: 24
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1297793.45
 
 ## Goal log
+
+### 2026-03-29-108 — Add bootstrap/init command for project integration
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T17:46:54+00:00
+- Finished at: 2026-03-29T17:51:47+00:00
+- Cost (USD): 2.858457
+- Tokens: 2003499
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added bootstrap command that scaffolds metrics/report files, exports a codex-metrics policy, and manages an AGENTS.md block with dry-run and force safeguards. Verified with make verify and a clean temp-directory bootstrap smoke test.
 
 ### 2026-03-29-107 — Record zero-duration product window retrospective
 - Goal type: retro
@@ -1475,6 +1488,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-29-108-attempt-001 — 2026-03-29-108
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T17:46:54+00:00
+- Finished at: 2026-03-29T17:51:47+00:00
+- Cost (USD): 2.858457
+- Tokens: 2003499
+- Failure reason: n/a
+- Notes: Added bootstrap command that scaffolds metrics/report files, exports a codex-metrics policy, and manages an AGENTS.md block with dry-run and force safeguards. Verified with make verify and a clean temp-directory bootstrap smoke test.
 
 ### 2026-03-29-107-attempt-001 — 2026-03-29-107
 - Entry type: retro

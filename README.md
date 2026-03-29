@@ -68,6 +68,12 @@ Initialize metrics files:
 codex-metrics init
 ```
 
+Bootstrap `codex-metrics` into another repository:
+
+```bash
+codex-metrics bootstrap
+```
+
 Create or update a goal record:
 
 ```bash

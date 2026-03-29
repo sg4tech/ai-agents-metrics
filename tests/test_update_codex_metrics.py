@@ -391,6 +391,13 @@ def test_package_module_entrypoint_can_initialize_files(repo: Path) -> None:
     assert (repo / "docs" / "codex-metrics.md").exists()
 
 
+def test_package_module_entrypoint_supports_bootstrap(repo: Path) -> None:
+    result = run_module_cmd(repo, "bootstrap", "--dry-run")
+
+    assert result.returncode == 0, result.stderr
+    assert "Would create metrics file" in result.stdout
+
+
 def test_init_refuses_to_overwrite_without_force(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
 
@@ -410,6 +417,90 @@ def test_init_force_allows_overwrite(repo: Path) -> None:
     assert result.returncode == 0, result.stderr
     data = read_json(metrics_path)
     assert data["tasks"] == []
+
+
+def test_bootstrap_dry_run_reports_actions_without_writing_files(repo: Path) -> None:
+    result = run_cmd(repo, "bootstrap", "--dry-run")
+
+    assert result.returncode == 0, result.stderr
+    assert "Would create metrics file" in result.stdout
+    assert "Would create report file" in result.stdout
+    assert "Would create policy file" in result.stdout
+    assert "Would create AGENTS.md" in result.stdout
+    assert not (repo / "metrics" / "codex_metrics.json").exists()
+    assert not (repo / "docs" / "codex-metrics.md").exists()
+    assert not (repo / "docs" / "codex-metrics-policy.md").exists()
+    assert not (repo / "AGENTS.md").exists()
+
+
+def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 0, result.stderr
+    assert "Created metrics file" in result.stdout
+    assert "Created policy file" in result.stdout
+    assert "Created AGENTS.md" in result.stdout
+
+    metrics_path = repo / "metrics" / "codex_metrics.json"
+    report_path = repo / "docs" / "codex-metrics.md"
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    agents_path = repo / "AGENTS.md"
+
+    assert metrics_path.exists()
+    assert report_path.exists()
+    assert policy_path.exists()
+    assert agents_path.exists()
+
+    data = read_json(metrics_path)
+    assert data["tasks"] == []
+
+    policy_text = policy_path.read_text(encoding="utf-8")
+    assert "Codex Metrics Policy" in policy_text
+    assert "Metrics bookkeeping is mandatory." in policy_text
+
+    agents_text = agents_path.read_text(encoding="utf-8")
+    assert "# AGENTS.md" in agents_text
+    assert "<!-- codex-metrics:start -->" in agents_text
+    assert "docs/codex-metrics-policy.md" in agents_text
+    assert "codex-metrics update" in agents_text
+
+
+def test_bootstrap_appends_single_managed_block_to_existing_agents(repo: Path) -> None:
+    agents_path = repo / "AGENTS.md"
+    agents_path.write_text("# Existing Rules\n\nKeep local conventions.\n", encoding="utf-8")
+
+    first_result = run_cmd(repo, "bootstrap")
+    second_result = run_cmd(repo, "bootstrap")
+
+    assert first_result.returncode == 0, first_result.stderr
+    assert second_result.returncode == 0, second_result.stderr
+
+    agents_text = agents_path.read_text(encoding="utf-8")
+    assert "# Existing Rules" in agents_text
+    assert agents_text.count("<!-- codex-metrics:start -->") == 1
+    assert agents_text.count("<!-- codex-metrics:end -->") == 1
+    assert "docs/codex-metrics-policy.md" in agents_text
+
+
+def test_bootstrap_refuses_to_overwrite_different_policy_without_force(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_cmd(repo, "bootstrap")
+
+    assert result.returncode == 1
+    assert "already exists with different content" in result.stderr
+
+
+def test_bootstrap_force_replaces_existing_policy_file(repo: Path) -> None:
+    policy_path = repo / "docs" / "codex-metrics-policy.md"
+    policy_path.write_text("# Different Policy\n\nDo not replace me.\n", encoding="utf-8")
+
+    result = run_cmd(repo, "bootstrap", "--force")
+
+    assert result.returncode == 0, result.stderr
+    policy_text = policy_path.read_text(encoding="utf-8")
+    assert "Codex Metrics Policy" in policy_text
 
 
 def test_create_task_and_close_success(repo: Path) -> None:

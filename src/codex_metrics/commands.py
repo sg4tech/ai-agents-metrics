@@ -12,6 +12,17 @@ from codex_metrics.history_audit import AuditReport
 class CommandRuntime(Protocol):
     def metrics_mutation_lock(self, metrics_path: Path) -> AbstractContextManager[Any]: ...
     def init_files(self, metrics_path: Path, report_path: Path, force: bool = False) -> None: ...
+    def bootstrap_project(
+        self,
+        *,
+        target_dir: Path,
+        metrics_path: Path,
+        report_path: Path,
+        policy_path: Path,
+        agents_path: Path,
+        force: bool = False,
+        dry_run: bool = False,
+    ) -> list[str]: ...
     def load_metrics(self, path: Path) -> dict[str, Any]: ...
     def recompute_summary(self, data: dict[str, Any]) -> None: ...
     def print_summary(self, data: dict[str, Any]) -> None: ...
@@ -86,6 +97,34 @@ def handle_init(args: Namespace, cli_module: CommandRuntime) -> int:
     with cli_module.metrics_mutation_lock(metrics_path):
         cli_module.init_files(metrics_path, report_path, force=args.force)
     print(f"Initialized {metrics_path} and {report_path}")
+    return 0
+
+
+def handle_bootstrap(args: Namespace, cli_module: CommandRuntime) -> int:
+    target_dir = Path(args.target_dir)
+
+    def resolve_target_path(raw_path: str) -> Path:
+        path = Path(raw_path)
+        return path if path.is_absolute() else target_dir / path
+
+    metrics_path = resolve_target_path(args.metrics_path)
+    report_path = resolve_target_path(args.report_path)
+    policy_path = resolve_target_path(args.policy_path)
+    agents_path = resolve_target_path(args.agents_path)
+
+    with cli_module.metrics_mutation_lock(metrics_path):
+        messages = cli_module.bootstrap_project(
+            target_dir=target_dir,
+            metrics_path=metrics_path,
+            report_path=report_path,
+            policy_path=policy_path,
+            agents_path=agents_path,
+            force=args.force,
+            dry_run=args.dry_run,
+        )
+
+    for message in messages:
+        print(message)
     return 0
 
 
