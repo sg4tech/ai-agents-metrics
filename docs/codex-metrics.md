@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 148
-- Successes: 148
+- Closed goals: 149
+- Successes: 149
 - Fails: 0
-- Total attempts: 154
+- Total attempts: 155
 - Known total cost (USD): 208.232692
 - Known total tokens: 149406029
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 118/148 successful goals
-- Known token coverage: 118/148 successful goals
-- Complete cost coverage: 118/148 successful goals
-- Complete token coverage: 118/148 successful goals
+- Known cost coverage: 118/149 successful goals
+- Known token coverage: 118/149 successful goals
+- Complete cost coverage: 118/149 successful goals
+- Complete token coverage: 118/149 successful goals
 - Known Cost per Success (USD): 1.764684
 - Known Cost per Success (Tokens): 1266152.79
 - Complete Cost per Covered Success (USD): 1.764684
@@ -21,8 +21,8 @@
 
 ## Entry summary
 
-- Closed entries: 154
-- Successes: 153
+- Closed entries: 155
+- Successes: 154
 - Fails: 1
 - Success Rate: 99.35%
 - Known total cost (USD): 207.335312
@@ -41,18 +41,18 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 52
-- Successes: 52
+- Closed goals: 53
+- Successes: 53
 - Fails: 0
-- Total attempts: 58
+- Total attempts: 59
 - Known total cost (USD): 101.235054
 - Known total tokens: 72723888
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.12
-- Known cost coverage: 40/52 successful goals
-- Known token coverage: 40/52 successful goals
-- Complete cost coverage: 40/52 successful goals
-- Complete token coverage: 40/52 successful goals
+- Attempts per Closed Goal: 1.11
+- Known cost coverage: 40/53 successful goals
+- Known token coverage: 40/53 successful goals
+- Complete cost coverage: 40/53 successful goals
+- Complete token coverage: 40/53 successful goals
 - Known Cost per Success (USD): 2.530876
 - Known Cost per Success (Tokens): 1818097.20
 - Complete Cost per Covered Success (USD): 2.530876
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1255893.11
 
 ## Goal log
+
+### 2026-03-30-009 — Add reusable process playbook for new projects
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T09:04:47+00:00
+- Finished at: 2026-03-30T09:04:48+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Added a reusable process playbook covering PM discovery, lead-owned task creation, role separation, stage flow, and the rule that development should start from a clarified task rather than a raw request.
 
 ### 2026-03-30-008 — Add retrospective logging block to Python template
 - Goal type: product
@@ -2086,6 +2099,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-30-009-attempt-001 — 2026-03-30-009
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T09:04:47+00:00
+- Finished at: 2026-03-30T09:04:48+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a reusable process playbook covering PM discovery, lead-owned task creation, role separation, stage flow, and the rule that development should start from a clarified task rather than a raw request.
 
 ### 2026-03-30-008-attempt-001 — 2026-03-30-008
 - Entry type: product

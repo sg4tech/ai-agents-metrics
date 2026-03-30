@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 148,
-    "successes": 148,
+    "closed_tasks": 149,
+    "successes": 149,
     "fails": 0,
-    "total_attempts": 154,
+    "total_attempts": 155,
     "total_cost_usd": 208.232692,
     "total_tokens": 149406029,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0405405405405406,
+    "attempts_per_closed_task": 1.0402684563758389,
     "known_cost_successes": 118,
     "known_token_successes": 118,
     "complete_cost_successes": 118,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 52,
-        "successes": 52,
+        "closed_tasks": 53,
+        "successes": 53,
         "fails": 0,
-        "total_attempts": 58,
+        "total_attempts": 59,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1153846153846154,
+        "attempts_per_closed_task": 1.1132075471698113,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 52,
-        "successes": 52,
+        "closed_tasks": 53,
+        "successes": 53,
         "fails": 0,
-        "total_attempts": 58,
+        "total_attempts": 59,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1153846153846154,
+        "attempts_per_closed_task": 1.1132075471698113,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 154,
-      "successes": 153,
+      "closed_entries": 155,
+      "successes": 154,
       "fails": 1,
-      "success_rate": 0.9935064935064936,
+      "success_rate": 0.9935483870967742,
       "total_cost_usd": 207.335312,
       "total_tokens": 148690050,
       "failure_reasons": {
@@ -2449,6 +2449,21 @@
       "failure_reason": null,
       "notes": "Added a dedicated retrospective logging block to the reusable Python project AGENTS template so meaningful bugs, false successes, and process misses are captured with a classified follow-up instead of disappearing into chat history.",
       "result_fit": "exact_fit"
+    },
+    {
+      "goal_id": "2026-03-30-009",
+      "title": "Add reusable process playbook for new projects",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-30T09:04:47+00:00",
+      "finished_at": "2026-03-30T09:04:48+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a reusable process playbook covering PM discovery, lead-owned task creation, role separation, stage flow, and the rule that development should start from a clarified task rather than a raw request.",
+      "result_fit": "exact_fit"
     }
   ],
   "entries": [
@@ -4492,6 +4507,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added a dedicated retrospective logging block to the reusable Python project AGENTS template so meaningful bugs, false successes, and process misses are captured with a classified follow-up instead of disappearing into chat history."
+    },
+    {
+      "entry_id": "2026-03-30-009-attempt-001",
+      "goal_id": "2026-03-30-009",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-30T09:04:47+00:00",
+      "finished_at": "2026-03-30T09:04:48+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a reusable process playbook covering PM discovery, lead-owned task creation, role separation, stage flow, and the rule that development should start from a clarified task rather than a raw request."
     }
   ]
 }
