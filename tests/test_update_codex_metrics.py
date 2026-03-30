@@ -516,10 +516,12 @@ def test_bootstrap_dry_run_reports_actions_without_writing_files(repo: Path) -> 
     assert "Would create report file" in result.stdout
     assert "Would create policy file" in result.stdout
     assert "Would create AGENTS.md" in result.stdout
+    assert "Would create command wrapper" in result.stdout
     assert not (repo / "metrics" / "codex_metrics.json").exists()
     assert not (repo / "docs" / "codex-metrics.md").exists()
     assert not (repo / "docs" / "codex-metrics-policy.md").exists()
     assert not (repo / "AGENTS.md").exists()
+    assert not (repo / "tools" / "codex-metrics").exists()
 
 
 def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
@@ -533,11 +535,13 @@ def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
     metrics_path = repo / "metrics" / "codex_metrics.json"
     report_path = repo / "docs" / "codex-metrics.md"
     policy_path = repo / "docs" / "codex-metrics-policy.md"
+    command_path = repo / "tools" / "codex-metrics"
     agents_path = repo / "AGENTS.md"
 
     assert metrics_path.exists()
     assert report_path.exists()
     assert policy_path.exists()
+    assert command_path.exists()
     assert agents_path.exists()
 
     data = read_json(metrics_path)
@@ -555,6 +559,8 @@ def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
     assert "codex-metrics start-task" in policy_text
     assert "codex-metrics continue-task" in policy_text
     assert "codex-metrics finish-task" in policy_text
+    assert "If `codex-metrics` is expected but unavailable" in policy_text
+    assert "Do not invent a manual fallback workflow" in policy_text
     assert "## Reporting Rules" in policy_text
     assert "## Anti-Gaming Rules" in policy_text
     assert "## Required Goal Fields" not in policy_text
@@ -571,6 +577,8 @@ def test_bootstrap_creates_scaffold_files(repo: Path) -> None:
     assert "Before starting or continuing any engineering task, always read:" in agents_text
     assert "- `AGENTS.md`" in agents_text
     assert "docs/codex-metrics-policy.md" in agents_text
+    assert "Use `tools/codex-metrics ...` in this repository." in agents_text
+    assert "If `tools/codex-metrics` is unavailable, stop and report an installation or invocation mismatch" in agents_text
     assert "The rules in `docs/codex-metrics-policy.md` are mandatory" in agents_text
     assert "Generated artifacts:" not in agents_text
     assert "Do not edit generated metrics files manually" not in agents_text
@@ -689,6 +697,8 @@ def test_bootstrap_custom_paths_render_relative_agents_links(repo: Path) -> None
         "custom/report.md",
         "--policy-path",
         "rules/policy.md",
+        "--command-path",
+        "bin/codex-metrics",
         "--agents-path",
         "guide/AGENTS.md",
     )
@@ -696,6 +706,7 @@ def test_bootstrap_custom_paths_render_relative_agents_links(repo: Path) -> None
     assert result.returncode == 0, result.stderr
     agents_text = (repo / "guide" / "AGENTS.md").read_text(encoding="utf-8")
     assert "`../rules/policy.md`" in agents_text
+    assert "`../bin/codex-metrics ...`" in agents_text
 
 
 def test_script_entrypoint_prints_clean_bootstrap_error(repo: Path) -> None:

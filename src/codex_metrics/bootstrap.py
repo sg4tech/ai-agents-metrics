@@ -54,8 +54,9 @@ def path_for_agents(target_path: Path, *, agents_path: Path) -> Path:
     return Path(os.path.relpath(target_path, start=agents_path.parent))
 
 
-def render_agents_block(*, policy_path: Path, metrics_path: Path, report_path: Path) -> str:
+def render_agents_block(*, policy_path: Path, command_path: Path, metrics_path: Path, report_path: Path) -> str:
     policy_label = policy_path.as_posix()
+    command_label = command_path.as_posix()
     del metrics_path
     del report_path
     return (
@@ -65,6 +66,8 @@ def render_agents_block(*, policy_path: Path, metrics_path: Path, report_path: P
         "Before starting or continuing any engineering task, always read:\n\n"
         "- `AGENTS.md`\n"
         f"- `{policy_label}`\n\n"
+        f"Use `{command_label} ...` in this repository.\n\n"
+        f"If `{command_label}` is unavailable, stop and report an installation or invocation mismatch before proceeding.\n\n"
         f"The rules in `{policy_label}` are mandatory and are part of this repository's operating instructions.\n\n"
         f"{END_MARKER}\n"
     )
@@ -74,11 +77,13 @@ def upsert_agents_text(
     existing_text: str | None,
     *,
     policy_path: Path,
+    command_path: Path,
     metrics_path: Path,
     report_path: Path,
 ) -> tuple[str, str]:
     block = render_agents_block(
         policy_path=policy_path,
+        command_path=command_path,
         metrics_path=metrics_path,
         report_path=report_path,
     )
@@ -109,6 +114,7 @@ def build_bootstrap_plan(
     metrics_path: Path,
     report_path: Path,
     policy_path: Path,
+    command_path: Path,
     agents_path: Path,
     force: bool,
     dry_run: bool,
@@ -140,6 +146,7 @@ def build_bootstrap_plan(
     agents_text, _agents_action = upsert_agents_text(
         existing_agents_text,
         policy_path=path_for_agents(policy_path, agents_path=agents_path),
+        command_path=path_for_agents(command_path, agents_path=agents_path),
         metrics_path=path_for_agents(metrics_path, agents_path=agents_path),
         report_path=path_for_agents(report_path, agents_path=agents_path),
     )
@@ -169,6 +176,7 @@ def bootstrap_project(
     metrics_path: Path,
     report_path: Path,
     policy_path: Path,
+    command_path: Path,
     agents_path: Path,
     force: bool,
     dry_run: bool,
@@ -181,6 +189,7 @@ def bootstrap_project(
         metrics_path=metrics_path,
         report_path=report_path,
         policy_path=policy_path,
+        command_path=command_path,
         agents_path=agents_path,
         force=force,
         dry_run=dry_run,

@@ -23,6 +23,7 @@ class CommandRuntime(Protocol):
         metrics_path: Path,
         report_path: Path,
         policy_path: Path,
+        command_path: Path,
         agents_path: Path,
         force: bool = False,
         dry_run: bool = False,
@@ -178,6 +179,44 @@ def _write_source_module_launcher(target_path: Path, *, python_executable: Path,
     target_path.chmod(target_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
+def _render_python_launcher(*, python_executable: Path, source_path: Path) -> str:
+    return "#!/bin/sh\n" f"exec '{python_executable}' '{source_path}' \"$@\"\n"
+
+
+def _render_source_module_launcher(*, python_executable: Path, source_root: Path) -> str:
+    return (
+        "#!/bin/sh\n"
+        "if [ -n \"$PYTHONPATH\" ]; then\n"
+        f"  export PYTHONPATH='{source_root}':\"$PYTHONPATH\"\n"
+        "else\n"
+        f"  export PYTHONPATH='{source_root}'\n"
+        "fi\n"
+        f"exec '{python_executable}' -m codex_metrics \"$@\"\n"
+    )
+
+
+def _render_repo_local_wrapper(source_path: Path) -> str:
+    if source_path.suffix == ".py" and source_path.name == "__main__.py":
+        return _render_source_module_launcher(
+            python_executable=Path(sys.executable),
+            source_root=source_path.parents[1],
+        )
+    if source_path.suffix == ".py":
+        return _render_python_launcher(
+            python_executable=Path(sys.executable),
+            source_path=source_path,
+        )
+    return "#!/bin/sh\n" f"exec '{source_path}' \"$@\"\n"
+
+
+def _write_repo_local_wrapper(target_path: Path, source_path: Path) -> str:
+    content = _render_repo_local_wrapper(source_path)
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(content, encoding="utf-8")
+    target_path.chmod(target_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return content
+
+
 def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
     source_path = _resolve_invocation_path()
     target_path = Path(args.target_path) if args.target_path else Path(args.target_dir) / args.command_name
@@ -253,7 +292,12 @@ def handle_bootstrap(args: Namespace, cli_module: CommandRuntime) -> int:
     metrics_path = resolve_target_path(args.metrics_path)
     report_path = resolve_target_path(args.report_path)
     policy_path = resolve_target_path(args.policy_path)
+    command_path = resolve_target_path(args.command_path)
     agents_path = resolve_target_path(args.agents_path)
+    source_path = _resolve_invocation_path()
+    wrapper_content = _render_repo_local_wrapper(source_path)
+    wrapper_exists = command_path.exists()
+    wrapper_matches = wrapper_exists and command_path.read_text(encoding="utf-8") == wrapper_content
 
     with cli_module.metrics_mutation_lock(metrics_path):
         messages = cli_module.bootstrap_project(
@@ -261,10 +305,27 @@ def handle_bootstrap(args: Namespace, cli_module: CommandRuntime) -> int:
             metrics_path=metrics_path,
             report_path=report_path,
             policy_path=policy_path,
+            command_path=command_path,
             agents_path=agents_path,
             force=args.force,
             dry_run=args.dry_run,
         )
+        if args.dry_run:
+            if not wrapper_exists:
+                messages.append(f"Would create command wrapper: {command_path}")
+            elif wrapper_matches:
+                messages.append(f"Would keep command wrapper: {command_path}")
+            else:
+                messages.append(f"Would update command wrapper: {command_path}")
+        else:
+            if not wrapper_exists:
+                _write_repo_local_wrapper(command_path, source_path)
+                messages.append(f"Created command wrapper: {command_path}")
+            elif wrapper_matches:
+                messages.append(f"Keeping command wrapper: {command_path}")
+            else:
+                _write_repo_local_wrapper(command_path, source_path)
+                messages.append(f"Updated command wrapper: {command_path}")
 
     for message in messages:
         print(message)

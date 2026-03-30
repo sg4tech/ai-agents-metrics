@@ -498,6 +498,7 @@ def bootstrap_project(
     metrics_path: Path,
     report_path: Path,
     policy_path: Path,
+    command_path: Path,
     agents_path: Path,
     force: bool = False,
     dry_run: bool = False,
@@ -507,6 +508,7 @@ def bootstrap_project(
         metrics_path=metrics_path,
         report_path=report_path,
         policy_path=policy_path,
+        command_path=command_path,
         agents_path=agents_path,
         force=force,
         dry_run=dry_run,
@@ -714,6 +716,7 @@ def build_parser() -> argparse.ArgumentParser:
     bootstrap_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     bootstrap_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
     bootstrap_parser.add_argument("--policy-path", default="docs/codex-metrics-policy.md")
+    bootstrap_parser.add_argument("--command-path", default="tools/codex-metrics")
     bootstrap_parser.add_argument("--agents-path", default="AGENTS.md")
     bootstrap_parser.add_argument("--force", action="store_true", help="Replace conflicting scaffold files")
     bootstrap_parser.add_argument("--dry-run", action="store_true", help="Preview planned changes without writing files")

@@ -227,6 +227,7 @@ This creates or updates:
 - `metrics/codex_metrics.json`
 - `docs/codex-metrics.md`
 - `docs/codex-metrics-policy.md`
+- `tools/codex-metrics` repo-local wrapper
 - `AGENTS.md` with a managed `codex-metrics` block
 
 If the target repo already has a conflicting `docs/codex-metrics-policy.md` and you intentionally want to replace it with the packaged template:
@@ -238,12 +239,10 @@ If the target repo already has a conflicting `docs/codex-metrics-policy.md` and 
 First-task flow after bootstrap:
 
 ```bash
-/path/to/codex-metrics start-task --title "My first task" --task-type product
-/path/to/codex-metrics show
-/path/to/codex-metrics finish-task --task-id <goal-id> --status success --notes "Done"
+./tools/codex-metrics start-task --title "My first task" --task-type product
+./tools/codex-metrics show
+./tools/codex-metrics finish-task --task-id <goal-id> --status success --notes "Done"
 ```
-
-If you instead installed the package with `pipx` or `pip`, then the shorter `codex-metrics ...` form should work because the command is placed on `PATH`.
 
 ## Update In Another Repository
 

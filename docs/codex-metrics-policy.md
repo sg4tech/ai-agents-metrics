@@ -113,6 +113,10 @@ codex-metrics finish-task --task-id <goal-id> --status success --notes "Validate
 codex-metrics show
 ```
 
+If `codex-metrics` is expected but unavailable, treat that as an `environment_issue` or installation mismatch and report it clearly.
+
+Do not invent a manual fallback workflow and do not edit generated metrics artifacts directly just to keep moving.
+
 Use raw `update` only when you need a lower-level or less common mutation path.
 
 ## Validation Rules

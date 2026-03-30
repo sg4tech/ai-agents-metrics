@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 150
-- Successes: 150
+- Closed goals: 153
+- Successes: 153
 - Fails: 0
-- Total attempts: 156
-- Known total cost (USD): 208.232692
-- Known total tokens: 149406029
+- Total attempts: 159
+- Known total cost (USD): 213.511896
+- Known total tokens: 153186815
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 118/150 successful goals
-- Known token coverage: 118/150 successful goals
-- Complete cost coverage: 118/150 successful goals
-- Complete token coverage: 118/150 successful goals
-- Known Cost per Success (USD): 1.764684
-- Known Cost per Success (Tokens): 1266152.79
-- Complete Cost per Covered Success (USD): 1.764684
-- Complete Cost per Covered Success (Tokens): 1266152.79
+- Known cost coverage: 121/153 successful goals
+- Known token coverage: 121/153 successful goals
+- Complete cost coverage: 121/153 successful goals
+- Complete token coverage: 121/153 successful goals
+- Known Cost per Success (USD): 1.764561
+- Known Cost per Success (Tokens): 1266006.74
+- Complete Cost per Covered Success (USD): 1.764561
+- Complete Cost per Covered Success (Tokens): 1266006.74
 
 ## Entry summary
 
-- Closed entries: 156
-- Successes: 155
+- Closed entries: 159
+- Successes: 158
 - Fails: 1
-- Success Rate: 99.36%
-- Known total cost (USD): 207.335312
-- Known total tokens: 148690050
+- Success Rate: 99.37%
+- Known total cost (USD): 212.614516
+- Known total tokens: 152470836
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 53
-- Successes: 53
+- Closed goals: 54
+- Successes: 54
 - Fails: 0
-- Total attempts: 59
-- Known total cost (USD): 101.235054
-- Known total tokens: 72723888
+- Total attempts: 60
+- Known total cost (USD): 104.493625
+- Known total tokens: 75051938
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.11
-- Known cost coverage: 40/53 successful goals
-- Known token coverage: 40/53 successful goals
-- Complete cost coverage: 40/53 successful goals
-- Complete token coverage: 40/53 successful goals
-- Known Cost per Success (USD): 2.530876
-- Known Cost per Success (Tokens): 1818097.20
-- Complete Cost per Covered Success (USD): 2.530876
-- Complete Cost per Covered Success (Tokens): 1818097.20
+- Known cost coverage: 41/54 successful goals
+- Known token coverage: 41/54 successful goals
+- Complete cost coverage: 41/54 successful goals
+- Complete token coverage: 41/54 successful goals
+- Known Cost per Success (USD): 2.548625
+- Known Cost per Success (Tokens): 1830535.07
+- Complete Cost per Covered Success (USD): 2.548625
+- Complete Cost per Covered Success (Tokens): 1830535.07
 
 ### retro
 - Closed goals: 33
@@ -77,24 +77,63 @@
 - Complete Cost per Covered Success (Tokens): 369329.71
 
 ### meta
-- Closed goals: 64
-- Successes: 64
+- Closed goals: 66
+- Successes: 66
 - Fails: 0
-- Total attempts: 64
-- Known total cost (USD): 94.544394
-- Known total tokens: 67818228
+- Total attempts: 66
+- Known total cost (USD): 96.565027
+- Known total tokens: 69270964
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 54/64 successful goals
-- Known token coverage: 54/64 successful goals
-- Complete cost coverage: 54/64 successful goals
-- Complete token coverage: 54/64 successful goals
-- Known Cost per Success (USD): 1.750822
-- Known Cost per Success (Tokens): 1255893.11
-- Complete Cost per Covered Success (USD): 1.750822
-- Complete Cost per Covered Success (Tokens): 1255893.11
+- Known cost coverage: 56/66 successful goals
+- Known token coverage: 56/66 successful goals
+- Complete cost coverage: 56/66 successful goals
+- Complete token coverage: 56/66 successful goals
+- Known Cost per Success (USD): 1.724375
+- Known Cost per Success (Tokens): 1236981.50
+- Complete Cost per Covered Success (USD): 1.724375
+- Complete Cost per Covered Success (Tokens): 1236981.50
 
 ## Goal log
+
+### 2026-03-30-013 — Create repo-local codex-metrics wrapper during bootstrap
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T09:43:11+00:00
+- Finished at: 2026-03-30T09:45:39+00:00
+- Cost (USD): 3.258571
+- Tokens: 2328050
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Bootstrap now creates a repo-local tools/codex-metrics wrapper, and the generated AGENTS block points agents at that exact path.
+
+### 2026-03-30-012 — Move invocation contract from local AGENTS to bootstrap output
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T09:39:25+00:00
+- Finished at: 2026-03-30T09:40:17+00:00
+- Cost (USD): 0.913951
+- Tokens: 655427
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Moved the invocation contract out of local AGENTS and into the bootstrap-generated AGENTS block, with regression coverage.
+
+### 2026-03-30-011 — Harden invocation contract for codex-metrics agents
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T09:37:43+00:00
+- Finished at: 2026-03-30T09:38:17+00:00
+- Cost (USD): 1.106682
+- Tokens: 797309
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added an explicit no-guessing invocation contract to local AGENTS and the reusable policy, and kept the packaged policy mirror in sync.
 
 ### 2026-03-30-010 — Align retrospective rules in local and reusable AGENTS
 - Goal type: meta
@@ -2112,6 +2151,39 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-30-013-attempt-001 — 2026-03-30-013
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T09:43:11+00:00
+- Finished at: 2026-03-30T09:45:39+00:00
+- Cost (USD): 3.258571
+- Tokens: 2328050
+- Failure reason: n/a
+- Notes: Bootstrap now creates a repo-local tools/codex-metrics wrapper, and the generated AGENTS block points agents at that exact path.
+
+### 2026-03-30-012-attempt-001 — 2026-03-30-012
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T09:39:25+00:00
+- Finished at: 2026-03-30T09:40:17+00:00
+- Cost (USD): 0.913951
+- Tokens: 655427
+- Failure reason: n/a
+- Notes: Moved the invocation contract out of local AGENTS and into the bootstrap-generated AGENTS block, with regression coverage.
+
+### 2026-03-30-011-attempt-001 — 2026-03-30-011
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T09:37:43+00:00
+- Finished at: 2026-03-30T09:38:17+00:00
+- Cost (USD): 1.106682
+- Tokens: 797309
+- Failure reason: n/a
+- Notes: Added an explicit no-guessing invocation contract to local AGENTS and the reusable policy, and kept the packaged policy mirror in sync.
 
 ### 2026-03-30-010-attempt-001 — 2026-03-30-010
 - Entry type: meta
