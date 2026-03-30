@@ -63,6 +63,12 @@ For repository-initializer or bootstrap-style commands:
 - prefer non-destructive failure over partial scaffold writes
 - use one canonical wrapped entrypoint for user-facing error handling instead of fixing UX separately per launch surface
 
+For workflow-shaping CLI changes:
+
+- if a new command or command flow is meant to change how agents should work, update `docs/codex-metrics-policy.md` in the same task
+- keep the packaged policy mirror in sync with the repo policy
+- treat README-only documentation as insufficient for agent-facing workflow changes
+
 ## Validation
 
 After changing `scripts/update_codex_metrics.py`:

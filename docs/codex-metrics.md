@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 139
-- Successes: 139
+- Closed goals: 141
+- Successes: 141
 - Fails: 0
-- Total attempts: 145
-- Known total cost (USD): 207.810835
-- Known total tokens: 149103180
+- Total attempts: 147
+- Known total cost (USD): 208.232692
+- Known total tokens: 149406029
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 117/139 successful goals
-- Known token coverage: 117/139 successful goals
-- Complete cost coverage: 117/139 successful goals
-- Complete token coverage: 117/139 successful goals
-- Known Cost per Success (USD): 1.776161
-- Known Cost per Success (Tokens): 1274386.15
-- Complete Cost per Covered Success (USD): 1.776161
-- Complete Cost per Covered Success (Tokens): 1274386.15
+- Known cost coverage: 118/141 successful goals
+- Known token coverage: 118/141 successful goals
+- Complete cost coverage: 118/141 successful goals
+- Complete token coverage: 118/141 successful goals
+- Known Cost per Success (USD): 1.764684
+- Known Cost per Success (Tokens): 1266152.79
+- Complete Cost per Covered Success (USD): 1.764684
+- Complete Cost per Covered Success (Tokens): 1266152.79
 
 ## Entry summary
 
-- Closed entries: 145
-- Successes: 144
+- Closed entries: 147
+- Successes: 146
 - Fails: 1
-- Success Rate: 99.31%
-- Known total cost (USD): 206.913455
-- Known total tokens: 148387201
+- Success Rate: 99.32%
+- Known total cost (USD): 207.335312
+- Known total tokens: 148690050
 
 ## Operator review
 
@@ -41,18 +41,18 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 45
-- Successes: 45
+- Closed goals: 46
+- Successes: 46
 - Fails: 0
-- Total attempts: 51
+- Total attempts: 52
 - Known total cost (USD): 101.235054
 - Known total tokens: 72723888
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.13
-- Known cost coverage: 40/45 successful goals
-- Known token coverage: 40/45 successful goals
-- Complete cost coverage: 40/45 successful goals
-- Complete token coverage: 40/45 successful goals
+- Known cost coverage: 40/46 successful goals
+- Known token coverage: 40/46 successful goals
+- Complete cost coverage: 40/46 successful goals
+- Complete token coverage: 40/46 successful goals
 - Known Cost per Success (USD): 2.530876
 - Known Cost per Success (Tokens): 1818097.20
 - Complete Cost per Covered Success (USD): 2.530876
@@ -77,24 +77,50 @@
 - Complete Cost per Covered Success (Tokens): 369329.71
 
 ### meta
-- Closed goals: 61
-- Successes: 61
+- Closed goals: 62
+- Successes: 62
 - Fails: 0
-- Total attempts: 61
-- Known total cost (USD): 94.122537
-- Known total tokens: 67515379
+- Total attempts: 62
+- Known total cost (USD): 94.544394
+- Known total tokens: 67818228
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 53/61 successful goals
-- Known token coverage: 53/61 successful goals
-- Complete cost coverage: 53/61 successful goals
-- Complete token coverage: 53/61 successful goals
-- Known Cost per Success (USD): 1.775897
-- Known Cost per Success (Tokens): 1273875.08
-- Complete Cost per Covered Success (USD): 1.775897
-- Complete Cost per Covered Success (Tokens): 1273875.08
+- Known cost coverage: 54/62 successful goals
+- Known token coverage: 54/62 successful goals
+- Complete cost coverage: 54/62 successful goals
+- Complete token coverage: 54/62 successful goals
+- Known Cost per Success (USD): 1.750822
+- Known Cost per Success (Tokens): 1255893.11
+- Complete Cost per Covered Success (USD): 1.750822
+- Complete Cost per Covered Success (Tokens): 1255893.11
 
 ## Goal log
+
+### 2026-03-30-001 — Draft reusable AI instructions for new Python projects
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T08:39:11+00:00
+- Finished at: 2026-03-30T08:39:12+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Added a reusable instruction file that distills the highest-ROI practices from codex-metrics history for faster Python project development: diagnosis-first, guardrails, verification, typed boundaries, strong testing, and honest workflow boundaries.
+
+### 2026-03-29-146 — Add local AGENTS rule for policy updates on workflow changes
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-29T20:22:11+00:00
+- Finished at: 2026-03-29T20:22:25+00:00
+- Cost (USD): 0.421857
+- Tokens: 302849
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added a local AGENTS rule that workflow-shaping CLI changes must update the agent-facing policy and packaged policy mirror.
 
 ### 2026-03-29-145 — Retrospective for high-level task commands documentation gap
 - Goal type: retro
@@ -1969,6 +1995,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-30-001-attempt-001 — 2026-03-30-001
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T08:39:11+00:00
+- Finished at: 2026-03-30T08:39:12+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a reusable instruction file that distills the highest-ROI practices from codex-metrics history for faster Python project development: diagnosis-first, guardrails, verification, typed boundaries, strong testing, and honest workflow boundaries.
+
+### 2026-03-29-146-attempt-001 — 2026-03-29-146
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-29T20:22:11+00:00
+- Finished at: 2026-03-29T20:22:25+00:00
+- Cost (USD): 0.421857
+- Tokens: 302849
+- Failure reason: n/a
+- Notes: Added a local AGENTS rule that workflow-shaping CLI changes must update the agent-facing policy and packaged policy mirror.
 
 ### 2026-03-29-145-attempt-001 — 2026-03-29-145
 - Entry type: retro
