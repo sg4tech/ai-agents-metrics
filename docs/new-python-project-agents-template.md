@@ -38,6 +38,13 @@ The project should have, from the start:
 - `mypy`
 - one canonical local verify entrypoint, preferably `make verify`
 
+Use strict or near-strict typing by default.
+
+- prefer the strictest practical `mypy` settings
+- avoid `Any` unless there is a clear boundary reason
+- do not pass raw untyped dictionaries through domain logic when typed records or schemas are practical
+- treat typing as a safety tool, not as optional documentation
+
 Coverage is mandatory from the beginning.
 
 - collect it from the first meaningful tests
