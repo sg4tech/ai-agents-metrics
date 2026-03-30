@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 141,
-    "successes": 141,
+    "closed_tasks": 142,
+    "successes": 142,
     "fails": 0,
-    "total_attempts": 147,
+    "total_attempts": 148,
     "total_cost_usd": 208.232692,
     "total_tokens": 149406029,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0425531914893618,
+    "attempts_per_closed_task": 1.0422535211267605,
     "known_cost_successes": 118,
     "known_token_successes": 118,
     "complete_cost_successes": 118,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 46,
-        "successes": 46,
+        "closed_tasks": 47,
+        "successes": 47,
         "fails": 0,
-        "total_attempts": 52,
+        "total_attempts": 53,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1304347826086956,
+        "attempts_per_closed_task": 1.127659574468085,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 46,
-        "successes": 46,
+        "closed_tasks": 47,
+        "successes": 47,
         "fails": 0,
-        "total_attempts": 52,
+        "total_attempts": 53,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1304347826086956,
+        "attempts_per_closed_task": 1.127659574468085,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 147,
-      "successes": 146,
+      "closed_entries": 148,
+      "successes": 147,
       "fails": 1,
-      "success_rate": 0.9931972789115646,
+      "success_rate": 0.9932432432432432,
       "total_cost_usd": 207.335312,
       "total_tokens": 148690050,
       "failure_reasons": {
@@ -2344,6 +2344,21 @@
       "failure_reason": null,
       "notes": "Added a reusable instruction file that distills the highest-ROI practices from codex-metrics history for faster Python project development: diagnosis-first, guardrails, verification, typed boundaries, strong testing, and honest workflow boundaries.",
       "result_fit": "exact_fit"
+    },
+    {
+      "goal_id": "2026-03-30-002",
+      "title": "Strengthen reusable AI instructions for Python projects",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-30T08:43:03+00:00",
+      "finished_at": "2026-03-30T08:43:04+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Tightened the reusable instruction file to require test-first development, coverage from project start, mandatory lint/type analysis, active anti-copy-paste discipline, and explicit SOLID/DDD/GRASP architectural guidance.",
+      "result_fit": "exact_fit"
     }
   ],
   "entries": [
@@ -4296,6 +4311,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Added a reusable instruction file that distills the highest-ROI practices from codex-metrics history for faster Python project development: diagnosis-first, guardrails, verification, typed boundaries, strong testing, and honest workflow boundaries."
+    },
+    {
+      "entry_id": "2026-03-30-002-attempt-001",
+      "goal_id": "2026-03-30-002",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-30T08:43:03+00:00",
+      "finished_at": "2026-03-30T08:43:04+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Tightened the reusable instruction file to require test-first development, coverage from project start, mandatory lint/type analysis, active anti-copy-paste discipline, and explicit SOLID/DDD/GRASP architectural guidance."
     }
   ]
 }

@@ -55,6 +55,7 @@ For a new Python project, prefer this baseline:
 - `src/` layout
 - `pyproject.toml` as the primary config file
 - `pytest` for tests
+- `coverage.py` or `pytest-cov` for coverage measurement
 - `ruff` for linting
 - `mypy` for type checking
 - `Makefile` or one canonical verify command
@@ -70,6 +71,62 @@ It should run, at minimum:
 - lint
 - typecheck
 - tests
+- coverage
+
+Create coverage reporting at project start, not later.
+
+Minimum expectation:
+
+- coverage is collected from the first meaningful tests
+- coverage is part of the standard local verify workflow
+- uncovered critical paths are visible early
+- integration or subprocess-heavy flows have an explicit coverage strategy instead of being ignored
+
+Do not postpone coverage until “after the project stabilizes”.
+
+## Architecture Standard
+
+Prefer designs that stay legible under change.
+
+Use these principles actively, not decoratively:
+
+- `SOLID`
+- `DDD`
+- `GRASP`
+- clear separation of orchestration, domain logic, infrastructure, and presentation
+
+Practical interpretation:
+
+- keep domain rules in domain code, not buried in CLI glue
+- keep side effects at boundaries
+- keep high-level modules depending on explicit contracts, not incidental implementation details
+- give objects and modules one clear reason to change where practical
+- model important concepts with names the product/user would recognize
+- avoid “manager”, “utils”, and “helpers” blobs that collect unrelated decisions
+
+## Anti-Copy-Paste Rule
+
+Actively resist copy-paste architecture.
+
+Do not duplicate logic across:
+
+- command handlers
+- validators
+- serializers
+- report builders
+- tests
+
+When duplication appears, decide deliberately:
+
+- if it is harmless presentation duplication, keep it simple
+- if it duplicates domain rules or mutation logic, extract a shared boundary or helper
+
+Avoid both extremes:
+
+- copy-paste drift
+- premature abstractions that hide simple code
+
+The target is shared truth without unnecessary indirection.
 
 ## Code Structure
 
@@ -81,11 +138,20 @@ It should run, at minimum:
 
 ## Testing Strategy
 
-Default to test-first or as close to TDD as practical.
+Default to test-first development.
+
+If full TDD is impractical for a task, stay as close to it as possible and still write the test in the same implementation cycle.
+
+The default expectation is:
+
+- write the failing test first
+- implement the smallest change that makes it pass
+- refactor only while the safety net stays green
 
 For any meaningful behavior change:
 
 - add or update tests in the same task
+- do not treat manual testing as an acceptable replacement when automation is practical
 
 For mutating workflows, cover three test buckets when practical:
 
@@ -99,6 +165,20 @@ Use multiple layers of checks:
 - regression tests
 - CLI/integration tests
 - live or smoke checks where real integrations matter
+
+Treat coverage as a diagnostic tool, not a vanity number.
+
+Good coverage usage:
+
+- identify dangerous blind spots
+- prove new critical paths are exercised
+- make subprocess, packaging, and runtime paths visible
+
+Bad coverage usage:
+
+- chasing percentage without risk reduction
+- ignoring hard-to-measure runtime paths
+- counting only easy in-process code
 
 Do not assume synthetic tests are enough for real integration boundaries.
 
