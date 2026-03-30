@@ -145,6 +145,20 @@ If a metric looks wrong or incomplete, diagnose first:
 - check whether the extractor or workflow boundary is wrong
 - only then change the metric or workflow
 
+## Retrospective Logging
+
+- Log a retrospective for meaningful bugs, repeated failures, false successes, costly debugging episodes, or process misses.
+- Do not write retros for trivial noise.
+- Keep retros short and operational.
+- Every retrospective must end with a classified follow-up:
+  - code change
+  - test
+  - validation rule
+  - local workflow rule
+  - documentation only
+  - no action
+- Prefer the narrowest correct scope.
+
 ## Retrospective Rules
 
 When something painful happens:

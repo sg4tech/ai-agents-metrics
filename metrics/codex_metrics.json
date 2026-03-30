@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 147,
-    "successes": 147,
+    "closed_tasks": 148,
+    "successes": 148,
     "fails": 0,
-    "total_attempts": 153,
+    "total_attempts": 154,
     "total_cost_usd": 208.232692,
     "total_tokens": 149406029,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0408163265306123,
+    "attempts_per_closed_task": 1.0405405405405406,
     "known_cost_successes": 118,
     "known_token_successes": 118,
     "complete_cost_successes": 118,
@@ -40,14 +40,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 51,
-        "successes": 51,
+        "closed_tasks": 52,
+        "successes": 52,
         "fails": 0,
-        "total_attempts": 57,
+        "total_attempts": 58,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1176470588235294,
+        "attempts_per_closed_task": 1.1153846153846154,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -102,14 +102,14 @@
         "cost_per_success_tokens": null
       },
       "product": {
-        "closed_tasks": 51,
-        "successes": 51,
+        "closed_tasks": 52,
+        "successes": 52,
         "fails": 0,
-        "total_attempts": 57,
+        "total_attempts": 58,
         "total_cost_usd": 101.235054,
         "total_tokens": 72723888,
         "success_rate": 1.0,
-        "attempts_per_closed_task": 1.1176470588235294,
+        "attempts_per_closed_task": 1.1153846153846154,
         "known_cost_successes": 40,
         "known_token_successes": 40,
         "complete_cost_successes": 40,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 153,
-      "successes": 152,
+      "closed_entries": 154,
+      "successes": 153,
       "fails": 1,
-      "success_rate": 0.9934640522875817,
+      "success_rate": 0.9935064935064936,
       "total_cost_usd": 207.335312,
       "total_tokens": 148690050,
       "failure_reasons": {
@@ -2434,6 +2434,21 @@
       "failure_reason": null,
       "notes": "Expanded the reusable AGENTS template with stricter architecture rules: pure domain boundaries, explicit application layer, invariant ownership, composition over inheritance, and explicit dependencies over hidden shared state.",
       "result_fit": "exact_fit"
+    },
+    {
+      "goal_id": "2026-03-30-008",
+      "title": "Add retrospective logging block to Python template",
+      "goal_type": "product",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-30T09:00:24+00:00",
+      "finished_at": "2026-03-30T09:00:25+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a dedicated retrospective logging block to the reusable Python project AGENTS template so meaningful bugs, false successes, and process misses are captured with a classified follow-up instead of disappearing into chat history.",
+      "result_fit": "exact_fit"
     }
   ],
   "entries": [
@@ -4464,6 +4479,19 @@
       "tokens_total": null,
       "failure_reason": null,
       "notes": "Expanded the reusable AGENTS template with stricter architecture rules: pure domain boundaries, explicit application layer, invariant ownership, composition over inheritance, and explicit dependencies over hidden shared state."
+    },
+    {
+      "entry_id": "2026-03-30-008-attempt-001",
+      "goal_id": "2026-03-30-008",
+      "entry_type": "product",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-30T09:00:24+00:00",
+      "finished_at": "2026-03-30T09:00:25+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a dedicated retrospective logging block to the reusable Python project AGENTS template so meaningful bugs, false successes, and process misses are captured with a classified follow-up instead of disappearing into chat history."
     }
   ]
 }
