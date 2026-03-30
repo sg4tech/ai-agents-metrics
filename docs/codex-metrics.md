@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 146
-- Successes: 146
+- Closed goals: 147
+- Successes: 147
 - Fails: 0
-- Total attempts: 152
+- Total attempts: 153
 - Known total cost (USD): 208.232692
 - Known total tokens: 149406029
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 118/146 successful goals
-- Known token coverage: 118/146 successful goals
-- Complete cost coverage: 118/146 successful goals
-- Complete token coverage: 118/146 successful goals
+- Known cost coverage: 118/147 successful goals
+- Known token coverage: 118/147 successful goals
+- Complete cost coverage: 118/147 successful goals
+- Complete token coverage: 118/147 successful goals
 - Known Cost per Success (USD): 1.764684
 - Known Cost per Success (Tokens): 1266152.79
 - Complete Cost per Covered Success (USD): 1.764684
@@ -21,10 +21,10 @@
 
 ## Entry summary
 
-- Closed entries: 152
-- Successes: 151
+- Closed entries: 153
+- Successes: 152
 - Fails: 1
-- Success Rate: 99.34%
+- Success Rate: 99.35%
 - Known total cost (USD): 207.335312
 - Known total tokens: 148690050
 
@@ -41,18 +41,18 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 50
-- Successes: 50
+- Closed goals: 51
+- Successes: 51
 - Fails: 0
-- Total attempts: 56
+- Total attempts: 57
 - Known total cost (USD): 101.235054
 - Known total tokens: 72723888
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.12
-- Known cost coverage: 40/50 successful goals
-- Known token coverage: 40/50 successful goals
-- Complete cost coverage: 40/50 successful goals
-- Complete token coverage: 40/50 successful goals
+- Known cost coverage: 40/51 successful goals
+- Known token coverage: 40/51 successful goals
+- Complete cost coverage: 40/51 successful goals
+- Complete token coverage: 40/51 successful goals
 - Known Cost per Success (USD): 2.530876
 - Known Cost per Success (Tokens): 1818097.20
 - Complete Cost per Covered Success (USD): 2.530876
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1255893.11
 
 ## Goal log
+
+### 2026-03-30-007 — Strengthen architecture rules in Python project template
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-30T08:56:54+00:00
+- Finished at: 2026-03-30T08:56:55+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Expanded the reusable AGENTS template with stricter architecture rules: pure domain boundaries, explicit application layer, invariant ownership, composition over inheritance, and explicit dependencies over hidden shared state.
 
 ### 2026-03-30-006 — Consolidate reusable Python project instructions
 - Goal type: product
@@ -2060,6 +2073,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-30-007-attempt-001 — 2026-03-30-007
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-30T08:56:54+00:00
+- Finished at: 2026-03-30T08:56:55+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Expanded the reusable AGENTS template with stricter architecture rules: pure domain boundaries, explicit application layer, invariant ownership, composition over inheritance, and explicit dependencies over hidden shared state.
 
 ### 2026-03-30-006-attempt-001 — 2026-03-30-006
 - Entry type: product

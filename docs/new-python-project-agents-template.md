@@ -63,9 +63,14 @@ Practical rules:
 
 - keep domain logic separate from CLI, storage, and reporting
 - separate domain, orchestration, storage, reporting, and entrypoints early
+- keep domain pure; do not make domain logic depend directly on CLI, filesystem, database, HTTP, or transport details
+- use an application layer for orchestration; keep business rules in domain logic or domain policies, not in handlers
 - keep side effects at boundaries
 - use explicit typed boundaries for important records and mutation flows
 - prefer dataclasses, typed objects, or schemas over shapeless dictionaries
+- keep invariants owned by one aggregate or boundary instead of re-implementing the same rule in multiple layers
+- prefer composition over inheritance unless inheritance clearly simplifies the model
+- prefer explicit dependencies and constructor injection over hidden globals or implicit shared state
 - avoid god-modules and “utils/helpers” dumping grounds
 - treat public CLI commands, shims, bootstrap flows, and packaged entrypoints as compatibility contracts once they are used
 
