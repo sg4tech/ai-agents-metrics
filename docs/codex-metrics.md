@@ -24,41 +24,42 @@
 ## Operational summary
 
 - Closed goals: 174
-- Successes: 174
-- Fails: 0
+- Successes: 173
+- Fails: 1
 - Total attempts: 180
 - Known total cost (USD): 222.490414
 - Known total tokens: 160944736
-- Success Rate: 100.00%
+- Success Rate: 99.43%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 144/174 successful goals
-- Known token coverage: 144/174 successful goals
-- Complete cost coverage: 144/174 successful goals
-- Complete token coverage: 144/174 successful goals
-- Known Cost per Success (USD): 1.545072
-- Known Cost per Success (Tokens): 1117671.78
-- Complete Cost per Covered Success (USD): 1.545072
-- Complete Cost per Covered Success (Tokens): 1117671.78
+- Known cost coverage: 143/173 successful goals
+- Known token coverage: 143/173 successful goals
+- Complete cost coverage: 143/173 successful goals
+- Complete token coverage: 143/173 successful goals
+- Known Cost per Success (USD): 1.552437
+- Known Cost per Success (Tokens): 1123052.68
+- Complete Cost per Covered Success (USD): 1.552437
+- Complete Cost per Covered Success (Tokens): 1123052.68
 
 ## Entry summary
 
 - Closed entries: 180
-- Successes: 179
-- Fails: 1
-- Success Rate: 99.44%
+- Successes: 178
+- Fails: 2
+- Success Rate: 98.89%
 - Known total cost (USD): 227.150646
 - Known total tokens: 164147388
 
 ## Operator review
 
 - Meta work still outweighs product delivery; validate changes on real product goals.
-- Retry pressure exists; inspect failed entries, especially unclear_task.
+- Retry pressure exists; inspect failed entries, especially model_mistake.
 - Cost visibility is partial; use known-cost metrics as directional, not final.
 - Full cost coverage is still partial; treat complete covered-success averages as strict subset signals.
 
 ## By goal type
 
 ### Entry failure reasons
+- model_mistake: 1
 - unclear_task: 1
 
 ### product
@@ -81,21 +82,21 @@
 
 ### retro
 - Closed goals: 37
-- Successes: 37
-- Fails: 0
+- Successes: 36
+- Fails: 1
 - Total attempts: 37
 - Known total cost (USD): 14.171534
 - Known total tokens: 10082228
-- Success Rate: 100.00%
+- Success Rate: 97.30%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 28/37 successful goals
-- Known token coverage: 28/37 successful goals
-- Complete cost coverage: 28/37 successful goals
-- Complete token coverage: 28/37 successful goals
-- Known Cost per Success (USD): 0.506126
-- Known Cost per Success (Tokens): 360079.57
-- Complete Cost per Covered Success (USD): 0.506126
-- Complete Cost per Covered Success (Tokens): 360079.57
+- Known cost coverage: 27/36 successful goals
+- Known token coverage: 27/36 successful goals
+- Complete cost coverage: 27/36 successful goals
+- Complete token coverage: 27/36 successful goals
+- Known Cost per Success (USD): 0.506655
+- Known Cost per Success (Tokens): 360519.44
+- Complete Cost per Covered Success (USD): 0.506655
+- Complete Cost per Covered Success (Tokens): 360519.44
 
 ### meta
 - Closed goals: 74
@@ -120,15 +121,15 @@
 ### 2026-03-31-018 — Retro product-first summary redesign
 - Goal type: retro
 - Supersedes goal: n/a
-- Status: success
+- Status: fail
 - Attempts: 1
 - Started at: 2026-03-31T10:42:31+00:00
 - Finished at: 2026-03-31T10:43:07+00:00
 - Cost (USD): 0.491859
 - Tokens: 348203
-- Failure reason: n/a
+- Failure reason: model_mistake
 - Result fit: n/a
-- Notes: Logged the retrospective for the product-first summary redesign, including QA validation, a short product demo assessment, and the PM conclusion that the redesign solved the right presentation bottleneck while leaving operator-review and cross-project comparison as future work.
+- Notes: The retrospective outcome was not accepted by the user. The evaluation and next-step framing did not match the expected product judgment, so this retro checkpoint should be treated as a failed outcome rather than a successful closeout.
 
 ### 2026-03-31-017 — Redesign product-facing summary around quality truth
 - Goal type: product
@@ -2462,13 +2463,13 @@
 ### 2026-03-31-018-attempt-001 — 2026-03-31-018
 - Entry type: retro
 - Inferred: no
-- Status: success
+- Status: fail
 - Started at: 2026-03-31T10:42:31+00:00
 - Finished at: 2026-03-31T10:43:07+00:00
 - Cost (USD): 0.491859
 - Tokens: 348203
-- Failure reason: n/a
-- Notes: Logged the retrospective for the product-first summary redesign, including QA validation, a short product demo assessment, and the PM conclusion that the redesign solved the right presentation bottleneck while leaving operator-review and cross-project comparison as future work.
+- Failure reason: model_mistake
+- Notes: The retrospective outcome was not accepted by the user. The evaluation and next-step framing did not match the expected product judgment, so this retro checkpoint should be treated as a failed outcome rather than a successful closeout.
 
 ### 2026-03-31-017-attempt-001 — 2026-03-31-017
 - Entry type: product
