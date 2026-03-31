@@ -20,7 +20,10 @@ PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 if str(ABS_SRC) not in sys.path:
     sys.path.insert(0, str(ABS_SRC))
 
+import codex_metrics as codex_metrics_pkg
 from codex_metrics import __version__ as PACKAGE_VERSION
+
+BASE_PACKAGE_VERSION = codex_metrics_pkg._BASE_VERSION
 
 
 def build_cmd(*args: str) -> list[str]:
@@ -2307,7 +2310,7 @@ def test_script_shim_exposes_cli_version(repo: Path) -> None:
     result = run_cmd(repo, "--version")
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"update_codex_metrics.py {PACKAGE_VERSION}"
+    assert result.stdout.strip() == f"update_codex_metrics.py {BASE_PACKAGE_VERSION}"
 
 
 def test_module_entrypoint_exposes_cli_version(repo: Path) -> None:
@@ -2316,6 +2319,34 @@ def test_module_entrypoint_exposes_cli_version(repo: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip().endswith(PACKAGE_VERSION)
     assert "codex_metrics" in result.stdout.strip()
+
+
+def test_resolve_version_prefers_git_metadata(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    responses = {
+        ("rev-list", "--count", "HEAD"): "123",
+        ("rev-parse", "--short", "HEAD"): "abc1234",
+        ("status", "--porcelain", "--untracked-files=no"): "",
+    }
+
+    monkeypatch.setattr(codex_metrics_pkg, "_find_repo_root", lambda: tmp_path)
+    monkeypatch.setattr(codex_metrics_pkg, "_run_git", lambda repo_root, *args: responses.get(args))
+
+    assert codex_metrics_pkg._resolve_version() == "0.2.0.dev123+gabc1234"
+
+
+def test_resolve_version_falls_back_to_installed_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(codex_metrics_pkg, "_find_repo_root", lambda: None)
+    monkeypatch.setattr(codex_metrics_pkg, "_is_source_layout", lambda: False)
+    monkeypatch.setattr(codex_metrics_pkg, "installed_version", lambda package_name: "0.2.0.dev321+gdef5678")
+
+    assert codex_metrics_pkg._resolve_version() == "0.2.0.dev321+gdef5678"
+
+
+def test_resolve_version_returns_base_version_for_source_layout_without_git(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(codex_metrics_pkg, "_find_repo_root", lambda: None)
+    monkeypatch.setattr(codex_metrics_pkg, "_is_source_layout", lambda: True)
+
+    assert codex_metrics_pkg._resolve_version() == BASE_PACKAGE_VERSION
 
 
 def test_high_level_task_commands_cover_start_continue_finish_flow(repo: Path) -> None:

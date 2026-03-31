@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 162
-- Successes: 162
+- Closed goals: 163
+- Successes: 163
 - Fails: 0
-- Total attempts: 168
-- Known total cost (USD): 221.104706
-- Known total tokens: 159867529
+- Total attempts: 169
+- Known total cost (USD): 221.291521
+- Known total tokens: 160002122
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 130/162 successful goals
-- Known token coverage: 130/162 successful goals
-- Complete cost coverage: 130/162 successful goals
-- Complete token coverage: 130/162 successful goals
-- Known Cost per Success (USD): 1.700805
-- Known Cost per Success (Tokens): 1229750.22
-- Complete Cost per Covered Success (USD): 1.700805
-- Complete Cost per Covered Success (Tokens): 1229750.22
+- Known cost coverage: 131/163 successful goals
+- Known token coverage: 131/163 successful goals
+- Complete cost coverage: 131/163 successful goals
+- Complete token coverage: 131/163 successful goals
+- Known Cost per Success (USD): 1.689248
+- Known Cost per Success (Tokens): 1221390.24
+- Complete Cost per Covered Success (USD): 1.689248
+- Complete Cost per Covered Success (Tokens): 1221390.24
 
 ## Entry summary
 
-- Closed entries: 168
-- Successes: 167
+- Closed entries: 169
+- Successes: 168
 - Fails: 1
-- Success Rate: 99.40%
-- Known total cost (USD): 220.207326
-- Known total tokens: 159151550
+- Success Rate: 99.41%
+- Known total cost (USD): 220.394141
+- Known total tokens: 159286143
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 59
-- Successes: 59
+- Closed goals: 60
+- Successes: 60
 - Fails: 0
-- Total attempts: 65
-- Known total cost (USD): 109.840281
-- Known total tokens: 78925918
+- Total attempts: 66
+- Known total cost (USD): 110.027096
+- Known total tokens: 79060511
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.10
-- Known cost coverage: 46/59 successful goals
-- Known token coverage: 46/59 successful goals
-- Complete cost coverage: 46/59 successful goals
-- Complete token coverage: 46/59 successful goals
-- Known Cost per Success (USD): 2.387832
-- Known Cost per Success (Tokens): 1715780.83
-- Complete Cost per Covered Success (USD): 2.387832
-- Complete Cost per Covered Success (Tokens): 1715780.83
+- Known cost coverage: 47/60 successful goals
+- Known token coverage: 47/60 successful goals
+- Complete cost coverage: 47/60 successful goals
+- Complete token coverage: 47/60 successful goals
+- Known Cost per Success (USD): 2.341002
+- Known Cost per Success (Tokens): 1682138.53
+- Complete Cost per Covered Success (USD): 2.341002
+- Complete Cost per Covered Success (Tokens): 1682138.53
 
 ### retro
 - Closed goals: 34
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1214582.64
 
 ## Goal log
+
+### 2026-03-31-006 — Derive CLI version from git state
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T08:54:58+00:00
+- Finished at: 2026-03-31T08:55:08+00:00
+- Cost (USD): 0.186815
+- Tokens: 134593
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Version output is now git-derived in working repos, base-versioned in source snapshots without git, and metadata-backed in installed surfaces. Added unit coverage for git-first and metadata/source-layout fallback behavior, verified make verify, and confirmed make dev-refresh-local updates both .venv/bin/codex-metrics and python -m codex_metrics to the same auto-derived version string.
 
 ### 2026-03-31-005 — Bump package version to 0.2.0
 - Goal type: product
@@ -2268,6 +2281,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-006-attempt-001 — 2026-03-31-006
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T08:54:58+00:00
+- Finished at: 2026-03-31T08:55:08+00:00
+- Cost (USD): 0.186815
+- Tokens: 134593
+- Failure reason: n/a
+- Notes: Version output is now git-derived in working repos, base-versioned in source snapshots without git, and metadata-backed in installed surfaces. Added unit coverage for git-first and metadata/source-layout fallback behavior, verified make verify, and confirmed make dev-refresh-local updates both .venv/bin/codex-metrics and python -m codex_metrics to the same auto-derived version string.
 
 ### 2026-03-31-005-attempt-001 — 2026-03-31-005
 - Entry type: product
