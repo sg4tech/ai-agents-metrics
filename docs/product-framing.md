@@ -8,35 +8,35 @@ Working product and metrics hypotheses that are not yet fully confirmed belong i
 
 ## Product
 
-`codex-metrics` is an internal local operator tool for managing the effectiveness and economics of Codex-assisted engineering work.
+`codex-metrics` is an internal local agent-facing analysis tool for managing the effectiveness and economics of Codex-assisted engineering work.
 
 It is not a general analytics platform and not a public SaaS product.
 
 Current intended category:
 
-- internal operator tool
+- internal agent-facing analysis tool
 
 ## Primary User
 
-The primary user is the Codex operator: the person directly using Codex to do real engineering work and adjusting their own process over time.
+The primary user is the AI agent layer that reads metrics, audits history, compares projects, and produces synthesized conclusions about Codex-assisted engineering work.
 
 Secondary users:
 
-- PM or engineering manager reviewing the results later
+- the human sponsor who receives the final analysis and decisions later
 - future contributors trying to understand why the workflow evolved the way it did
 
 ## Job To Be Done
 
-When I work through Codex, I want to see whether the changes I make to my workflow are actually improving development quality and speed without letting AI cost eat the profit from my engineering work, so that I can keep what works and cut what does not.
+When an AI agent analyzes Codex-assisted work, it should be able to determine whether workflow changes are improving result quality and speed without letting AI cost eat engineering profit, so that it can recommend what to keep, what to change, and what to investigate next.
 
 ## Core User Problem
 
 Without this tool:
 
-- it is hard to tell whether workflow changes create real leverage or just extra activity
-- quality and speed are easy to judge emotionally instead of from history
-- AI usage cost is easy to ignore until it starts eating margin
-- retries and failed paths get lost, which makes process improvement weaker
+- it is hard for an agent to tell whether workflow changes create real leverage or just extra activity
+- quality and speed are easy to summarize incorrectly from closure metrics alone
+- AI usage cost is easy to underweight or overread without structured context
+- retries and failed paths get lost, which makes agent recommendations weaker
 
 The tool exists to make the relationship between outcome quality, delivery effort, and AI cost explicit enough to manage.
 
@@ -44,7 +44,8 @@ The tool exists to make the relationship between outcome quality, delivery effor
 
 The following product truths are already confirmed:
 
-- the primary user is the Codex operator
+- the primary user is the AI agent that analyzes the metrics
+- the human user is the receiver of final synthesized conclusions, not the main reader of raw metrics
 - quality matters more than speed
 - cost matters because AI is paid usage and should not eat engineering profit
 - the product should help decide what workflow changes actually work and what should be changed again
@@ -59,13 +60,13 @@ The following product questions are still intentionally open and should be treat
 
 1. Use Codex to work on a real engineering goal.
 2. Record goals, attempts, failures, and cost signals as the work happens.
-3. Review goal-level and entry-level metrics together.
-4. Decide which workflow changes improved the result and which should be rolled back or adjusted.
-5. Iterate on the way Codex is being operated.
+3. Let an AI agent read goal-level and entry-level metrics together.
+4. Have the agent produce synthesized conclusions about what improved, what regressed, and what should change next.
+5. Deliver those conclusions to the human sponsor as final analysis rather than raw metric interpretation.
 
 ## Core Decisions Supported
 
-The tool should help the operator answer:
+The tool should help the analyzing agent answer:
 
 1. Are my workflow changes making the output closer to what I wanted on the first try?
 2. Is development getting faster without lowering quality?
@@ -144,9 +145,9 @@ Current primary metrics:
 Current interpretation rule:
 
 - goal-level success must always be read together with entry-level retry pressure
-- current quality-related metrics are provisional operator proxies and should be refined empirically over time
+- current quality-related metrics are provisional agent-facing proxies and should be refined empirically over time
 - cost is a business signal for how painful success or miss was
-- failure reasons are primarily a debugging signal for what to change next
+- failure reasons are primarily a debugging signal for what the agent should recommend changing next
 
 Future direction:
 
@@ -161,7 +162,7 @@ In scope now:
 - goal and attempt history
 - retry and failure visibility
 - partial automatic usage and cost ingestion from local Codex telemetry
-- operator-facing process discipline for retros and verification
+- agent-facing analysis surfaces for retros and verification
 
 Out of scope for now:
 
@@ -179,15 +180,15 @@ Current state:
 That means:
 
 - technically credible
-- already useful for internal operator decision-making
+- already useful for internal agent-driven analysis and recommendation loops
 - still improving framing, UX, and cost clarity
 
 ## One-Month Success
 
 In one month, success should look like:
 
-- the framing remains stable around operator value
-- the metrics help decide which Codex workflow changes to keep
+- the framing remains stable around agent-first analysis value
+- the metrics help an agent decide which Codex workflow changes to keep
 - quality signals are trusted more than intuition alone
 - cost visibility is good enough to spot obviously wasteful patterns
 
@@ -195,7 +196,7 @@ In one month, success should look like:
 
 In one quarter, success should look like:
 
-- the tool is routinely used to refine Codex operating practice
-- the operator can point to concrete workflow changes that improved output quality
+- the tool is routinely used by agents to refine Codex operating practice
+- the resulting analyses can point to concrete workflow changes that improved output quality
 - token and cost waste are being reduced without hurting result quality
 - the system is helping protect engineering profit, not just describe engineering history

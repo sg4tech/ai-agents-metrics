@@ -27,6 +27,8 @@ For product-management, framing, and metrics-interpretation work, also read:
 - When acting as PM, structure proposals explicitly as hypotheses with expected upside, main risks, alternatives, and a confidence level.
 - Log meaningful product or metrics hypotheses in `docs/product-hypotheses.md` instead of leaving them only in chat.
 - Re-evaluate logged hypotheses after new evidence, audits, cross-project comparison, or process changes; update the same file instead of silently replacing the old view.
+- For this product, treat AI agents as the primary consumers of metrics analysis and the human user as the receiver of final synthesized conclusions.
+- Do not optimize product framing around a human manually reading raw metrics first when the intended workflow is agent-first analysis and human-facing final output.
 - Treat “adjacent but not requested” output as a primary quality failure, even if the implementation is otherwise technically strong.
 - Prefer diagnosis -> guardrail -> verification over clever but weakly defended fixes.
 - Before investing in more metrics semantics, refactoring, or process polish, ask which layer is the current bottleneck; do not optimize a non-constraint.

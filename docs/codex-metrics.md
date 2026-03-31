@@ -2,19 +2,19 @@
 
 ## Product quality
 
-- Closed product goals: 63
-- Reviewed result fit: 38/63 closed product goals
-- Review coverage: 60.32%
-- Exact fit: 36
+- Closed product goals: 64
+- Reviewed result fit: 39/64 closed product goals
+- Review coverage: 60.94%
+- Exact fit: 37
 - Partial fit: 2
 - Misses: 0
 - Unreviewed: 25
-- Exact Fit Rate (reviewed): 94.74%
+- Exact Fit Rate (reviewed): 94.87%
 - Miss Rate (reviewed): 0.00%
-- Attempts per Closed Product Goal: 1.10
-- Known product cost coverage: 53/63 successful product goals
-- Known Product Cost per Success (USD): 2.053667
-- Known Product Cost per Success (Tokens): 1477637.92
+- Attempts per Closed Product Goal: 1.09
+- Known product cost coverage: 54/64 successful product goals
+- Known Product Cost per Success (USD): 2.025659
+- Known Product Cost per Success (Tokens): 1457311.52
 
 ## Product quality review
 
@@ -23,31 +23,31 @@
 
 ## Operational summary
 
-- Closed goals: 174
-- Successes: 173
+- Closed goals: 175
+- Successes: 174
 - Fails: 1
-- Total attempts: 180
-- Known total cost (USD): 222.490414
-- Known total tokens: 160944736
+- Total attempts: 181
+- Known total cost (USD): 223.031617
+- Known total tokens: 161324748
 - Success Rate: 99.43%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 143/173 successful goals
-- Known token coverage: 143/173 successful goals
-- Complete cost coverage: 143/173 successful goals
-- Complete token coverage: 143/173 successful goals
-- Known Cost per Success (USD): 1.552437
-- Known Cost per Success (Tokens): 1123052.68
-- Complete Cost per Covered Success (USD): 1.552437
-- Complete Cost per Covered Success (Tokens): 1123052.68
+- Known cost coverage: 144/174 successful goals
+- Known token coverage: 144/174 successful goals
+- Complete cost coverage: 144/174 successful goals
+- Complete token coverage: 144/174 successful goals
+- Known Cost per Success (USD): 1.545415
+- Known Cost per Success (Tokens): 1117892.67
+- Complete Cost per Covered Success (USD): 1.545415
+- Complete Cost per Covered Success (Tokens): 1117892.67
 
 ## Entry summary
 
-- Closed entries: 180
-- Successes: 178
+- Closed entries: 181
+- Successes: 179
 - Fails: 2
-- Success Rate: 98.89%
-- Known total cost (USD): 227.150646
-- Known total tokens: 164147388
+- Success Rate: 98.90%
+- Known total cost (USD): 227.691849
+- Known total tokens: 164527400
 
 ## Operator review
 
@@ -63,22 +63,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 63
-- Successes: 63
+- Closed goals: 64
+- Successes: 64
 - Fails: 0
-- Total attempts: 69
-- Known total cost (USD): 108.844374
-- Known total tokens: 78314810
+- Total attempts: 70
+- Known total cost (USD): 109.385577
+- Known total tokens: 78694822
 - Success Rate: 100.00%
-- Attempts per Closed Goal: 1.10
-- Known cost coverage: 53/63 successful goals
-- Known token coverage: 53/63 successful goals
-- Complete cost coverage: 53/63 successful goals
-- Complete token coverage: 53/63 successful goals
-- Known Cost per Success (USD): 2.053667
-- Known Cost per Success (Tokens): 1477637.92
-- Complete Cost per Covered Success (USD): 2.053667
-- Complete Cost per Covered Success (Tokens): 1477637.92
+- Attempts per Closed Goal: 1.09
+- Known cost coverage: 54/64 successful goals
+- Known token coverage: 54/64 successful goals
+- Complete cost coverage: 54/64 successful goals
+- Complete token coverage: 54/64 successful goals
+- Known Cost per Success (USD): 2.025659
+- Known Cost per Success (Tokens): 1457311.52
+- Complete Cost per Covered Success (USD): 2.025659
+- Complete Cost per Covered Success (Tokens): 1457311.52
 
 ### retro
 - Closed goals: 37
@@ -117,6 +117,19 @@
 - Complete Cost per Covered Success (Tokens): 1151550.76
 
 ## Goal log
+
+### 2026-03-31-019 — Reframe product around agent consumers of analysis
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T10:57:21+00:00
+- Finished at: 2026-03-31T10:58:10+00:00
+- Cost (USD): 0.541203
+- Tokens: 380012
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Reframed the product so AI agents are explicitly the primary consumers of metrics analysis and the human user is the receiver of final synthesized conclusions. Updated product framing, product hypotheses, and local AGENTS rules to match the actual intended workflow.
 
 ### 2026-03-31-018 — Retro product-first summary redesign
 - Goal type: retro
@@ -2459,6 +2472,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-019-attempt-001 — 2026-03-31-019
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T10:57:21+00:00
+- Finished at: 2026-03-31T10:58:10+00:00
+- Cost (USD): 0.541203
+- Tokens: 380012
+- Failure reason: n/a
+- Notes: Reframed the product so AI agents are explicitly the primary consumers of metrics analysis and the human user is the receiver of final synthesized conclusions. Updated product framing, product hypotheses, and local AGENTS rules to match the actual intended workflow.
 
 ### 2026-03-31-018-attempt-001 — 2026-03-31-018
 - Entry type: retro

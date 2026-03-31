@@ -8,6 +8,7 @@ Purpose:
 - separate confirmed product truths from working hypotheses
 - preserve why a hypothesis existed, not just the latest opinion
 - force periodic re-evaluation when new evidence appears
+- keep agent-facing analysis assumptions distinct from human-facing conclusion assumptions
 
 Rules:
 
@@ -44,10 +45,10 @@ Rules:
   - If true, the product should prioritize quality signals such as `result_fit` over top-line closure metrics.
 - Expected upside:
   - reduce false confidence from inflated success summaries
-  - align reporting with the operator's real pain: "did Codex produce what was actually wanted?"
-  - improve evaluation of workflow changes
+  - align agent-facing reporting with the real product question: "did Codex produce what was actually wanted?"
+  - improve the agent's evaluation of workflow changes
 - Main risks or where this may be wrong:
-  - `exact_fit` is operator-judged and may be noisy
+  - `exact_fit` is judged through agent-mediated interpretation and may still be noisy
   - time-to-acceptable-result may matter more than fit alone
   - a broader acceptance metric may be more useful than strict exact fit
 - Alternatives considered:
@@ -61,7 +62,7 @@ Rules:
   - not yet validated across external projects because their `result_fit` fields are still mostly unreviewed
 - Next re-evaluation trigger:
   - after more cross-project reviewed `result_fit` data exists
-  - or after a summary redesign is tested against real operator decisions
+  - or after a summary redesign is tested against real agent decisions and recommendations
 - Notes:
   - `2026-03-31`: promoted from chat into explicit product hypothesis after repeated concern that success metrics looked too successful.
 
@@ -138,7 +139,7 @@ Rules:
 - Main risks or where this may be wrong:
   - adds coordination overhead on small tasks
   - can create a lead bottleneck without improving clarity
-  - may not matter much when one operator is already disciplined
+  - may not matter much when one agent already operates with strong task discipline
 - Alternatives considered:
   - direct developer execution from raw request
   - lightweight checklist without explicit lead mediation
