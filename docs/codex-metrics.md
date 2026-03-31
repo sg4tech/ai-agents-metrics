@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 169
-- Successes: 169
+- Closed goals: 170
+- Successes: 170
 - Fails: 0
-- Total attempts: 175
-- Known total cost (USD): 218.282345
-- Known total tokens: 157939597
+- Total attempts: 176
+- Known total cost (USD): 218.394618
+- Known total tokens: 158020118
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 139/169 successful goals
-- Known token coverage: 139/169 successful goals
-- Complete cost coverage: 139/169 successful goals
-- Complete token coverage: 139/169 successful goals
-- Known Cost per Success (USD): 1.570377
-- Known Cost per Success (Tokens): 1136256.09
-- Complete Cost per Covered Success (USD): 1.570377
-- Complete Cost per Covered Success (Tokens): 1136256.09
+- Known cost coverage: 140/170 successful goals
+- Known token coverage: 140/170 successful goals
+- Complete cost coverage: 140/170 successful goals
+- Complete token coverage: 140/170 successful goals
+- Known Cost per Success (USD): 1.559962
+- Known Cost per Success (Tokens): 1128715.13
+- Complete Cost per Covered Success (USD): 1.559962
+- Complete Cost per Covered Success (Tokens): 1128715.13
 
 ## Entry summary
 
-- Closed entries: 175
-- Successes: 174
+- Closed entries: 176
+- Successes: 175
 - Fails: 1
 - Success Rate: 99.43%
-- Known total cost (USD): 222.942577
-- Known total tokens: 161142249
+- Known total cost (USD): 223.05485
+- Known total tokens: 161222770
 
 ## Operator review
 
@@ -77,24 +77,50 @@
 - Complete Cost per Covered Success (Tokens): 362310.31
 
 ### meta
-- Closed goals: 72
-- Successes: 72
+- Closed goals: 73
+- Successes: 73
 - Fails: 0
-- Total attempts: 72
-- Known total cost (USD): 98.932184
-- Known total tokens: 72170319
+- Total attempts: 73
+- Known total cost (USD): 99.044457
+- Known total tokens: 72250840
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 61/72 successful goals
-- Known token coverage: 61/72 successful goals
-- Complete cost coverage: 61/72 successful goals
-- Complete token coverage: 61/72 successful goals
-- Known Cost per Success (USD): 1.621839
-- Known Cost per Success (Tokens): 1183119.98
-- Complete Cost per Covered Success (USD): 1.621839
-- Complete Cost per Covered Success (Tokens): 1183119.98
+- Known cost coverage: 62/73 successful goals
+- Known token coverage: 62/73 successful goals
+- Complete cost coverage: 62/73 successful goals
+- Complete token coverage: 62/73 successful goals
+- Known Cost per Success (USD): 1.597491
+- Known Cost per Success (Tokens): 1165336.13
+- Complete Cost per Covered Success (USD): 1.597491
+- Complete Cost per Covered Success (Tokens): 1165336.13
 
 ## Goal log
+
+### 2026-03-31-014 — Store hhsave external metrics snapshot
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T09:50:19+00:00
+- Finished at: 2026-03-31T09:50:23+00:00
+- Cost (USD): 0.112273
+- Tokens: 80521
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added docs/audits/external-metrics-snapshots/hhsave-codex_metrics-2026-03-31.json as a read-only external snapshot for cross-project product analysis. Verified the snapshot directory contents and regenerated metrics/report through the CLI workflow.
+
+### 2026-03-31-013 — Store hhsave metrics snapshot for analysis
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: in_progress
+- Attempts: 1
+- Started at: 2026-03-31T09:49:16+00:00
+- Finished at: n/a
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Copy the current hhsave codex_metrics.json into the read-only external metrics snapshots directory so cross-project product analysis can compare another real repository without mutating its live files.
 
 ### 2026-03-31-012 — Store external metrics snapshot for audit context
 - Goal type: meta
@@ -2359,6 +2385,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-014-attempt-001 — 2026-03-31-014
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T09:50:19+00:00
+- Finished at: 2026-03-31T09:50:23+00:00
+- Cost (USD): 0.112273
+- Tokens: 80521
+- Failure reason: n/a
+- Notes: Added docs/audits/external-metrics-snapshots/hhsave-codex_metrics-2026-03-31.json as a read-only external snapshot for cross-project product analysis. Verified the snapshot directory contents and regenerated metrics/report through the CLI workflow.
+
+### 2026-03-31-013-attempt-001 — 2026-03-31-013
+- Entry type: meta
+- Inferred: no
+- Status: in_progress
+- Started at: 2026-03-31T09:49:16+00:00
+- Finished at: n/a
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Copy the current hhsave codex_metrics.json into the read-only external metrics snapshots directory so cross-project product analysis can compare another real repository without mutating its live files.
 
 ### 2026-03-31-012-attempt-001 — 2026-03-31-012
 - Entry type: meta
