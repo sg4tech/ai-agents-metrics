@@ -210,3 +210,35 @@ Rules:
   - if future retros start creating more noise than lasting improvement
 - Notes:
   - `2026-03-31`: added after explicit PM review of which practices actually helped this project.
+
+### H-007 — The generated markdown report may be optional rather than a default artifact
+
+- Status: `active`
+- Created: `2026-03-31`
+- Statement:
+  - For an agent-first product, `docs/codex-metrics.md` may not justify its default generation and commit cost, because structured JSON and CLI output may already provide enough analysis value.
+- Why it matters:
+  - If true, the product can reduce update noise, token overhead, and duplicate surfaces by making markdown reporting optional or on-demand instead of mandatory.
+- Expected upside:
+  - reduce duplicated generated output
+  - reduce commit noise from report churn
+  - keep the main product surfaces focused on agent-readable JSON and CLI output
+  - simplify future product evolution by keeping one canonical structured reporting path
+- Main risks or where this may be wrong:
+  - some agent workflows may still benefit from a compact pre-rendered report
+  - markdown may still be useful as a stable snapshot artifact during review or debugging
+  - removing the default too early could break habits before agent usage evidence is clear
+- Alternatives considered:
+  - keep markdown as the current default generated artifact
+  - keep markdown but shorten it into a compact summary only
+  - keep markdown generation available, but make it explicit or on-demand
+- Current confidence:
+  - `medium`
+- Evidence status:
+  - supported by the current agent-first framing, where human direct reading of raw report files is no longer the primary path
+  - not yet validated by evidence showing whether agents actually rely on the markdown artifact in practice
+- Next re-evaluation trigger:
+  - after observing a few more agent analysis cycles on JSON and CLI alone
+  - or after testing a json-first, markdown-optional workflow without losing analysis quality
+- Notes:
+  - `2026-03-31`: added after product review raised the possibility that the markdown artifact is mostly duplicate overhead in an agent-first workflow.

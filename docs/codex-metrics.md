@@ -2,19 +2,19 @@
 
 ## Product quality
 
-- Closed product goals: 65
-- Reviewed result fit: 40/65 closed product goals
-- Review coverage: 61.54%
-- Exact fit: 38
+- Closed product goals: 66
+- Reviewed result fit: 41/66 closed product goals
+- Review coverage: 62.12%
+- Exact fit: 39
 - Partial fit: 2
 - Misses: 0
 - Unreviewed: 25
-- Exact Fit Rate (reviewed): 95.00%
+- Exact Fit Rate (reviewed): 95.12%
 - Miss Rate (reviewed): 0.00%
 - Attempts per Closed Product Goal: 1.09
-- Known product cost coverage: 55/65 successful product goals
-- Known Product Cost per Success (USD): 2.069048
-- Known Product Cost per Success (Tokens): 1488230.02
+- Known product cost coverage: 56/66 successful product goals
+- Known Product Cost per Success (USD): 2.036945
+- Known Product Cost per Success (Tokens): 1465087.34
 
 ## Agent recommendations
 
@@ -27,31 +27,31 @@
 
 ## Operational summary
 
-- Closed goals: 179
-- Successes: 177
+- Closed goals: 180
+- Successes: 178
 - Fails: 2
-- Total attempts: 185
-- Known total cost (USD): 229.208893
-- Known total tokens: 166169079
-- Success Rate: 98.88%
+- Total attempts: 186
+- Known total cost (USD): 229.480141
+- Known total tokens: 166361319
+- Success Rate: 98.89%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 147/177 successful goals
-- Known token coverage: 147/177 successful goals
-- Complete cost coverage: 147/177 successful goals
-- Complete token coverage: 147/177 successful goals
-- Known Cost per Success (USD): 1.549119
-- Known Cost per Success (Tokens): 1122487.14
-- Complete Cost per Covered Success (USD): 1.549119
-- Complete Cost per Covered Success (Tokens): 1122487.14
+- Known cost coverage: 148/178 successful goals
+- Known token coverage: 148/178 successful goals
+- Complete cost coverage: 148/178 successful goals
+- Complete token coverage: 148/178 successful goals
+- Known Cost per Success (USD): 1.540485
+- Known Cost per Success (Tokens): 1116201.69
+- Complete Cost per Covered Success (USD): 1.540485
+- Complete Cost per Covered Success (Tokens): 1116201.69
 
 ## Entry summary
 
-- Closed entries: 185
-- Successes: 182
+- Closed entries: 186
+- Successes: 183
 - Fails: 3
-- Success Rate: 98.38%
-- Known total cost (USD): 233.869125
-- Known total tokens: 169371731
+- Success Rate: 98.39%
+- Known total cost (USD): 234.140373
+- Known total tokens: 169563971
 
 
 ## By goal type
@@ -61,22 +61,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 65
-- Successes: 65
+- Closed goals: 66
+- Successes: 66
 - Fails: 0
-- Total attempts: 71
-- Known total cost (USD): 113.797658
-- Known total tokens: 81852651
+- Total attempts: 72
+- Known total cost (USD): 114.068906
+- Known total tokens: 82044891
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.09
-- Known cost coverage: 55/65 successful goals
-- Known token coverage: 55/65 successful goals
-- Complete cost coverage: 55/65 successful goals
-- Complete token coverage: 55/65 successful goals
-- Known Cost per Success (USD): 2.069048
-- Known Cost per Success (Tokens): 1488230.02
-- Complete Cost per Covered Success (USD): 2.069048
-- Complete Cost per Covered Success (Tokens): 1488230.02
+- Known cost coverage: 56/66 successful goals
+- Known token coverage: 56/66 successful goals
+- Complete cost coverage: 56/66 successful goals
+- Complete token coverage: 56/66 successful goals
+- Known Cost per Success (USD): 2.036945
+- Known Cost per Success (Tokens): 1465087.34
+- Complete Cost per Covered Success (USD): 2.036945
+- Complete Cost per Covered Success (Tokens): 1465087.34
 
 ### retro
 - Closed goals: 40
@@ -115,6 +115,19 @@
 - Complete Cost per Covered Success (Tokens): 1151550.76
 
 ## Goal log
+
+### 2026-03-31-024 — Log markdown report optionality hypothesis
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T15:13:33+00:00
+- Finished at: 2026-03-31T15:13:50+00:00
+- Cost (USD): 0.271248
+- Tokens: 192240
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Logged H-007 in docs/product-hypotheses.md to capture the idea that the markdown report may be optional in an agent-first workflow, while keeping it explicitly unconfirmed pending more evidence.
 
 ### 2026-03-31-023 — Retro agent-first recommendation layer demo
 - Goal type: retro
@@ -2522,6 +2535,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-024-attempt-001 — 2026-03-31-024
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T15:13:33+00:00
+- Finished at: 2026-03-31T15:13:50+00:00
+- Cost (USD): 0.271248
+- Tokens: 192240
+- Failure reason: n/a
+- Notes: Logged H-007 in docs/product-hypotheses.md to capture the idea that the markdown report may be optional in an agent-first workflow, while keeping it explicitly unconfirmed pending more evidence.
 
 ### 2026-03-31-023-attempt-001 — 2026-03-31-023
 - Entry type: retro
