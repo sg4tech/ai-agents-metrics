@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 170
-- Successes: 170
+- Closed goals: 171
+- Successes: 171
 - Fails: 0
-- Total attempts: 176
-- Known total cost (USD): 218.394618
-- Known total tokens: 158020118
+- Total attempts: 177
+- Known total cost (USD): 218.824667
+- Known total tokens: 158316976
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 140/170 successful goals
-- Known token coverage: 140/170 successful goals
-- Complete cost coverage: 140/170 successful goals
-- Complete token coverage: 140/170 successful goals
-- Known Cost per Success (USD): 1.559962
-- Known Cost per Success (Tokens): 1128715.13
-- Complete Cost per Covered Success (USD): 1.559962
-- Complete Cost per Covered Success (Tokens): 1128715.13
+- Known cost coverage: 141/171 successful goals
+- Known token coverage: 141/171 successful goals
+- Complete cost coverage: 141/171 successful goals
+- Complete token coverage: 141/171 successful goals
+- Known Cost per Success (USD): 1.551948
+- Known Cost per Success (Tokens): 1122815.43
+- Complete Cost per Covered Success (USD): 1.551948
+- Complete Cost per Covered Success (Tokens): 1122815.43
 
 ## Entry summary
 
-- Closed entries: 176
-- Successes: 175
+- Closed entries: 177
+- Successes: 176
 - Fails: 1
-- Success Rate: 99.43%
-- Known total cost (USD): 223.05485
-- Known total tokens: 161222770
+- Success Rate: 99.44%
+- Known total cost (USD): 223.484899
+- Known total tokens: 161519628
 
 ## Operator review
 
@@ -77,24 +77,37 @@
 - Complete Cost per Covered Success (Tokens): 362310.31
 
 ### meta
-- Closed goals: 73
-- Successes: 73
+- Closed goals: 74
+- Successes: 74
 - Fails: 0
-- Total attempts: 73
-- Known total cost (USD): 99.044457
-- Known total tokens: 72250840
+- Total attempts: 74
+- Known total cost (USD): 99.474506
+- Known total tokens: 72547698
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 62/73 successful goals
-- Known token coverage: 62/73 successful goals
-- Complete cost coverage: 62/73 successful goals
-- Complete token coverage: 62/73 successful goals
-- Known Cost per Success (USD): 1.597491
-- Known Cost per Success (Tokens): 1165336.13
-- Complete Cost per Covered Success (USD): 1.597491
-- Complete Cost per Covered Success (Tokens): 1165336.13
+- Known cost coverage: 63/74 successful goals
+- Known token coverage: 63/74 successful goals
+- Complete cost coverage: 63/74 successful goals
+- Complete token coverage: 63/74 successful goals
+- Known Cost per Success (USD): 1.57896
+- Known Cost per Success (Tokens): 1151550.76
+- Complete Cost per Covered Success (USD): 1.57896
+- Complete Cost per Covered Success (Tokens): 1151550.76
 
 ## Goal log
+
+### 2026-03-31-015 — Formalize PM hypothesis tracking workflow
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T10:05:20+00:00
+- Finished at: 2026-03-31T10:06:20+00:00
+- Cost (USD): 0.430049
+- Tokens: 296858
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added docs/product-hypotheses.md as the local product and metrics hypothesis log, updated AGENTS.md to require hypothesis-driven PM framing and re-evaluation, and clarified in docs/product-framing.md that unconfirmed product ideas stay in the hypothesis log until validated.
 
 ### 2026-03-31-014 — Store hhsave external metrics snapshot
 - Goal type: meta
@@ -2385,6 +2398,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-015-attempt-001 — 2026-03-31-015
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T10:05:20+00:00
+- Finished at: 2026-03-31T10:06:20+00:00
+- Cost (USD): 0.430049
+- Tokens: 296858
+- Failure reason: n/a
+- Notes: Added docs/product-hypotheses.md as the local product and metrics hypothesis log, updated AGENTS.md to require hypothesis-driven PM framing and re-evaluation, and clarified in docs/product-framing.md that unconfirmed product ideas stay in the hypothesis log until validated.
 
 ### 2026-03-31-014-attempt-001 — 2026-03-31-014
 - Entry type: meta

@@ -1,5 +1,11 @@
 # Product Framing
 
+This document describes the current best confirmed framing for the product.
+
+Working product and metrics hypotheses that are not yet fully confirmed belong in:
+
+- `docs/product-hypotheses.md`
+
 ## Product
 
 `codex-metrics` is an internal local operator tool for managing the effectiveness and economics of Codex-assisted engineering work.
@@ -43,7 +49,7 @@ The following product truths are already confirmed:
 - cost matters because AI is paid usage and should not eat engineering profit
 - the product should help decide what workflow changes actually work and what should be changed again
 
-The following product questions are still intentionally open:
+The following product questions are still intentionally open and should be treated as active hypotheses until better evidence exists:
 
 - the final best quality metric
 - the final best cost metric

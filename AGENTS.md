@@ -9,6 +9,11 @@ Before starting or continuing any engineering task, always read:
 
 The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
 
+For product-management, framing, and metrics-interpretation work, also read:
+
+- `docs/product-framing.md`
+- `docs/product-hypotheses.md`
+
 ## Core working style
 
 - First understand what currently works.
@@ -19,6 +24,9 @@ The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this r
 - Treat shim modules, entrypoints, and re-exported symbols that are exercised by tests or automation as part of the compatibility contract, not as disposable implementation details.
 - Treat assumptions as risks until verified.
 - When product framing or success criteria are not yet confirmed by the user, treat drafts as hypotheses, not settled truth.
+- When acting as PM, structure proposals explicitly as hypotheses with expected upside, main risks, alternatives, and a confidence level.
+- Log meaningful product or metrics hypotheses in `docs/product-hypotheses.md` instead of leaving them only in chat.
+- Re-evaluate logged hypotheses after new evidence, audits, cross-project comparison, or process changes; update the same file instead of silently replacing the old view.
 - Treat “adjacent but not requested” output as a primary quality failure, even if the implementation is otherwise technically strong.
 - Prefer diagnosis -> guardrail -> verification over clever but weakly defended fixes.
 - Before investing in more metrics semantics, refactoring, or process polish, ask which layer is the current bottleneck; do not optimize a non-constraint.
