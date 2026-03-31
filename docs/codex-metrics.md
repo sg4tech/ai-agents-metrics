@@ -1,32 +1,53 @@
 # Codex Metrics
 
-## Goal summary
+## Product quality
 
-- Closed goals: 172
-- Successes: 172
+- Closed product goals: 63
+- Reviewed result fit: 38/63 closed product goals
+- Review coverage: 60.32%
+- Exact fit: 36
+- Partial fit: 2
+- Misses: 0
+- Unreviewed: 25
+- Exact Fit Rate (reviewed): 94.74%
+- Miss Rate (reviewed): 0.00%
+- Attempts per Closed Product Goal: 1.10
+- Known product cost coverage: 53/63 successful product goals
+- Known Product Cost per Success (USD): 2.053667
+- Known Product Cost per Success (Tokens): 1477637.92
+
+## Product quality review
+
+- Product quality review coverage is partial; fit rates reflect a reviewed subset only.
+- Reviewed partial-fit outcomes exist; inspect where delivery succeeded only after correction.
+
+## Operational summary
+
+- Closed goals: 173
+- Successes: 173
 - Fails: 0
-- Total attempts: 178
-- Known total cost (USD): 219.277234
-- Known total tokens: 158630933
+- Total attempts: 179
+- Known total cost (USD): 221.998555
+- Known total tokens: 160596533
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 142/172 successful goals
-- Known token coverage: 142/172 successful goals
-- Complete cost coverage: 142/172 successful goals
-- Complete token coverage: 142/172 successful goals
-- Known Cost per Success (USD): 1.544206
-- Known Cost per Success (Tokens): 1117119.25
-- Complete Cost per Covered Success (USD): 1.544206
-- Complete Cost per Covered Success (Tokens): 1117119.25
+- Known cost coverage: 143/173 successful goals
+- Known token coverage: 143/173 successful goals
+- Complete cost coverage: 143/173 successful goals
+- Complete token coverage: 143/173 successful goals
+- Known Cost per Success (USD): 1.552437
+- Known Cost per Success (Tokens): 1123052.68
+- Complete Cost per Covered Success (USD): 1.552437
+- Complete Cost per Covered Success (Tokens): 1123052.68
 
 ## Entry summary
 
-- Closed entries: 178
-- Successes: 177
+- Closed entries: 179
+- Successes: 178
 - Fails: 1
 - Success Rate: 99.44%
-- Known total cost (USD): 223.937466
-- Known total tokens: 161833585
+- Known total cost (USD): 226.658787
+- Known total tokens: 163799185
 
 ## Operator review
 
@@ -41,22 +62,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 62
-- Successes: 62
+- Closed goals: 63
+- Successes: 63
 - Fails: 0
-- Total attempts: 68
-- Known total cost (USD): 106.123053
-- Known total tokens: 76349210
+- Total attempts: 69
+- Known total cost (USD): 108.844374
+- Known total tokens: 78314810
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.10
-- Known cost coverage: 52/62 successful goals
-- Known token coverage: 52/62 successful goals
-- Complete cost coverage: 52/62 successful goals
-- Complete token coverage: 52/62 successful goals
-- Known Cost per Success (USD): 2.040828
-- Known Cost per Success (Tokens): 1468254.04
-- Complete Cost per Covered Success (USD): 2.040828
-- Complete Cost per Covered Success (Tokens): 1468254.04
+- Known cost coverage: 53/63 successful goals
+- Known token coverage: 53/63 successful goals
+- Complete cost coverage: 53/63 successful goals
+- Complete token coverage: 53/63 successful goals
+- Known Cost per Success (USD): 2.053667
+- Known Cost per Success (Tokens): 1477637.92
+- Complete Cost per Covered Success (USD): 2.053667
+- Complete Cost per Covered Success (Tokens): 1477637.92
 
 ### retro
 - Closed goals: 36
@@ -95,6 +116,19 @@
 - Complete Cost per Covered Success (Tokens): 1151550.76
 
 ## Goal log
+
+### 2026-03-31-017 — Redesign product-facing summary around quality truth
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T10:24:51+00:00
+- Finished at: 2026-03-31T10:26:39+00:00
+- Cost (USD): 2.721321
+- Tokens: 1965600
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Redesigned the product-facing summary so Product quality appears before global operational closure metrics in CLI show and markdown report. Added a typed reporting view for reviewed result-fit distribution, product retry pressure, and product cost context. Expanded canonical verify to include reporting tests and fixed Product Cost per Success so failed-goal cost does not contaminate success averages. Verified with make verify.
 
 ### 2026-03-31-016 — Add PM hypothesis workflow retrospective
 - Goal type: retro
@@ -2411,6 +2445,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-017-attempt-001 — 2026-03-31-017
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T10:24:51+00:00
+- Finished at: 2026-03-31T10:26:39+00:00
+- Cost (USD): 2.721321
+- Tokens: 1965600
+- Failure reason: n/a
+- Notes: Redesigned the product-facing summary so Product quality appears before global operational closure metrics in CLI show and markdown report. Added a typed reporting view for reviewed result-fit distribution, product retry pressure, and product cost context. Expanded canonical verify to include reporting tests and fixed Product Cost per Success so failed-goal cost does not contaminate success averages. Verified with make verify.
 
 ### 2026-03-31-016-attempt-001 — 2026-03-31-016
 - Entry type: retro

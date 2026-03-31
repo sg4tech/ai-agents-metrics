@@ -1904,6 +1904,11 @@ def test_show_command(repo: Path) -> None:
     result = run_cmd(repo, "show")
     assert result.returncode == 0
     assert "Codex Metrics Summary" in result.stdout
+    assert "Product quality:" in result.stdout
+    assert "Reviewed result fit: 0/0 closed product goals" in result.stdout
+    assert "Product quality review:" in result.stdout
+    assert "No closed product goals yet; quality conclusions are not ready." in result.stdout
+    assert "Operational summary:" in result.stdout
     assert "Closed goals: 0" in result.stdout
     assert "Closed entries: 0" in result.stdout
     assert "Product goals: 0 closed, 0 successes, 0 fails" in result.stdout
@@ -2290,8 +2295,64 @@ def test_show_reports_known_cost_coverage_when_complete_cost_is_unavailable(repo
     assert "Full cost coverage is still partial; treat complete covered-success averages as strict subset signals." in result.stdout
 
     report_text = (repo / "docs" / "codex-metrics.md").read_text()
+    assert "## Product quality" in report_text
+    assert "## Operational summary" in report_text
     assert "## Operator review" in report_text
     assert "- Full cost coverage is still partial; treat complete covered-success averages as strict subset signals." in report_text
+
+
+def test_show_surfaces_reviewed_product_quality_signals(repo: Path) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "fit-a",
+        "--title",
+        "Exact fit",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--result-fit",
+        "exact_fit",
+        "--cost-usd",
+        "0.4",
+        "--tokens",
+        "400",
+    ).returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "fit-b",
+        "--title",
+        "Partial fit",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--result-fit",
+        "partial_fit",
+        "--attempts",
+        "2",
+        "--cost-usd",
+        "0.6",
+        "--tokens",
+        "600",
+    ).returncode == 0
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode == 0, result.stderr
+    assert "Closed product goals: 2" in result.stdout
+    assert "Reviewed result fit: 2/2 closed product goals" in result.stdout
+    assert "Exact fit: 1" in result.stdout
+    assert "Partial fit: 1" in result.stdout
+    assert "Misses: 0" in result.stdout
+    assert "Exact Fit Rate (reviewed): 50.00%" in result.stdout
+    assert "Attempts per Closed Product Goal: 1.50" in result.stdout
+    assert "Known Product Cost per Success (USD): 0.50" in result.stdout
 
 
 def test_help_includes_goal_language_and_examples(repo: Path) -> None:

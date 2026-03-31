@@ -1,6 +1,81 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
+
+from codex_metrics.domain import (
+    EffectiveGoalRecord,
+    build_effective_goals,
+    goal_from_dict,
+)
+
+
+@dataclass(frozen=True)
+class ProductQualitySummary:
+    closed_product_goals: int
+    successful_product_goals: int
+    failed_product_goals: int
+    reviewed_product_goals: int
+    unreviewed_product_goals: int
+    exact_fit_goals: int
+    partial_fit_goals: int
+    miss_goals: int
+    exact_fit_rate_reviewed: float | None
+    miss_rate_reviewed: float | None
+    review_coverage: float | None
+    attempts_per_closed_product_goal: float | None
+    known_cost_successes: int
+    known_token_successes: int
+    known_cost_per_success_usd: float | None
+    known_cost_per_success_tokens: float | None
+
+
+def _effective_goals_from_data(data: dict[str, Any]) -> list[EffectiveGoalRecord]:
+    return build_effective_goals([goal_from_dict(goal) for goal in data["goals"]])
+
+
+def build_product_quality_summary(data: dict[str, Any]) -> ProductQualitySummary:
+    effective_goals = _effective_goals_from_data(data)
+    closed_product_goals = [
+        goal for goal in effective_goals if goal.goal_type == "product" and goal.status in {"success", "fail"}
+    ]
+    reviewed_product_goals = [goal for goal in closed_product_goals if goal.result_fit is not None]
+    exact_fit_goals = [goal for goal in reviewed_product_goals if goal.result_fit == "exact_fit"]
+    partial_fit_goals = [goal for goal in reviewed_product_goals if goal.result_fit == "partial_fit"]
+    miss_goals = [goal for goal in reviewed_product_goals if goal.result_fit == "miss"]
+    successful_product_goals = [goal for goal in closed_product_goals if goal.status == "success"]
+    failed_product_goals = [goal for goal in closed_product_goals if goal.status == "fail"]
+    known_cost_successes = [goal for goal in successful_product_goals if goal.cost_usd_known is not None]
+    known_token_successes = [goal for goal in successful_product_goals if goal.tokens_total_known is not None]
+    known_success_cost_total = sum(goal.cost_usd_known or 0.0 for goal in known_cost_successes)
+    known_success_token_total = sum(goal.tokens_total_known or 0 for goal in known_token_successes)
+    total_closed = len(closed_product_goals)
+    reviewed_count = len(reviewed_product_goals)
+
+    return ProductQualitySummary(
+        closed_product_goals=total_closed,
+        successful_product_goals=len(successful_product_goals),
+        failed_product_goals=len(failed_product_goals),
+        reviewed_product_goals=reviewed_count,
+        unreviewed_product_goals=total_closed - reviewed_count,
+        exact_fit_goals=len(exact_fit_goals),
+        partial_fit_goals=len(partial_fit_goals),
+        miss_goals=len(miss_goals),
+        exact_fit_rate_reviewed=(len(exact_fit_goals) / reviewed_count) if reviewed_count else None,
+        miss_rate_reviewed=(len(miss_goals) / reviewed_count) if reviewed_count else None,
+        review_coverage=(reviewed_count / total_closed) if total_closed else None,
+        attempts_per_closed_product_goal=(
+            sum(goal.attempts for goal in closed_product_goals) / total_closed if total_closed else None
+        ),
+        known_cost_successes=len(known_cost_successes),
+        known_token_successes=len(known_token_successes),
+        known_cost_per_success_usd=(
+            known_success_cost_total / len(known_cost_successes) if known_cost_successes else None
+        ),
+        known_cost_per_success_tokens=(
+            known_success_token_total / len(known_token_successes) if known_token_successes else None
+        ),
+    )
 
 
 def format_pct(value: float | None) -> str:
@@ -73,46 +148,112 @@ def build_operator_review(summary: dict[str, Any]) -> list[str]:
     return review
 
 
+def build_quality_review(summary: ProductQualitySummary) -> list[str]:
+    review: list[str] = []
+
+    if summary.closed_product_goals == 0:
+        review.append("No closed product goals yet; quality conclusions are not ready.")
+        return review
+
+    if summary.reviewed_product_goals == 0:
+        review.append("Product quality review has not started; result-fit signals are still missing.")
+    elif summary.unreviewed_product_goals > 0:
+        review.append("Product quality review coverage is partial; fit rates reflect a reviewed subset only.")
+
+    if summary.miss_goals > 0:
+        review.append("At least one reviewed product miss exists; inspect why the requested outcome was missed.")
+
+    if summary.partial_fit_goals > 0:
+        review.append("Reviewed partial-fit outcomes exist; inspect where delivery succeeded only after correction.")
+
+    if summary.attempts_per_closed_product_goal is not None and summary.attempts_per_closed_product_goal > 1.2:
+        review.append("Product retry pressure looks elevated; review scope clarity and acceptance boundaries.")
+
+    if not review:
+        review.append("Reviewed product quality signals look stable enough to compare workflow changes.")
+
+    return review
+
+
+def _product_quality_lines(product_quality: ProductQualitySummary) -> list[str]:
+    return [
+        "## Product quality",
+        "",
+        f"- Closed product goals: {product_quality.closed_product_goals}",
+        (
+            f"- Reviewed result fit: {product_quality.reviewed_product_goals}/"
+            f"{product_quality.closed_product_goals} closed product goals"
+        ),
+        f"- Review coverage: {format_pct(product_quality.review_coverage)}",
+        f"- Exact fit: {product_quality.exact_fit_goals}",
+        f"- Partial fit: {product_quality.partial_fit_goals}",
+        f"- Misses: {product_quality.miss_goals}",
+        f"- Unreviewed: {product_quality.unreviewed_product_goals}",
+        f"- Exact Fit Rate (reviewed): {format_pct(product_quality.exact_fit_rate_reviewed)}",
+        f"- Miss Rate (reviewed): {format_pct(product_quality.miss_rate_reviewed)}",
+        f"- Attempts per Closed Product Goal: {format_num(product_quality.attempts_per_closed_product_goal)}",
+        (
+            f"- Known product cost coverage: "
+            f"{format_coverage(product_quality.known_cost_successes, product_quality.successful_product_goals)} "
+            "successful product goals"
+        ),
+        f"- Known Product Cost per Success (USD): {format_usd(product_quality.known_cost_per_success_usd)}",
+        f"- Known Product Cost per Success (Tokens): {format_num(product_quality.known_cost_per_success_tokens)}",
+        "",
+        "## Product quality review",
+        "",
+    ]
+
+
 def generate_report_md(data: dict[str, Any]) -> str:
     summary = data["summary"]
     goals: list[dict[str, Any]] = data["goals"]
     entries: list[dict[str, Any]] = data["entries"]
     operator_review = build_operator_review(summary)
+    product_quality = build_product_quality_summary(data)
+    quality_review = build_quality_review(product_quality)
 
     lines: list[str] = [
         "# Codex Metrics",
         "",
-        "## Goal summary",
-        "",
-        f"- Closed goals: {summary['closed_tasks']}",
-        f"- Successes: {summary['successes']}",
-        f"- Fails: {summary['fails']}",
-        f"- Total attempts: {summary['total_attempts']}",
-        f"- Known total cost (USD): {format_usd(summary['total_cost_usd'])}",
-        f"- Known total tokens: {summary['total_tokens']}",
-        f"- Success Rate: {format_pct(summary['success_rate'])}",
-        f"- Attempts per Closed Goal: {format_num(summary['attempts_per_closed_task'])}",
-        f"- Known cost coverage: {format_coverage(summary['known_cost_successes'], summary['successes'])} successful goals",
-        f"- Known token coverage: {format_coverage(summary['known_token_successes'], summary['successes'])} successful goals",
-        f"- Complete cost coverage: {format_coverage(summary['complete_cost_successes'], summary['successes'])} successful goals",
-        f"- Complete token coverage: {format_coverage(summary['complete_token_successes'], summary['successes'])} successful goals",
-        f"- Known Cost per Success (USD): {format_usd(summary['known_cost_per_success_usd'])}",
-        f"- Known Cost per Success (Tokens): {format_num(summary['known_cost_per_success_tokens'])}",
-        f"- Complete Cost per Covered Success (USD): {format_usd(summary['complete_cost_per_covered_success_usd'])}",
-        f"- Complete Cost per Covered Success (Tokens): {format_num(summary['complete_cost_per_covered_success_tokens'])}",
-        "",
-        "## Entry summary",
-        "",
-        f"- Closed entries: {summary['entries']['closed_entries']}",
-        f"- Successes: {summary['entries']['successes']}",
-        f"- Fails: {summary['entries']['fails']}",
-        f"- Success Rate: {format_pct(summary['entries']['success_rate'])}",
-        f"- Known total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
-        f"- Known total tokens: {summary['entries']['total_tokens']}",
-        "",
-        "## Operator review",
-        "",
     ]
+    lines.extend(_product_quality_lines(product_quality))
+    lines.extend(f"- {line}" for line in quality_review)
+    lines.extend(
+        [
+            "",
+            "## Operational summary",
+            "",
+            f"- Closed goals: {summary['closed_tasks']}",
+            f"- Successes: {summary['successes']}",
+            f"- Fails: {summary['fails']}",
+            f"- Total attempts: {summary['total_attempts']}",
+            f"- Known total cost (USD): {format_usd(summary['total_cost_usd'])}",
+            f"- Known total tokens: {summary['total_tokens']}",
+            f"- Success Rate: {format_pct(summary['success_rate'])}",
+            f"- Attempts per Closed Goal: {format_num(summary['attempts_per_closed_task'])}",
+            f"- Known cost coverage: {format_coverage(summary['known_cost_successes'], summary['successes'])} successful goals",
+            f"- Known token coverage: {format_coverage(summary['known_token_successes'], summary['successes'])} successful goals",
+            f"- Complete cost coverage: {format_coverage(summary['complete_cost_successes'], summary['successes'])} successful goals",
+            f"- Complete token coverage: {format_coverage(summary['complete_token_successes'], summary['successes'])} successful goals",
+            f"- Known Cost per Success (USD): {format_usd(summary['known_cost_per_success_usd'])}",
+            f"- Known Cost per Success (Tokens): {format_num(summary['known_cost_per_success_tokens'])}",
+            f"- Complete Cost per Covered Success (USD): {format_usd(summary['complete_cost_per_covered_success_usd'])}",
+            f"- Complete Cost per Covered Success (Tokens): {format_num(summary['complete_cost_per_covered_success_tokens'])}",
+            "",
+            "## Entry summary",
+            "",
+            f"- Closed entries: {summary['entries']['closed_entries']}",
+            f"- Successes: {summary['entries']['successes']}",
+            f"- Fails: {summary['entries']['fails']}",
+            f"- Success Rate: {format_pct(summary['entries']['success_rate'])}",
+            f"- Known total cost (USD): {format_usd(summary['entries']['total_cost_usd'])}",
+            f"- Known total tokens: {summary['entries']['total_tokens']}",
+            "",
+            "## Operator review",
+            "",
+        ]
+    )
     lines.extend(f"- {line}" for line in operator_review)
     lines.extend(
         [
@@ -218,7 +359,34 @@ def generate_report_md(data: dict[str, Any]) -> str:
 def print_summary(data: dict[str, Any]) -> None:
     summary = data["summary"]
     operator_review = build_operator_review(summary)
+    product_quality = build_product_quality_summary(data)
+    quality_review = build_quality_review(product_quality)
     print("Codex Metrics Summary")
+    print("Product quality:")
+    print(f"Closed product goals: {product_quality.closed_product_goals}")
+    print(
+        f"Reviewed result fit: {product_quality.reviewed_product_goals}/"
+        f"{product_quality.closed_product_goals} closed product goals"
+    )
+    print(f"Review coverage: {format_pct(product_quality.review_coverage)}")
+    print(f"Exact fit: {product_quality.exact_fit_goals}")
+    print(f"Partial fit: {product_quality.partial_fit_goals}")
+    print(f"Misses: {product_quality.miss_goals}")
+    print(f"Unreviewed: {product_quality.unreviewed_product_goals}")
+    print(f"Exact Fit Rate (reviewed): {format_pct(product_quality.exact_fit_rate_reviewed)}")
+    print(f"Miss Rate (reviewed): {format_pct(product_quality.miss_rate_reviewed)}")
+    print(f"Attempts per Closed Product Goal: {format_num(product_quality.attempts_per_closed_product_goal)}")
+    print(
+        f"Known product cost coverage: "
+        f"{format_coverage(product_quality.known_cost_successes, product_quality.successful_product_goals)} "
+        "successful product goals"
+    )
+    print(f"Known Product Cost per Success (USD): {format_usd(product_quality.known_cost_per_success_usd)}")
+    print(f"Known Product Cost per Success (Tokens): {format_num(product_quality.known_cost_per_success_tokens)}")
+    print("Product quality review:")
+    for line in quality_review:
+        print(f"- {line}")
+    print("Operational summary:")
     print(f"Closed goals: {summary['closed_tasks']}")
     print(f"Successes: {summary['successes']}")
     print(f"Fails: {summary['fails']}")
