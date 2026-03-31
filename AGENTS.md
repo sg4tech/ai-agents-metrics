@@ -30,6 +30,10 @@ Do not edit metrics files manually when the updater script can regenerate them.
 
 Use:
 
+`./tools/codex-metrics ...`
+
+Fallback compatibility path only:
+
 `python scripts/update_codex_metrics.py ...`
 
 Generated files:
@@ -84,8 +88,7 @@ Minimum validation commands:
 
 ```bash
 python -m pytest tests/test_update_codex_metrics.py
-python scripts/update_codex_metrics.py init
-python scripts/update_codex_metrics.py show
+./tools/codex-metrics show
 ```
 
 Prefer the repository's canonical local validation entrypoint when available:

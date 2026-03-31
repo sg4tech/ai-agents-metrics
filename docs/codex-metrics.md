@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 165
-- Successes: 165
+- Closed goals: 166
+- Successes: 166
 - Fails: 0
-- Total attempts: 171
-- Known total cost (USD): 222.284612
-- Known total tokens: 160733551
+- Total attempts: 172
+- Known total cost (USD): 222.511486
+- Known total tokens: 160897589
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 133/165 successful goals
-- Known token coverage: 133/165 successful goals
-- Complete cost coverage: 133/165 successful goals
-- Complete token coverage: 133/165 successful goals
-- Known Cost per Success (USD): 1.671313
-- Known Cost per Success (Tokens): 1208522.94
-- Complete Cost per Covered Success (USD): 1.671313
-- Complete Cost per Covered Success (Tokens): 1208522.94
+- Known cost coverage: 134/166 successful goals
+- Known token coverage: 134/166 successful goals
+- Complete cost coverage: 134/166 successful goals
+- Complete token coverage: 134/166 successful goals
+- Known Cost per Success (USD): 1.660533
+- Known Cost per Success (Tokens): 1200728.28
+- Complete Cost per Covered Success (USD): 1.660533
+- Complete Cost per Covered Success (Tokens): 1200728.28
 
 ## Entry summary
 
-- Closed entries: 171
-- Successes: 170
+- Closed entries: 172
+- Successes: 171
 - Fails: 1
 - Success Rate: 99.42%
-- Known total cost (USD): 221.387232
-- Known total tokens: 160017572
+- Known total cost (USD): 221.614106
+- Known total tokens: 160181610
 
 ## Operator review
 
@@ -77,24 +77,37 @@
 - Complete Cost per Covered Success (Tokens): 362310.31
 
 ### meta
-- Closed goals: 69
-- Successes: 69
+- Closed goals: 70
+- Successes: 70
 - Fails: 0
-- Total attempts: 69
-- Known total cost (USD): 98.227501
-- Known total tokens: 71660376
+- Total attempts: 70
+- Known total cost (USD): 98.454375
+- Known total tokens: 71824414
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 59/69 successful goals
-- Known token coverage: 59/69 successful goals
-- Complete cost coverage: 59/69 successful goals
-- Complete token coverage: 59/69 successful goals
-- Known Cost per Success (USD): 1.664873
-- Known Cost per Success (Tokens): 1214582.64
-- Complete Cost per Covered Success (USD): 1.664873
-- Complete Cost per Covered Success (Tokens): 1214582.64
+- Known cost coverage: 60/70 successful goals
+- Known token coverage: 60/70 successful goals
+- Complete cost coverage: 60/70 successful goals
+- Complete token coverage: 60/70 successful goals
+- Known Cost per Success (USD): 1.640906
+- Known Cost per Success (Tokens): 1197073.57
+- Complete Cost per Covered Success (USD): 1.640906
+- Complete Cost per Covered Success (Tokens): 1197073.57
 
 ## Goal log
+
+### 2026-03-31-009 — Align AGENTS with repo-local wrapper
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T09:06:23+00:00
+- Finished at: 2026-03-31T09:06:27+00:00
+- Cost (USD): 0.226874
+- Tokens: 164038
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Updated AGENTS.md so the codex-metrics repo now documents ./tools/codex-metrics as the canonical command path, with scripts/update_codex_metrics.py demoted to compatibility fallback. Verified the wrapper path with ./tools/codex-metrics show.
 
 ### 2026-03-31-008 — Bootstrap self repo wrapper
 - Goal type: product
@@ -2307,6 +2320,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-009-attempt-001 — 2026-03-31-009
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T09:06:23+00:00
+- Finished at: 2026-03-31T09:06:27+00:00
+- Cost (USD): 0.226874
+- Tokens: 164038
+- Failure reason: n/a
+- Notes: Updated AGENTS.md so the codex-metrics repo now documents ./tools/codex-metrics as the canonical command path, with scripts/update_codex_metrics.py demoted to compatibility fallback. Verified the wrapper path with ./tools/codex-metrics show.
 
 ### 2026-03-31-008-attempt-001 — 2026-03-31-008
 - Entry type: product
