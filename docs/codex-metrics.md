@@ -2,18 +2,18 @@
 
 ## Goal summary
 
-- Closed goals: 168
-- Successes: 168
+- Closed goals: 169
+- Successes: 169
 - Fails: 0
-- Total attempts: 174
+- Total attempts: 175
 - Known total cost (USD): 218.282345
 - Known total tokens: 157939597
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 139/168 successful goals
-- Known token coverage: 139/168 successful goals
-- Complete cost coverage: 139/168 successful goals
-- Complete token coverage: 139/168 successful goals
+- Known cost coverage: 139/169 successful goals
+- Known token coverage: 139/169 successful goals
+- Complete cost coverage: 139/169 successful goals
+- Complete token coverage: 139/169 successful goals
 - Known Cost per Success (USD): 1.570377
 - Known Cost per Success (Tokens): 1136256.09
 - Complete Cost per Covered Success (USD): 1.570377
@@ -21,8 +21,8 @@
 
 ## Entry summary
 
-- Closed entries: 174
-- Successes: 173
+- Closed entries: 175
+- Successes: 174
 - Fails: 1
 - Success Rate: 99.43%
 - Known total cost (USD): 222.942577
@@ -77,24 +77,37 @@
 - Complete Cost per Covered Success (Tokens): 362310.31
 
 ### meta
-- Closed goals: 71
-- Successes: 71
+- Closed goals: 72
+- Successes: 72
 - Fails: 0
-- Total attempts: 71
+- Total attempts: 72
 - Known total cost (USD): 98.932184
 - Known total tokens: 72170319
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 61/71 successful goals
-- Known token coverage: 61/71 successful goals
-- Complete cost coverage: 61/71 successful goals
-- Complete token coverage: 61/71 successful goals
+- Known cost coverage: 61/72 successful goals
+- Known token coverage: 61/72 successful goals
+- Complete cost coverage: 61/72 successful goals
+- Complete token coverage: 61/72 successful goals
 - Known Cost per Success (USD): 1.621839
 - Known Cost per Success (Tokens): 1183119.98
 - Complete Cost per Covered Success (USD): 1.621839
 - Complete Cost per Covered Success (Tokens): 1183119.98
 
 ## Goal log
+
+### 2026-03-31-012 — Store external metrics snapshot for audit context
+- Goal type: meta
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T09:47:56+00:00
+- Finished at: 2026-03-31T09:48:03+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Added a read-only external metrics snapshot directory under docs/audits and stored the current invest codex_metrics.json there with a README explaining that these files are point-in-time external raw data for analysis, not mutable project state.
 
 ### 2026-03-31-011 — Fix repo-local wrapper cwd semantics
 - Goal type: product
@@ -2346,6 +2359,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-012-attempt-001 — 2026-03-31-012
+- Entry type: meta
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T09:47:56+00:00
+- Finished at: 2026-03-31T09:48:03+00:00
+- Cost (USD): n/a
+- Tokens: n/a
+- Failure reason: n/a
+- Notes: Added a read-only external metrics snapshot directory under docs/audits and stored the current invest codex_metrics.json there with a README explaining that these files are point-in-time external raw data for analysis, not mutable project state.
 
 ### 2026-03-31-011-attempt-001 — 2026-03-31-011
 - Entry type: product

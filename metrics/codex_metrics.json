@@ -1,13 +1,13 @@
 {
   "summary": {
-    "closed_tasks": 168,
-    "successes": 168,
+    "closed_tasks": 169,
+    "successes": 169,
     "fails": 0,
-    "total_attempts": 174,
+    "total_attempts": 175,
     "total_cost_usd": 218.282345,
     "total_tokens": 157939597,
     "success_rate": 1.0,
-    "attempts_per_closed_task": 1.0357142857142858,
+    "attempts_per_closed_task": 1.0355029585798816,
     "known_cost_successes": 139,
     "known_token_successes": 139,
     "complete_cost_successes": 139,
@@ -20,10 +20,10 @@
     "cost_per_success_tokens": null,
     "by_goal_type": {
       "meta": {
-        "closed_tasks": 71,
-        "successes": 71,
+        "closed_tasks": 72,
+        "successes": 72,
         "fails": 0,
-        "total_attempts": 71,
+        "total_attempts": 72,
         "total_cost_usd": 98.932184,
         "total_tokens": 72170319,
         "success_rate": 1.0,
@@ -82,10 +82,10 @@
     },
     "by_task_type": {
       "meta": {
-        "closed_tasks": 71,
-        "successes": 71,
+        "closed_tasks": 72,
+        "successes": 72,
         "fails": 0,
-        "total_attempts": 71,
+        "total_attempts": 72,
         "total_cost_usd": 98.932184,
         "total_tokens": 72170319,
         "success_rate": 1.0,
@@ -143,10 +143,10 @@
       }
     },
     "entries": {
-      "closed_entries": 174,
-      "successes": 173,
+      "closed_entries": 175,
+      "successes": 174,
       "fails": 1,
-      "success_rate": 0.9942528735632183,
+      "success_rate": 0.9942857142857143,
       "total_cost_usd": 222.942577,
       "total_tokens": 161142249,
       "failure_reasons": {
@@ -2749,6 +2749,21 @@
       "failure_reason": null,
       "notes": "Updated bootstrap-generated wrapper semantics so tools/codex-metrics cds into its own repository root before exec. Added regression coverage for invocation from another working directory, verified make verify, updated the current repo wrapper, and confirmed /tmp path invocation still reads this repo's metrics.",
       "result_fit": "exact_fit"
+    },
+    {
+      "goal_id": "2026-03-31-012",
+      "title": "Store external metrics snapshot for audit context",
+      "goal_type": "meta",
+      "supersedes_goal_id": null,
+      "status": "success",
+      "attempts": 1,
+      "started_at": "2026-03-31T09:47:56+00:00",
+      "finished_at": "2026-03-31T09:48:03+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a read-only external metrics snapshot directory under docs/audits and stored the current invest codex_metrics.json there with a README explaining that these files are point-in-time external raw data for analysis, not mutable project state.",
+      "result_fit": null
     }
   ],
   "entries": [
@@ -5052,6 +5067,19 @@
       "tokens_total": 211084,
       "failure_reason": null,
       "notes": "Updated bootstrap-generated wrapper semantics so tools/codex-metrics cds into its own repository root before exec. Added regression coverage for invocation from another working directory, verified make verify, updated the current repo wrapper, and confirmed /tmp path invocation still reads this repo's metrics."
+    },
+    {
+      "entry_id": "2026-03-31-012-attempt-001",
+      "goal_id": "2026-03-31-012",
+      "entry_type": "meta",
+      "inferred": false,
+      "status": "success",
+      "started_at": "2026-03-31T09:47:56+00:00",
+      "finished_at": "2026-03-31T09:48:03+00:00",
+      "cost_usd": null,
+      "tokens_total": null,
+      "failure_reason": null,
+      "notes": "Added a read-only external metrics snapshot directory under docs/audits and stored the current invest codex_metrics.json there with a README explaining that these files are point-in-time external raw data for analysis, not mutable project state."
     }
   ]
 }
