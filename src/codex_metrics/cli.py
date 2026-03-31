@@ -12,7 +12,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from codex_metrics import domain, reporting, storage
+from codex_metrics import __version__, domain, reporting, storage
 from codex_metrics.bootstrap import bootstrap_project as run_bootstrap_project
 from codex_metrics.completion import render_completion
 from codex_metrics.cost_audit import (
@@ -688,6 +688,11 @@ def build_parser() -> argparse.ArgumentParser:
             "  %(prog)s sync-codex-usage\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

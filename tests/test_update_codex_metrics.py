@@ -2298,6 +2298,21 @@ def test_help_includes_goal_language_and_examples(repo: Path) -> None:
     assert "--status {success,fail}" in finish_help.stdout
 
 
+def test_script_shim_exposes_cli_version(repo: Path) -> None:
+    result = run_cmd(repo, "--version")
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "update_codex_metrics.py 0.1.0"
+
+
+def test_module_entrypoint_exposes_cli_version(repo: Path) -> None:
+    result = run_module_cmd(repo, "--version")
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip().endswith("0.1.0")
+    assert "codex_metrics" in result.stdout.strip()
+
+
 def test_high_level_task_commands_cover_start_continue_finish_flow(repo: Path) -> None:
     start_result = run_cmd(
         repo,
