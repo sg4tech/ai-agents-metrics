@@ -27,37 +27,37 @@
 
 ## Operational summary
 
-- Closed goals: 177
-- Successes: 176
-- Fails: 1
-- Total attempts: 183
-- Known total cost (USD): 227.986952
-- Known total tokens: 164872881
-- Success Rate: 99.44%
+- Closed goals: 179
+- Successes: 177
+- Fails: 2
+- Total attempts: 185
+- Known total cost (USD): 229.208893
+- Known total tokens: 166169079
+- Success Rate: 98.88%
 - Attempts per Closed Goal: 1.03
-- Known cost coverage: 146/176 successful goals
-- Known token coverage: 146/176 successful goals
-- Complete cost coverage: 146/176 successful goals
-- Complete token coverage: 146/176 successful goals
-- Known Cost per Success (USD): 1.558186
-- Known Cost per Success (Tokens): 1126881.36
-- Complete Cost per Covered Success (USD): 1.558186
-- Complete Cost per Covered Success (Tokens): 1126881.36
+- Known cost coverage: 147/177 successful goals
+- Known token coverage: 147/177 successful goals
+- Complete cost coverage: 147/177 successful goals
+- Complete token coverage: 147/177 successful goals
+- Known Cost per Success (USD): 1.549119
+- Known Cost per Success (Tokens): 1122487.14
+- Complete Cost per Covered Success (USD): 1.549119
+- Complete Cost per Covered Success (Tokens): 1122487.14
 
 ## Entry summary
 
-- Closed entries: 183
-- Successes: 181
-- Fails: 2
-- Success Rate: 98.91%
-- Known total cost (USD): 232.647184
-- Known total tokens: 168075533
+- Closed entries: 185
+- Successes: 182
+- Fails: 3
+- Success Rate: 98.38%
+- Known total cost (USD): 233.869125
+- Known total tokens: 169371731
 
 
 ## By goal type
 
 ### Entry failure reasons
-- model_mistake: 1
+- model_mistake: 2
 - unclear_task: 1
 
 ### product
@@ -79,22 +79,22 @@
 - Complete Cost per Covered Success (Tokens): 1488230.02
 
 ### retro
-- Closed goals: 38
-- Successes: 37
-- Fails: 1
-- Total attempts: 38
-- Known total cost (USD): 14.714788
-- Known total tokens: 10472532
-- Success Rate: 97.37%
+- Closed goals: 40
+- Successes: 38
+- Fails: 2
+- Total attempts: 40
+- Known total cost (USD): 15.936729
+- Known total tokens: 11768730
+- Success Rate: 95.00%
 - Attempts per Closed Goal: 1.00
-- Known cost coverage: 28/37 successful goals
-- Known token coverage: 28/37 successful goals
-- Complete cost coverage: 28/37 successful goals
-- Complete token coverage: 28/37 successful goals
-- Known Cost per Success (USD): 0.507962
-- Known Cost per Success (Tokens): 361583.18
-- Complete Cost per Covered Success (USD): 0.507962
-- Complete Cost per Covered Success (Tokens): 361583.18
+- Known cost coverage: 29/38 successful goals
+- Known token coverage: 29/38 successful goals
+- Complete cost coverage: 29/38 successful goals
+- Complete token coverage: 29/38 successful goals
+- Known Cost per Success (USD): 0.498217
+- Known Cost per Success (Tokens): 365698.66
+- Complete Cost per Covered Success (USD): 0.498217
+- Complete Cost per Covered Success (Tokens): 365698.66
 
 ### meta
 - Closed goals: 74
@@ -115,6 +115,32 @@
 - Complete Cost per Covered Success (Tokens): 1151550.76
 
 ## Goal log
+
+### 2026-03-31-023 — Retro agent-first recommendation layer demo
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T13:00:17+00:00
+- Finished at: 2026-03-31T13:01:07+00:00
+- Cost (USD): 0.225368
+- Tokens: 480932
+- Failure reason: n/a
+- Result fit: n/a
+- Notes: Lead review passed, QA passed with make verify, and the product demo confirmed that the recommendation layer improved agent actionability.
+
+### 2026-03-31-022 — Retro agent recommendation layer rollout
+- Goal type: retro
+- Supersedes goal: n/a
+- Status: fail
+- Attempts: 1
+- Started at: 2026-03-31T12:59:23+00:00
+- Finished at: 2026-03-31T13:01:28+00:00
+- Cost (USD): 0.996573
+- Tokens: 815266
+- Failure reason: model_mistake
+- Result fit: n/a
+- Notes: This retro goal was a duplicate staging task. The accepted retrospective was captured under 2026-03-31-023, so this earlier in-progress record is being closed to keep history clean.
 
 ### 2026-03-31-021 — Build agent-first recommendation layer
 - Goal type: product
@@ -2496,6 +2522,28 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-023-attempt-001 — 2026-03-31-023
+- Entry type: retro
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T13:00:17+00:00
+- Finished at: 2026-03-31T13:01:07+00:00
+- Cost (USD): 0.225368
+- Tokens: 480932
+- Failure reason: n/a
+- Notes: Lead review passed, QA passed with make verify, and the product demo confirmed that the recommendation layer improved agent actionability.
+
+### 2026-03-31-022-attempt-001 — 2026-03-31-022
+- Entry type: retro
+- Inferred: no
+- Status: fail
+- Started at: 2026-03-31T12:59:23+00:00
+- Finished at: 2026-03-31T13:01:28+00:00
+- Cost (USD): 0.996573
+- Tokens: 815266
+- Failure reason: model_mistake
+- Notes: This retro goal was a duplicate staging task. The accepted retrospective was captured under 2026-03-31-023, so this earlier in-progress record is being closed to keep history clean.
 
 ### 2026-03-31-021-attempt-001 — 2026-03-31-021
 - Entry type: product
