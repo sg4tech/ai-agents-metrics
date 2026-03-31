@@ -2,31 +2,31 @@
 
 ## Goal summary
 
-- Closed goals: 161
-- Successes: 161
+- Closed goals: 162
+- Successes: 162
 - Fails: 0
-- Total attempts: 167
-- Known total cost (USD): 220.938961
-- Known total tokens: 159747663
+- Total attempts: 168
+- Known total cost (USD): 221.104706
+- Known total tokens: 159867529
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.04
-- Known cost coverage: 129/161 successful goals
-- Known token coverage: 129/161 successful goals
-- Complete cost coverage: 129/161 successful goals
-- Complete token coverage: 129/161 successful goals
-- Known Cost per Success (USD): 1.712705
-- Known Cost per Success (Tokens): 1238353.98
-- Complete Cost per Covered Success (USD): 1.712705
-- Complete Cost per Covered Success (Tokens): 1238353.98
+- Known cost coverage: 130/162 successful goals
+- Known token coverage: 130/162 successful goals
+- Complete cost coverage: 130/162 successful goals
+- Complete token coverage: 130/162 successful goals
+- Known Cost per Success (USD): 1.700805
+- Known Cost per Success (Tokens): 1229750.22
+- Complete Cost per Covered Success (USD): 1.700805
+- Complete Cost per Covered Success (Tokens): 1229750.22
 
 ## Entry summary
 
-- Closed entries: 167
-- Successes: 166
+- Closed entries: 168
+- Successes: 167
 - Fails: 1
 - Success Rate: 99.40%
-- Known total cost (USD): 220.041581
-- Known total tokens: 159031684
+- Known total cost (USD): 220.207326
+- Known total tokens: 159151550
 
 ## Operator review
 
@@ -41,22 +41,22 @@
 - unclear_task: 1
 
 ### product
-- Closed goals: 58
-- Successes: 58
+- Closed goals: 59
+- Successes: 59
 - Fails: 0
-- Total attempts: 64
-- Known total cost (USD): 109.674536
-- Known total tokens: 78806052
+- Total attempts: 65
+- Known total cost (USD): 109.840281
+- Known total tokens: 78925918
 - Success Rate: 100.00%
 - Attempts per Closed Goal: 1.10
-- Known cost coverage: 45/58 successful goals
-- Known token coverage: 45/58 successful goals
-- Complete cost coverage: 45/58 successful goals
-- Complete token coverage: 45/58 successful goals
-- Known Cost per Success (USD): 2.437212
-- Known Cost per Success (Tokens): 1751245.60
-- Complete Cost per Covered Success (USD): 2.437212
-- Complete Cost per Covered Success (Tokens): 1751245.60
+- Known cost coverage: 46/59 successful goals
+- Known token coverage: 46/59 successful goals
+- Complete cost coverage: 46/59 successful goals
+- Complete token coverage: 46/59 successful goals
+- Known Cost per Success (USD): 2.387832
+- Known Cost per Success (Tokens): 1715780.83
+- Complete Cost per Covered Success (USD): 2.387832
+- Complete Cost per Covered Success (Tokens): 1715780.83
 
 ### retro
 - Closed goals: 34
@@ -95,6 +95,19 @@
 - Complete Cost per Covered Success (Tokens): 1214582.64
 
 ## Goal log
+
+### 2026-03-31-005 — Bump package version to 0.2.0
+- Goal type: product
+- Supersedes goal: n/a
+- Status: success
+- Attempts: 1
+- Started at: 2026-03-31T08:50:05+00:00
+- Finished at: 2026-03-31T08:50:11+00:00
+- Cost (USD): 0.165745
+- Tokens: 119866
+- Failure reason: n/a
+- Result fit: exact_fit
+- Notes: Bumped the package version from 0.1.0 to 0.2.0, refreshed the editable local install so .venv/bin/codex-metrics reports the same version, replaced hardcoded wheel-version examples in README with placeholders, and made version tests follow PACKAGE_VERSION.
 
 ### 2026-03-31-004 — Align local CLI install surfaces
 - Goal type: product
@@ -2255,6 +2268,17 @@
 - Notes: Added negative cost/token validation with tests; validated with init/show; pytest passed after installing pytest into .venv.
 
 ## Entry log
+
+### 2026-03-31-005-attempt-001 — 2026-03-31-005
+- Entry type: product
+- Inferred: no
+- Status: success
+- Started at: 2026-03-31T08:50:05+00:00
+- Finished at: 2026-03-31T08:50:11+00:00
+- Cost (USD): 0.165745
+- Tokens: 119866
+- Failure reason: n/a
+- Notes: Bumped the package version from 0.1.0 to 0.2.0, refreshed the editable local install so .venv/bin/codex-metrics reports the same version, replaced hardcoded wheel-version examples in README with placeholders, and made version tests follow PACKAGE_VERSION.
 
 ### 2026-03-31-004-attempt-001 — 2026-03-31-004
 - Entry type: product

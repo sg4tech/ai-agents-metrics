@@ -295,13 +295,13 @@ Update from a built wheel or release artifact:
 
 ```bash
 # preferred
-pipx install --force /path/to/dist/codex_metrics-0.1.0-py3-none-any.whl
+pipx install --force /path/to/dist/codex_metrics-<version>-py3-none-any.whl
 
 # macOS / Linux fallback
-python3 -m pip install --upgrade /path/to/dist/codex_metrics-0.1.0-py3-none-any.whl
+python3 -m pip install --upgrade /path/to/dist/codex_metrics-<version>-py3-none-any.whl
 
 # Windows fallback
-py -m pip install --upgrade C:\path\to\codex_metrics-0.1.0-py3-none-any.whl
+py -m pip install --upgrade C:\path\to\codex_metrics-<version>-py3-none-any.whl
 ```
 
 Then move into the already-bootstrapped target repository and preview what would change:

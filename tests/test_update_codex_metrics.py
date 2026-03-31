@@ -17,6 +17,11 @@ ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
 ABS_SRC = WORKSPACE_ROOT / "src"
 PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
+if str(ABS_SRC) not in sys.path:
+    sys.path.insert(0, str(ABS_SRC))
+
+from codex_metrics import __version__ as PACKAGE_VERSION
+
 
 def build_cmd(*args: str) -> list[str]:
     script = str(SCRIPT)
@@ -2302,14 +2307,14 @@ def test_script_shim_exposes_cli_version(repo: Path) -> None:
     result = run_cmd(repo, "--version")
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "update_codex_metrics.py 0.1.0"
+    assert result.stdout.strip() == f"update_codex_metrics.py {PACKAGE_VERSION}"
 
 
 def test_module_entrypoint_exposes_cli_version(repo: Path) -> None:
     result = run_module_cmd(repo, "--version")
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip().endswith("0.1.0")
+    assert result.stdout.strip().endswith(PACKAGE_VERSION)
     assert "codex_metrics" in result.stdout.strip()
 
 
