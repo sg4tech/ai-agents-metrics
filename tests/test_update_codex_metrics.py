@@ -22,7 +22,7 @@ if str(ABS_SRC) not in sys.path:
 
 import codex_metrics as codex_metrics_pkg
 from codex_metrics import __version__ as PACKAGE_VERSION
-from codex_metrics.usage_backends import ClaudeUsageBackend
+from codex_metrics.usage_backends import ClaudeUsageBackend, select_usage_backend
 from codex_metrics.usage_backends import resolve_usage_window as resolve_backend_usage_window
 
 BASE_PACKAGE_VERSION = codex_metrics_pkg._BASE_VERSION
@@ -3111,6 +3111,11 @@ def test_claude_usage_backend_backfills_from_claude_thread_session(repo: Path) -
     assert window.backend_name == "claude"
     assert window.total_tokens == 1625
     assert window.cost_usd == 0.006263
+
+
+def test_missing_usage_state_uses_unknown_backend(repo: Path) -> None:
+    backend = select_usage_backend(repo / "missing_state.sqlite", repo, None)
+    assert backend.name == "unknown"
 
 
 def test_merge_tasks_combines_attempt_history_into_kept_task(repo: Path) -> None:

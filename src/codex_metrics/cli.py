@@ -31,7 +31,7 @@ from codex_metrics.usage_backends import (
     ClaudeUsageBackend,
     UsageBackend,
     UsageWindow,
-    detect_backend_name,
+    select_usage_backend,
 )
 from codex_metrics.usage_backends import (
     resolve_usage_window as resolve_backend_usage_window,
@@ -234,7 +234,7 @@ def compute_event_cost_usd(event: dict[str, Any], pricing: dict[str, dict[str, f
     return round_usd(input_cost + cached_input_cost + output_cost)
 
 
-def find_codex_thread_id(state_path: Path, cwd: Path, thread_id: str | None) -> str | None:
+def find_usage_thread_id(state_path: Path, cwd: Path, thread_id: str | None) -> str | None:
     if not state_path.exists():
         return None
 
@@ -257,7 +257,11 @@ def find_codex_thread_id(state_path: Path, cwd: Path, thread_id: str | None) -> 
     return None if row is None else str(row["id"])
 
 
-def _resolve_codex_usage_window_impl(
+def find_codex_thread_id(state_path: Path, cwd: Path, thread_id: str | None) -> str | None:
+    return find_usage_thread_id(state_path, cwd, thread_id)
+
+
+def _resolve_usage_window_impl(
     state_path: Path,
     logs_path: Path,
     cwd: Path,
@@ -274,7 +278,7 @@ def _resolve_codex_usage_window_impl(
     if finished_dt < started_dt:
         raise ValueError("finished_at cannot be earlier than started_at")
 
-    resolved_thread_id = find_codex_thread_id(state_path, cwd, thread_id)
+    resolved_thread_id = find_usage_thread_id(state_path, cwd, thread_id)
     if resolved_thread_id is None:
         return None, None, None, None, None, None
 
@@ -305,7 +309,7 @@ def _resolve_codex_usage_window_impl(
             usage_events.append(event)
 
     if not usage_events:
-        session_cost_usd, session_total_tokens, session_input_tokens, session_cached_input_tokens, session_output_tokens, session_model = resolve_codex_session_usage_window(
+        session_cost_usd, session_total_tokens, session_input_tokens, session_cached_input_tokens, session_output_tokens, session_model = resolve_usage_session_window(
             logs_path=logs_path,
             thread_id=resolved_thread_id,
             started_dt=started_dt,
@@ -367,7 +371,7 @@ class _CodexUsageBackend:
         pricing_path: Path,
         thread_id: str | None = None,
     ) -> UsageWindow:
-        cost_usd, total_tokens, input_tokens, cached_input_tokens, output_tokens, agent_name = _resolve_codex_usage_window_impl(
+        cost_usd, total_tokens, input_tokens, cached_input_tokens, output_tokens, agent_name = _resolve_usage_window_impl(
             state_path=state_path,
             logs_path=logs_path,
             cwd=cwd,
@@ -391,11 +395,34 @@ DEFAULT_USAGE_BACKEND: UsageBackend = _CodexUsageBackend()
 CLAUDE_USAGE_BACKEND: UsageBackend = ClaudeUsageBackend()
 
 
-def select_usage_backend(state_path: Path, cwd: Path, thread_id: str | None) -> UsageBackend:
-    backend_name = detect_backend_name(state_path, cwd, thread_id)
-    if backend_name == "claude":
-        return CLAUDE_USAGE_BACKEND
-    return DEFAULT_USAGE_BACKEND
+def resolve_usage_window(
+    state_path: Path,
+    logs_path: Path,
+    cwd: Path,
+    started_at: str | None,
+    finished_at: str | None,
+    pricing_path: Path,
+    thread_id: str | None = None,
+) -> tuple[float | None, int | None, int | None, int | None, int | None, str | None]:
+    resolved_backend = select_usage_backend(state_path, cwd, thread_id)
+    window = resolve_backend_usage_window(
+        resolved_backend,
+        state_path=state_path,
+        logs_path=logs_path,
+        cwd=cwd,
+        started_at=started_at,
+        finished_at=finished_at,
+        pricing_path=pricing_path,
+        thread_id=thread_id,
+    )
+    return (
+        window.cost_usd,
+        window.total_tokens,
+        window.input_tokens,
+        window.cached_input_tokens,
+        window.output_tokens,
+        window.model_name,
+    )
 
 
 def resolve_codex_usage_window(
@@ -464,7 +491,7 @@ def resolve_thread_model_from_logs(logs_path: Path, thread_id: str) -> str | Non
     return None
 
 
-def resolve_codex_session_usage_window(
+def resolve_usage_session_window(
     *,
     logs_path: Path,
     thread_id: str,
@@ -545,6 +572,23 @@ def resolve_codex_session_usage_window(
         total_cached_input_tokens if breakdown_found else None,
         total_output_tokens if breakdown_found else None,
         model_found if tokens_found else None,
+    )
+
+
+def resolve_codex_session_usage_window(
+    *,
+    logs_path: Path,
+    thread_id: str,
+    started_dt: datetime,
+    finished_dt: datetime,
+    pricing: dict[str, dict[str, float | None]],
+) -> tuple[float | None, int | None, int | None, int | None, int | None, str | None]:
+    return resolve_usage_session_window(
+        logs_path=logs_path,
+        thread_id=thread_id,
+        started_dt=started_dt,
+        finished_dt=finished_dt,
+        pricing=pricing,
     )
 
 
@@ -1289,7 +1333,7 @@ def audit_cost_coverage(
         thread_id: str | None = None,
     ) -> tuple[float | None, int | None]:
         window = resolve_backend_usage_window(
-            DEFAULT_USAGE_BACKEND,
+            select_usage_backend(state_path, cwd, thread_id),
             state_path=state_path,
             logs_path=logs_path,
             cwd=cwd,
@@ -1307,7 +1351,7 @@ def audit_cost_coverage(
         codex_logs_path=codex_logs_path,
         cwd=cwd,
         codex_thread_id=codex_thread_id,
-        find_thread_id=find_codex_thread_id,
+        find_thread_id=find_usage_thread_id,
         resolve_usage_window=resolve_cost_audit_usage_window,
     )
 

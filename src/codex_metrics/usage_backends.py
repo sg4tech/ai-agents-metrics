@@ -33,7 +33,35 @@ class UsageBackend(Protocol):
     ) -> UsageWindow: ...
 
 
-def detect_backend_name(
+class UnknownUsageBackend:
+    name = "unknown"
+
+    def resolve_window(
+        self,
+        *,
+        state_path: Path,
+        logs_path: Path,
+        cwd: Path,
+        started_at: str | None,
+        finished_at: str | None,
+        pricing_path: Path,
+        thread_id: str | None = None,
+    ) -> UsageWindow:
+        return UsageWindow(
+            cost_usd=None,
+            total_tokens=None,
+            input_tokens=None,
+            cached_input_tokens=None,
+            output_tokens=None,
+            model_name=None,
+            backend_name=self.name,
+        )
+
+
+UNKNOWN_USAGE_BACKEND: UsageBackend = UnknownUsageBackend()
+
+
+def detect_usage_backend_name(
     state_path: Path,
     cwd: Path,
     thread_id: str | None,
@@ -71,7 +99,17 @@ def detect_backend_name(
     provider = row["model_provider"] if "model_provider" in row.keys() else None
     if provider in {"anthropic", "claude"}:
         return "claude"
-    return "codex"
+    if provider in {"openai", "codex"}:
+        return "codex"
+    return None
+
+
+def detect_backend_name(
+    state_path: Path,
+    cwd: Path,
+    thread_id: str | None,
+) -> str | None:
+    return detect_usage_backend_name(state_path, cwd, thread_id)
 
 
 def find_thread_id(
@@ -179,6 +217,56 @@ class ClaudeUsageBackend:
             model_name=model_name,
             backend_name=self.name,
         )
+
+
+class CodexUsageBackend:
+    name = "codex"
+
+    def resolve_window(
+        self,
+        *,
+        state_path: Path,
+        logs_path: Path,
+        cwd: Path,
+        started_at: str | None,
+        finished_at: str | None,
+        pricing_path: Path,
+        thread_id: str | None = None,
+    ) -> UsageWindow:
+        from codex_metrics import cli as cli_module
+
+        cost_usd, total_tokens, input_tokens, cached_input_tokens, output_tokens, model_name = cli_module.resolve_codex_usage_window(
+            state_path=state_path,
+            logs_path=logs_path,
+            cwd=cwd,
+            started_at=started_at,
+            finished_at=finished_at,
+            pricing_path=pricing_path,
+            thread_id=thread_id,
+        )
+        return UsageWindow(
+            cost_usd=cost_usd,
+            total_tokens=total_tokens,
+            input_tokens=input_tokens,
+            cached_input_tokens=cached_input_tokens,
+            output_tokens=output_tokens,
+            model_name=model_name,
+            backend_name=self.name,
+        )
+
+
+USAGE_BACKENDS: dict[str, UsageBackend] = {
+    "codex": CodexUsageBackend(),
+    "claude": ClaudeUsageBackend(),
+    "unknown": UNKNOWN_USAGE_BACKEND,
+}
+
+
+def select_usage_backend(state_path: Path, cwd: Path, thread_id: str | None) -> UsageBackend:
+    backend_name = detect_usage_backend_name(state_path, cwd, thread_id)
+    if backend_name is None:
+        return UNKNOWN_USAGE_BACKEND
+    return USAGE_BACKENDS.get(backend_name, UNKNOWN_USAGE_BACKEND)
 
 
 def resolve_usage_window(
