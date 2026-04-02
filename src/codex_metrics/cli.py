@@ -29,6 +29,12 @@ from codex_metrics.history_audit import (
 from codex_metrics.history_audit import (
     render_audit_report as render_history_audit_report,
 )
+from codex_metrics.history_compare import (
+    compare_metrics_to_history as build_history_compare_report,
+)
+from codex_metrics.history_compare import (
+    render_history_compare_report as render_compare_report,
+)
 from codex_metrics.history_ingest import (
     IngestSummary,
     default_raw_warehouse_path,
@@ -39,6 +45,15 @@ from codex_metrics.history_ingest import (
 from codex_metrics.history_normalize import (
     NormalizeSummary,
     normalize_codex_history as run_normalize_codex_history,
+)
+from codex_metrics.history_derive import (
+    DeriveSummary,
+    derive_codex_history as run_derive_codex_history,
+)
+from codex_metrics.workflow_fsm import (
+    WorkflowEvent,
+    classify_workflow_state,
+    decide_workflow_transition,
 )
 from codex_metrics.usage_backends import (
     ClaudeUsageBackend,
@@ -52,6 +67,7 @@ from codex_metrics.usage_backends import (
 
 build_operator_review = reporting.build_operator_review
 audit_history = build_history_audit_report
+compare_metrics_to_history = build_history_compare_report
 format_coverage = reporting.format_coverage
 format_num = reporting.format_num
 format_pct = reporting.format_pct
@@ -60,6 +76,7 @@ generate_report_md = reporting.generate_report_md
 print_summary = reporting.print_summary
 render_cost_audit_report = render_cost_coverage_audit_report
 render_audit_report = render_history_audit_report
+render_history_compare_report = render_compare_report
 
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
 ALLOWED_TASK_TYPES = domain.ALLOWED_TASK_TYPES
@@ -185,6 +202,10 @@ def normalize_codex_history(warehouse_path: Path) -> NormalizeSummary:
     return run_normalize_codex_history(warehouse_path=warehouse_path)
 
 
+def derive_codex_history(warehouse_path: Path) -> DeriveSummary:
+    return run_derive_codex_history(warehouse_path=warehouse_path)
+
+
 def _run_git(cwd: Path, *args: str) -> str | None:
     try:
         result = subprocess.run(
@@ -280,22 +301,28 @@ def get_active_goals(data: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def build_active_task_warning(data: dict[str, Any], cwd: Path) -> str | None:
-    if get_active_goals(data):
-        return None
     report = detect_started_work(cwd)
-    if not report.git_available:
-        return "Warning: unable to detect started work reliably in this repository."
-    if not report.started_work_detected:
-        return None
-    return (
-        "Warning: repository work appears to have started without an active goal. "
-        f"{report.reason}. Run `codex-metrics ensure-active-task` to recover bookkeeping."
+    state = classify_workflow_state(
+        active_goal_count=len(get_active_goals(data)),
+        started_work_detected=report.started_work_detected if report.git_available else None,
+        git_available=report.git_available,
     )
+    decision = decide_workflow_transition(state, WorkflowEvent.SHOW)
+    if decision.action != "warning":
+        return None
+    return f"Warning: {decision.message}."
 
 
 def ensure_active_task(data: dict[str, Any], cwd: Path) -> ActiveTaskResolution:
+    report = detect_started_work(cwd)
+    state = classify_workflow_state(
+        active_goal_count=len(get_active_goals(data)),
+        started_work_detected=report.started_work_detected if report.git_available else None,
+        git_available=report.git_available,
+    )
+    decision = decide_workflow_transition(state, WorkflowEvent.ENSURE_ACTIVE_TASK)
     active_goals = get_active_goals(data)
-    if active_goals:
+    if active_goals and decision.action == "no_op":
         active_ids = ", ".join(goal["goal_id"] for goal in active_goals)
         active_goal = active_goals[0]
         return ActiveTaskResolution(
@@ -303,20 +330,11 @@ def ensure_active_task(data: dict[str, Any], cwd: Path) -> ActiveTaskResolution:
             goal_id=active_goal["goal_id"] if len(active_goals) == 1 else None,
             message=f"Active goal already exists: {active_ids}",
         )
-
-    report = detect_started_work(cwd)
-    if not report.git_available:
+    if decision.action == "no_op":
         return ActiveTaskResolution(
             status="not_needed",
             goal_id=None,
-            message="Cannot detect started work reliably in this repository; no active task was created.",
-            started_work_report=report,
-        )
-    if not report.started_work_detected:
-        return ActiveTaskResolution(
-            status="not_needed",
-            goal_id=None,
-            message="No active task recovery needed.",
+            message=decision.message,
             started_work_report=report,
         )
 
@@ -1134,6 +1152,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  %(prog)s ensure-active-task\n"
             "  %(prog)s ingest-codex-history --source-root ~/.codex\n"
             "  %(prog)s normalize-codex-history\n"
+            "  %(prog)s derive-codex-history\n"
             "  %(prog)s audit-cost-coverage\n"
             "  %(prog)s sync-usage\n"
         ),
@@ -1375,6 +1394,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
 
+    compare_parser = subparsers.add_parser(
+        "compare-metrics-history",
+        help="Compare the structured metrics ledger against reconstructed Codex history",
+        description=(
+            "Read the metrics source of truth and a derived Codex history warehouse, then print an "
+            "aggregate comparison for the current repository cwd."
+        ),
+    )
+    compare_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    compare_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
+    compare_parser.add_argument("--cwd", default=str(Path.cwd()))
+
     ingest_parser = subparsers.add_parser(
         "ingest-codex-history",
         help="Ingest local ~/.codex history into a raw SQLite warehouse",
@@ -1402,6 +1433,20 @@ def build_parser() -> argparse.ArgumentParser:
         "--warehouse-path",
         default=str(RAW_WAREHOUSE_PATH),
         help="SQLite warehouse path that already contains raw imported data",
+    )
+
+    derive_parser = subparsers.add_parser(
+        "derive-codex-history",
+        help="Derive analysis marts from normalized Codex history",
+        description=(
+            "Read the normalized warehouse populated by normalize-codex-history and build reusable "
+            "analysis marts for goals, attempts, timelines, retry chains, and usage slices."
+        ),
+    )
+    derive_parser.add_argument(
+        "--warehouse-path",
+        default=str(RAW_WAREHOUSE_PATH),
+        help="SQLite warehouse path that already contains normalized Codex history",
     )
 
     cost_audit_parser = subparsers.add_parser(
@@ -1714,11 +1759,17 @@ def main() -> int:
     if args.command == "audit-history":
         return commands.handle_audit_history(args, sys.modules[__name__])
 
+    if args.command == "compare-metrics-history":
+        return commands.handle_compare_metrics_to_history(args, sys.modules[__name__])
+
     if args.command == "ingest-codex-history":
         return commands.handle_ingest_codex_history(args, sys.modules[__name__])
 
     if args.command == "normalize-codex-history":
         return commands.handle_normalize_codex_history(args, sys.modules[__name__])
+
+    if args.command == "derive-codex-history":
+        return commands.handle_derive_codex_history(args, sys.modules[__name__])
 
     if args.command == "audit-cost-coverage":
         return commands.handle_audit_cost_coverage(args, sys.modules[__name__])

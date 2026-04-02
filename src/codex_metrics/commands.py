@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from codex_metrics.cost_audit import CostAuditReport
+from codex_metrics.history_compare import HistoryCompareReport
 from codex_metrics.history_audit import AuditReport
+from codex_metrics.workflow_fsm import WorkflowEvent, classify_workflow_state, decide_workflow_transition
 from codex_metrics.observability import (
     record_goal_merge_observation,
     record_goal_mutation_observation,
@@ -61,9 +63,12 @@ class CommandRuntime(Protocol):
     def ensure_active_task(self, data: dict[str, Any], cwd: Path) -> Any: ...
     def get_active_goals(self, data: dict[str, Any]) -> list[dict[str, Any]]: ...
     def audit_history(self, data: dict[str, Any]) -> AuditReport: ...
+    def compare_metrics_to_history(self, data: dict[str, Any], *, warehouse_path: Path, cwd: Path, metrics_path: Path) -> HistoryCompareReport: ...
     def ingest_codex_history(self, source_root: Path, warehouse_path: Path) -> Any: ...
     def normalize_codex_history(self, warehouse_path: Path) -> Any: ...
+    def derive_codex_history(self, warehouse_path: Path) -> Any: ...
     def render_audit_report(self, report: AuditReport) -> str: ...
+    def render_history_compare_report(self, report: HistoryCompareReport) -> str: ...
     def audit_cost_coverage(
         self,
         data: dict[str, Any],
@@ -399,19 +404,29 @@ def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
     data = cli_module.load_metrics(metrics_path)
     cli_module.recompute_summary(data)
     warning = None
-    if not cli_module.get_active_goals(data):
-        report = cli_module.detect_started_work(Path.cwd())
-        if report.git_available and report.started_work_detected:
-            warning = (
-                "Warning: repository work appears to have started without an active goal. "
-                f"{report.reason}. Run `codex-metrics ensure-active-task` to recover bookkeeping."
-            )
-        elif not report.git_available:
-            warning = "Warning: unable to detect started work reliably in this repository."
+    report = cli_module.detect_started_work(Path.cwd())
+    state = classify_workflow_state(
+        active_goal_count=len(cli_module.get_active_goals(data)),
+        started_work_detected=report.started_work_detected if report.git_available else None,
+        git_available=report.git_available,
+    )
+    decision = decide_workflow_transition(state, WorkflowEvent.SHOW)
+    if decision.action == "warning":
+        warning = f"Warning: {decision.message}."
     if warning is not None:
         print(warning)
     cli_module.print_summary(data)
     return 0
+
+
+def _command_requires_active_goal(args: Namespace) -> bool:
+    if args.command == "continue-task":
+        return True
+    if args.command == "finish-task":
+        return False
+    if args.command == "update":
+        return getattr(args, "status", None) in {None, "in_progress"}
+    return False
 
 
 def _require_active_goal_for_existing_mutation(cli_module: CommandRuntime, cwd: Path, data: dict[str, Any]) -> None:
@@ -420,10 +435,15 @@ def _require_active_goal_for_existing_mutation(cli_module: CommandRuntime, cwd: 
         return
 
     report = cli_module.detect_started_work(cwd)
-    if report.git_available and report.started_work_detected:
+    state = classify_workflow_state(
+        active_goal_count=len(active_goals),
+        started_work_detected=report.started_work_detected if report.git_available else None,
+        git_available=report.git_available,
+    )
+    decision = decide_workflow_transition(state, WorkflowEvent.CONTINUE_TASK)
+    if decision.action == "block":
         raise ValueError(
-            "repository work appears to have started without an active goal; "
-            "run `codex-metrics ensure-active-task` before mutating existing goals"
+            decision.message
         )
 
 
@@ -447,6 +467,21 @@ def handle_audit_history(args: Namespace, cli_module: CommandRuntime) -> int:
     return 0
 
 
+def handle_compare_metrics_to_history(args: Namespace, cli_module: CommandRuntime) -> int:
+    metrics_path = Path(args.metrics_path)
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    cwd = Path(args.cwd).expanduser()
+    data = cli_module.load_metrics(metrics_path)
+    report = cli_module.compare_metrics_to_history(
+        data,
+        warehouse_path=warehouse_path,
+        cwd=cwd,
+        metrics_path=metrics_path,
+    )
+    print(cli_module.render_history_compare_report(report))
+    return 0
+
+
 def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
     source_root = Path(args.source_root).expanduser()
     warehouse_path = Path(args.warehouse_path).expanduser()
@@ -457,9 +492,17 @@ def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     print(f"Scanned files: {summary.scanned_files}")
     print(f"Imported files: {summary.imported_files}")
     print(f"Skipped files: {summary.skipped_files}")
+    print(f"Projects: {summary.projects}")
     print(f"Threads: {summary.threads}")
     print(f"Sessions: {summary.sessions}")
     print(f"Session events: {summary.session_events}")
+    print(f"Token count events: {summary.token_count_events}")
+    print(f"Token usage events: {summary.token_usage_events}")
+    print(f"Input tokens: {summary.input_tokens}")
+    print(f"Cached input tokens: {summary.cached_input_tokens}")
+    print(f"Output tokens: {summary.output_tokens}")
+    print(f"Reasoning output tokens: {summary.reasoning_output_tokens}")
+    print(f"Total tokens: {summary.total_tokens}")
     print(f"Messages: {summary.messages}")
     print(f"Logs: {summary.logs}")
     return 0
@@ -470,11 +513,26 @@ def handle_normalize_codex_history(args: Namespace, cli_module: CommandRuntime) 
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.normalize_codex_history(warehouse_path)
     print(f"Normalized Codex history in {summary.warehouse_path}")
+    print(f"Projects: {summary.projects}")
     print(f"Threads: {summary.threads}")
     print(f"Sessions: {summary.sessions}")
     print(f"Messages: {summary.messages}")
     print(f"Usage events: {summary.usage_events}")
     print(f"Logs: {summary.logs}")
+    return 0
+
+
+def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    with cli_module.metrics_mutation_lock(warehouse_path):
+        summary = cli_module.derive_codex_history(warehouse_path)
+    print(f"Derived Codex history in {summary.warehouse_path}")
+    print(f"Projects: {summary.projects}")
+    print(f"Goals: {summary.goals}")
+    print(f"Attempts: {summary.attempts}")
+    print(f"Timeline events: {summary.timeline_events}")
+    print(f"Retry chains: {summary.retry_chains}")
+    print(f"Usage slices: {summary.usage_slices}")
     return 0
 
 
@@ -569,7 +627,7 @@ def handle_update(args: Namespace, cli_module: CommandRuntime) -> int:
     codex_logs_path = Path(args.codex_logs_path)
     with cli_module.metrics_mutation_lock(metrics_path):
         data = cli_module.load_metrics(metrics_path)
-        if args.task_id is not None:
+        if args.task_id is not None and _command_requires_active_goal(args):
             _require_active_goal_for_existing_mutation(cli_module, Path.cwd(), data)
         previous_task = None
         existing_task = None

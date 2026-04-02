@@ -515,7 +515,8 @@ def test_show_warns_when_repo_work_started_without_active_goal(repo: Path) -> No
     result = run_cmd(repo, "show")
 
     assert result.returncode == 0, result.stderr
-    assert "Warning: repository work appears to have started without an active goal." in result.stdout
+    assert "Warning: repository work appears to have started without an active goal;" in result.stdout
+    assert "ensure-active-task" in result.stdout
 
 
 def test_continue_task_is_blocked_when_started_work_exists_without_active_goal(repo: Path) -> None:
@@ -536,6 +537,39 @@ def test_continue_task_is_blocked_when_started_work_exists_without_active_goal(r
 
     assert continue_result.returncode == 1
     assert "ensure-active-task" in continue_result.stderr
+
+
+def test_update_can_repair_closed_goal_without_active_goal(repo: Path) -> None:
+    start_result = run_cmd(repo, "start-task", "--title", "Baseline task", "--task-type", "product")
+    assert start_result.returncode == 0, start_result.stderr
+    goal_id = next(
+        line.removeprefix("Updated goal ").strip()
+        for line in start_result.stdout.splitlines()
+        if line.startswith("Updated goal ")
+    )
+
+    finish_result = run_cmd(repo, "finish-task", "--task-id", goal_id, "--status", "success")
+    assert finish_result.returncode == 0, finish_result.stderr
+
+    (repo / "src" / "worktree_change.py").write_text("print('changed')\n", encoding="utf-8")
+
+    repair_result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        goal_id,
+        "--status",
+        "success",
+        "--notes",
+        "Bookkeeping repair after manual JSON adjustment",
+    )
+
+    assert repair_result.returncode == 0, repair_result.stderr
+    assert "Updated goal" in repair_result.stdout
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    repaired_goal = next(goal for goal in data["goals"] if goal["goal_id"] == goal_id)
+    assert repaired_goal["status"] == "success"
+    assert repaired_goal["notes"] == "Bookkeeping repair after manual JSON adjustment"
 
 
 def test_explicit_mutation_is_not_blocked_by_other_active_goals(repo: Path) -> None:
