@@ -35,3 +35,6 @@ Quick map:
 | `H-015` | `active` | `docs/product-hypotheses/H-015.md` | Retro or meta work may improve product throughput and lower token cost, but current history is too sparse to confirm it |
 | `H-016` | `active` | `docs/product-hypotheses/H-016.md` | A structured event-logging layer may be required before we can confidently judge which product changes are actually working |
 | `H-017` | `active` | `docs/product-hypotheses/H-017.md` | The product-hypotheses doc should be reorganized around actual decision flow |
+| `H-018` | `active` | `docs/product-hypotheses/H-018.md` | Segmented conversation-text analysis may produce better efficiency signals than structural metrics alone |
+| `H-019` | `active` | `docs/product-hypotheses/H-019.md` | Higher agent autonomy may improve result quality and lower cost by separating discovery from delivery |
+| `H-020` | `validated` | `docs/product-hypotheses/H-020.md` | Workspace-wide history parsing may be required before cross-project analysis becomes reliable |

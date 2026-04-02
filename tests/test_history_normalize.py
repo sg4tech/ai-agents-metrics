@@ -58,6 +58,7 @@ def test_normalize_codex_history_builds_analysis_tables(repo: Path) -> None:
 
     assert normalize_result.returncode == 0, normalize_result.stderr
     assert "Normalized Codex history in" in normalize_result.stdout
+    assert "Projects: 2" in normalize_result.stdout
     assert "Threads: 2" in normalize_result.stdout
     assert "Sessions: 2" in normalize_result.stdout
     assert "Messages: 3" in normalize_result.stdout
@@ -71,6 +72,7 @@ def test_normalize_codex_history_builds_analysis_tables(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM normalized_messages").fetchone()[0] == 3
         assert conn.execute("SELECT count(*) FROM normalized_usage_events").fetchone()[0] == 1
         assert conn.execute("SELECT count(*) FROM normalized_logs").fetchone()[0] == 2
+        assert conn.execute("SELECT count(*) FROM normalized_projects").fetchone()[0] == 2
 
         session = conn.execute(
             "SELECT event_count, message_count, first_event_at, last_event_at FROM normalized_sessions WHERE session_path LIKE ?",
@@ -113,6 +115,7 @@ def test_normalize_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
 
     assert first.returncode == 0, first.stderr
     assert second.returncode == 0, second.stderr
+    assert "Projects: 2" in second.stdout
     assert "Threads: 2" in second.stdout
 
     with sqlite3.connect(warehouse_path) as conn:
@@ -121,6 +124,7 @@ def test_normalize_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM normalized_messages").fetchone()[0] == 3
         assert conn.execute("SELECT count(*) FROM normalized_usage_events").fetchone()[0] == 1
         assert conn.execute("SELECT count(*) FROM normalized_logs").fetchone()[0] == 2
+        assert conn.execute("SELECT count(*) FROM normalized_projects").fetchone()[0] == 2
 
 
 def test_normalize_codex_history_handles_missing_event_timestamps(repo: Path) -> None:

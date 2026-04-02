@@ -21,9 +21,17 @@ class IngestSummary:
     scanned_files: int
     imported_files: int
     skipped_files: int
+    projects: int
     threads: int
     sessions: int
     session_events: int
+    token_count_events: int
+    token_usage_events: int
+    input_tokens: int
+    cached_input_tokens: int
+    output_tokens: int
+    reasoning_output_tokens: int
+    total_tokens: int
     messages: int
     logs: int
 
@@ -132,6 +140,26 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     )
     conn.execute(
         """
+        CREATE TABLE IF NOT EXISTS raw_token_usage (
+            token_event_id TEXT PRIMARY KEY,
+            session_path TEXT NOT NULL,
+            source_path TEXT NOT NULL,
+            thread_id TEXT,
+            event_index INTEGER NOT NULL,
+            timestamp TEXT,
+            has_breakdown INTEGER NOT NULL,
+            input_tokens INTEGER,
+            cached_input_tokens INTEGER,
+            output_tokens INTEGER,
+            reasoning_output_tokens INTEGER,
+            total_tokens INTEGER,
+            model TEXT,
+            raw_json TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS raw_logs (
             source_path TEXT NOT NULL,
             row_id INTEGER NOT NULL,
@@ -149,6 +177,7 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_raw_sessions_source_path ON raw_sessions(source_path)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_raw_session_events_source_path ON raw_session_events(source_path)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_raw_messages_source_path ON raw_messages(source_path)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_raw_token_usage_source_path ON raw_token_usage(source_path)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_raw_logs_thread_id ON raw_logs(thread_id)")
 
 
@@ -159,6 +188,7 @@ def _delete_source_rows(conn: sqlite3.Connection, source_path: str, source_kind:
         conn.execute("DELETE FROM raw_sessions WHERE source_path = ?", (source_path,))
         conn.execute("DELETE FROM raw_session_events WHERE source_path = ?", (source_path,))
         conn.execute("DELETE FROM raw_messages WHERE source_path = ?", (source_path,))
+        conn.execute("DELETE FROM raw_token_usage WHERE source_path = ?", (source_path,))
     elif source_kind == "usage_log_db":
         conn.execute("DELETE FROM raw_logs WHERE source_path = ?", (source_path,))
     conn.execute("DELETE FROM source_manifest WHERE source_path = ?", (source_path,))
@@ -271,10 +301,47 @@ def _extract_message_text(content: Any) -> list[str]:
     return texts
 
 
+def _extract_token_usage(record: dict[str, Any], *, event_id: str, source_path: str, thread_id: str | None, event_index: int) -> dict[str, Any] | None:
+    if record.get("type") != "event_msg":
+        return None
+    payload = record.get("payload")
+    if not isinstance(payload, dict) or payload.get("type") != "token_count":
+        return None
+
+    info = payload.get("info")
+    if not isinstance(info, dict):
+        info = {}
+    last_token_usage = info.get("last_token_usage")
+    if isinstance(last_token_usage, dict):
+        has_breakdown = 1
+    else:
+        has_breakdown = 0
+        last_token_usage = {}
+
+    timestamp = record.get("timestamp") if isinstance(record.get("timestamp"), str) else None
+    return {
+        "token_event_id": event_id,
+        "session_path": source_path,
+        "source_path": source_path,
+        "thread_id": thread_id,
+        "event_index": event_index,
+        "timestamp": timestamp,
+        "has_breakdown": has_breakdown,
+        "input_tokens": last_token_usage.get("input_tokens"),
+        "cached_input_tokens": last_token_usage.get("cached_input_tokens"),
+        "output_tokens": last_token_usage.get("output_tokens"),
+        "reasoning_output_tokens": last_token_usage.get("reasoning_output_tokens"),
+        "total_tokens": last_token_usage.get("total_tokens"),
+        "model": info.get("model"),
+        "raw_json": _json_text(record),
+    }
+
+
 def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
     conn.execute("DELETE FROM raw_sessions WHERE source_path = ?", (str(source_path),))
     conn.execute("DELETE FROM raw_session_events WHERE source_path = ?", (str(source_path),))
     conn.execute("DELETE FROM raw_messages WHERE source_path = ?", (str(source_path),))
+    conn.execute("DELETE FROM raw_token_usage WHERE source_path = ?", (str(source_path),))
     imported = 0
     thread_id: str | None = None
     with source_path.open("r", encoding="utf-8") as handle:
@@ -347,6 +414,50 @@ def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
                 ),
             )
             imported += 1
+            token_usage = _extract_token_usage(
+                record,
+                event_id=event_id,
+                source_path=str(source_path),
+                thread_id=thread_id,
+                event_index=event_index,
+            )
+            if token_usage is not None:
+                conn.execute(
+                    """
+                    INSERT INTO raw_token_usage (
+                        token_event_id,
+                        session_path,
+                        source_path,
+                        thread_id,
+                        event_index,
+                        timestamp,
+                        has_breakdown,
+                        input_tokens,
+                        cached_input_tokens,
+                        output_tokens,
+                        reasoning_output_tokens,
+                        total_tokens,
+                        model,
+                        raw_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        token_usage["token_event_id"],
+                        token_usage["session_path"],
+                        token_usage["source_path"],
+                        token_usage["thread_id"],
+                        token_usage["event_index"],
+                        token_usage["timestamp"],
+                        token_usage["has_breakdown"],
+                        token_usage["input_tokens"],
+                        token_usage["cached_input_tokens"],
+                        token_usage["output_tokens"],
+                        token_usage["reasoning_output_tokens"],
+                        token_usage["total_tokens"],
+                        token_usage["model"],
+                        token_usage["raw_json"],
+                    ),
+                )
             if record_type == "response_item" and isinstance(payload, dict):
                 content = payload.get("content")
                 texts = _extract_message_text(content)
@@ -452,7 +563,15 @@ def ingest_codex_history(*, source_root: Path, warehouse_path: Path) -> IngestSu
     skipped_files = 0
     threads = 0
     sessions = 0
+    projects = 0
     session_events = 0
+    token_count_events = 0
+    token_usage_events = 0
+    input_tokens = 0
+    cached_input_tokens = 0
+    output_tokens = 0
+    reasoning_output_tokens = 0
+    total_tokens = 0
     messages = 0
     logs = 0
 
@@ -484,13 +603,58 @@ def ingest_codex_history(*, source_root: Path, warehouse_path: Path) -> IngestSu
                 before_sessions = conn.execute("SELECT count(*) FROM raw_sessions").fetchone()[0]
                 before_events = conn.execute("SELECT count(*) FROM raw_session_events").fetchone()[0]
                 before_messages = conn.execute("SELECT count(*) FROM raw_messages").fetchone()[0]
+                before_token_count_events = conn.execute("SELECT count(*) FROM raw_token_usage").fetchone()[0]
+                before_token_usage_events = conn.execute(
+                    "SELECT count(*) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                before_input_tokens = conn.execute(
+                    "SELECT coalesce(sum(input_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                before_cached_input_tokens = conn.execute(
+                    "SELECT coalesce(sum(cached_input_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                before_output_tokens = conn.execute(
+                    "SELECT coalesce(sum(output_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                before_reasoning_output_tokens = conn.execute(
+                    "SELECT coalesce(sum(reasoning_output_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                before_total_tokens = conn.execute(
+                    "SELECT coalesce(sum(total_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
                 session_records = _import_session_file(conn, source_path)
                 after_sessions = conn.execute("SELECT count(*) FROM raw_sessions").fetchone()[0]
                 after_events = conn.execute("SELECT count(*) FROM raw_session_events").fetchone()[0]
                 after_messages = conn.execute("SELECT count(*) FROM raw_messages").fetchone()[0]
+                after_token_count_events = conn.execute("SELECT count(*) FROM raw_token_usage").fetchone()[0]
+                after_token_usage_events = conn.execute(
+                    "SELECT count(*) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                after_input_tokens = conn.execute(
+                    "SELECT coalesce(sum(input_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                after_cached_input_tokens = conn.execute(
+                    "SELECT coalesce(sum(cached_input_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                after_output_tokens = conn.execute(
+                    "SELECT coalesce(sum(output_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                after_reasoning_output_tokens = conn.execute(
+                    "SELECT coalesce(sum(reasoning_output_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
+                after_total_tokens = conn.execute(
+                    "SELECT coalesce(sum(total_tokens), 0) FROM raw_token_usage WHERE has_breakdown = 1"
+                ).fetchone()[0]
                 sessions += after_sessions - before_sessions
                 session_events += after_events - before_events
                 messages += after_messages - before_messages
+                token_count_events += after_token_count_events - before_token_count_events
+                token_usage_events += after_token_usage_events - before_token_usage_events
+                input_tokens += after_input_tokens - before_input_tokens
+                cached_input_tokens += after_cached_input_tokens - before_cached_input_tokens
+                output_tokens += after_output_tokens - before_output_tokens
+                reasoning_output_tokens += after_reasoning_output_tokens - before_reasoning_output_tokens
+                total_tokens += after_total_tokens - before_total_tokens
                 record_count = session_records
             _upsert_manifest(
                 conn,
@@ -504,15 +668,39 @@ def ingest_codex_history(*, source_root: Path, warehouse_path: Path) -> IngestSu
             imported_files += 1
         conn.commit()
 
+        project_rows = conn.execute(
+            """
+            SELECT count(DISTINCT project_cwd)
+            FROM (
+                SELECT cwd AS project_cwd
+                FROM raw_threads
+                WHERE cwd IS NOT NULL AND trim(cwd) != ''
+                UNION
+                SELECT cwd AS project_cwd
+                FROM raw_sessions
+                WHERE cwd IS NOT NULL AND trim(cwd) != ''
+            )
+            """
+        ).fetchone()
+        projects = int(project_rows[0]) if project_rows is not None and project_rows[0] is not None else 0
+
     return IngestSummary(
         source_root=source_root,
         warehouse_path=warehouse_path,
         scanned_files=scanned_files,
         imported_files=imported_files,
         skipped_files=skipped_files,
+        projects=projects,
         threads=threads,
         sessions=sessions,
         session_events=session_events,
+        token_count_events=token_count_events,
+        token_usage_events=token_usage_events,
+        input_tokens=input_tokens,
+        cached_input_tokens=cached_input_tokens,
+        output_tokens=output_tokens,
+        reasoning_output_tokens=reasoning_output_tokens,
+        total_tokens=total_tokens,
         messages=messages,
         logs=logs,
     )

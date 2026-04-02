@@ -152,7 +152,7 @@ def create_codex_history_source_root(root: Path) -> Path:
                 400,
                 "vscode",
                 "anthropic",
-                str(source_root),
+                str(source_root / "projects" / "thread-2"),
                 "Thread Two",
                 1,
                 "0.118.0",
@@ -264,7 +264,7 @@ def create_codex_history_source_root(root: Path) -> Path:
                         "payload": {
                             "id": "thread-2",
                             "timestamp": "2026-04-02T11:00:00.000Z",
-                            "cwd": str(source_root),
+                            "cwd": str(source_root / "projects" / "thread-2"),
                             "originator": "Codex Desktop",
                             "cli_version": "0.118.0",
                             "source": "vscode",
@@ -307,9 +307,17 @@ def test_ingest_codex_history_builds_raw_warehouse(repo: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "Ingested Codex history into" in result.stdout
     assert "Imported files: 4" in result.stdout
+    assert "Projects: 2" in result.stdout
     assert "Threads: 2" in result.stdout
     assert "Sessions: 2" in result.stdout
     assert "Session events: 6" in result.stdout
+    assert "Token count events: 1" in result.stdout
+    assert "Token usage events: 1" in result.stdout
+    assert "Input tokens: 100" in result.stdout
+    assert "Cached input tokens: 10" in result.stdout
+    assert "Output tokens: 50" in result.stdout
+    assert "Reasoning output tokens: 5" in result.stdout
+    assert "Total tokens: 165" in result.stdout
     assert "Messages: 3" in result.stdout
     assert "Logs: 2" in result.stdout
 
@@ -318,8 +326,19 @@ def test_ingest_codex_history_builds_raw_warehouse(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM source_manifest").fetchone()[0] == 4
         assert conn.execute("SELECT count(*) FROM raw_threads").fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM raw_sessions").fetchone()[0] == 2
+        assert conn.execute(
+            """
+            SELECT count(DISTINCT cwd)
+            FROM (
+                SELECT cwd FROM raw_threads WHERE cwd IS NOT NULL AND cwd != ''
+                UNION ALL
+                SELECT cwd FROM raw_sessions WHERE cwd IS NOT NULL AND cwd != ''
+            )
+            """
+        ).fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM raw_session_events").fetchone()[0] == 6
         assert conn.execute("SELECT count(*) FROM raw_messages").fetchone()[0] == 3
+        assert conn.execute("SELECT count(*) FROM raw_token_usage").fetchone()[0] == 1
         assert conn.execute("SELECT count(*) FROM raw_logs").fetchone()[0] == 2
 
         thread = conn.execute(
@@ -336,6 +355,47 @@ def test_ingest_codex_history_builds_raw_warehouse(repo: Path) -> None:
         ).fetchone()
         assert message["role"] == "user"
         assert message["text"] == "hello ingest"
+
+
+def test_ingest_codex_history_tracks_token_count_coverage(repo: Path) -> None:
+    source_root = create_codex_history_source_root(repo)
+    rollout_2 = source_root / "archived_sessions" / "rollout-2.jsonl"
+    rollout_2.write_text(
+        rollout_2.read_text(encoding="utf-8")
+        + json.dumps(
+            {
+                "timestamp": "2026-04-02T11:00:02.000Z",
+                "type": "event_msg",
+                "payload": {
+                    "type": "token_count",
+                    "info": None,
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+
+    result = run_cmd(
+        repo,
+        "ingest-codex-history",
+        "--source-root",
+        str(source_root),
+        "--warehouse-path",
+        str(warehouse_path),
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "Session events: 7" in result.stdout
+    assert "Token count events: 2" in result.stdout
+    assert "Token usage events: 1" in result.stdout
+
+    with sqlite3.connect(warehouse_path) as conn:
+        conn.row_factory = sqlite3.Row
+        assert conn.execute("SELECT count(*) FROM raw_token_usage").fetchone()[0] == 2
+        assert conn.execute("SELECT count(*) FROM raw_token_usage WHERE has_breakdown = 1").fetchone()[0] == 1
+        assert conn.execute("SELECT count(*) FROM raw_token_usage WHERE has_breakdown = 0").fetchone()[0] == 1
 
 
 def test_ingest_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
@@ -406,6 +466,7 @@ def test_ingest_codex_history_handles_partial_source_root_without_state_or_logs(
 
     assert result.returncode == 0, result.stderr
     assert "Imported files: 2" in result.stdout
+    assert "Projects: 2" in result.stdout
     assert "Threads: 0" in result.stdout
     assert "Sessions: 2" in result.stdout
     assert "Session events: 6" in result.stdout
@@ -416,6 +477,16 @@ def test_ingest_codex_history_handles_partial_source_root_without_state_or_logs(
         assert conn.execute("SELECT count(*) FROM source_manifest").fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM raw_threads").fetchone()[0] == 0
         assert conn.execute("SELECT count(*) FROM raw_sessions").fetchone()[0] == 2
+        assert conn.execute(
+            """
+            SELECT count(DISTINCT cwd)
+            FROM (
+                SELECT cwd FROM raw_threads WHERE cwd IS NOT NULL AND cwd != ''
+                UNION ALL
+                SELECT cwd FROM raw_sessions WHERE cwd IS NOT NULL AND cwd != ''
+            )
+            """
+        ).fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM raw_session_events").fetchone()[0] == 6
         assert conn.execute("SELECT count(*) FROM raw_messages").fetchone()[0] == 3
         assert conn.execute("SELECT count(*) FROM raw_logs").fetchone()[0] == 0
