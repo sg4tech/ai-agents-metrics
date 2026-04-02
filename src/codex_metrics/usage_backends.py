@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -30,6 +31,113 @@ class UsageBackend(Protocol):
         pricing_path: Path,
         thread_id: str | None = None,
     ) -> UsageWindow: ...
+
+
+def find_thread_id(
+    state_path: Path,
+    cwd: Path,
+    thread_id: str | None,
+    *,
+    provider_names: tuple[str, ...] | None = None,
+) -> str | None:
+    if not state_path.exists():
+        return None
+
+    with sqlite3.connect(state_path) as conn:
+        conn.row_factory = sqlite3.Row
+        if thread_id is not None:
+            if provider_names is None:
+                row = conn.execute("SELECT id FROM threads WHERE id = ?", (thread_id,)).fetchone()
+                return None if row is None else str(row["id"])
+            try:
+                row = conn.execute("SELECT id, model_provider FROM threads WHERE id = ?", (thread_id,)).fetchone()
+            except sqlite3.OperationalError:
+                return None
+            if row is None:
+                return None
+            provider_value = row["model_provider"]
+            if provider_value in provider_names:
+                return str(row["id"])
+            return None
+
+        if provider_names is None:
+            row = conn.execute(
+                """
+                SELECT id
+                FROM threads
+                WHERE cwd = ?
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """,
+                (str(cwd),),
+            ).fetchone()
+        else:
+            placeholders = ",".join("?" for _ in provider_names)
+            row = conn.execute(
+                f"""
+                SELECT id
+                FROM threads
+                WHERE cwd = ?
+                  AND model_provider IN ({placeholders})
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """,
+                (str(cwd), *provider_names),
+            ).fetchone()
+    return None if row is None else str(row["id"])
+
+
+class ClaudeUsageBackend:
+    name = "claude"
+
+    def resolve_window(
+        self,
+        *,
+        state_path: Path,
+        logs_path: Path,
+        cwd: Path,
+        started_at: str | None,
+        finished_at: str | None,
+        pricing_path: Path,
+        thread_id: str | None = None,
+    ) -> UsageWindow:
+        from codex_metrics import cli as cli_module
+
+        resolved_thread_id = find_thread_id(
+            state_path,
+            cwd,
+            thread_id,
+            provider_names=("anthropic", "claude"),
+        )
+        if resolved_thread_id is None:
+            return UsageWindow(
+                cost_usd=None,
+                total_tokens=None,
+                input_tokens=None,
+                cached_input_tokens=None,
+                output_tokens=None,
+                model_name=None,
+                backend_name=self.name,
+            )
+
+        cost_usd, total_tokens, input_tokens, cached_input_tokens, output_tokens, model_name = cli_module.resolve_codex_usage_window(
+            state_path=state_path,
+            logs_path=logs_path,
+            cwd=cwd,
+            started_at=started_at,
+            finished_at=finished_at,
+            pricing_path=pricing_path,
+            thread_id=resolved_thread_id,
+        )
+        return UsageWindow(
+            cost_usd=cost_usd,
+            total_tokens=total_tokens,
+            input_tokens=input_tokens,
+            cached_input_tokens=cached_input_tokens,
+            output_tokens=output_tokens,
+            model_name=model_name,
+            backend_name=self.name,
+        )
 
 
 def resolve_usage_window(

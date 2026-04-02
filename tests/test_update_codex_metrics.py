@@ -22,6 +22,8 @@ if str(ABS_SRC) not in sys.path:
 
 import codex_metrics as codex_metrics_pkg
 from codex_metrics import __version__ as PACKAGE_VERSION
+from codex_metrics.usage_backends import ClaudeUsageBackend
+from codex_metrics.usage_backends import resolve_usage_window as resolve_backend_usage_window
 
 BASE_PACKAGE_VERSION = codex_metrics_pkg._BASE_VERSION
 
@@ -239,6 +241,7 @@ def create_codex_session_usage_sources(
     repo: Path,
     thread_id: str = "thread-123",
     cwd: str | None = None,
+    model_provider: str = "openai",
     event_timestamp: str = "2026-03-29T09:05:00.000Z",
     model: str = "gpt-5.4",
     input_tokens: int = 1000,
@@ -286,9 +289,9 @@ def create_codex_session_usage_sources(
             """
             INSERT INTO threads (
                 id, cwd, model_provider, model, created_at, updated_at, title, sandbox_policy, approval_mode, source
-            ) VALUES (?, ?, 'openai', ?, 0, 0, 'Test Thread', 'workspace-write', 'default', 'desktop')
+            ) VALUES (?, ?, ?, ?, 0, 0, 'Test Thread', 'workspace-write', 'default', 'desktop')
             """,
-            (thread_id, resolved_cwd, model),
+            (thread_id, resolved_cwd, model_provider, model),
         )
 
     with sqlite3.connect(logs_path) as conn:
@@ -3027,6 +3030,46 @@ def test_sync_codex_usage_is_noop_when_no_matching_thread_is_found(repo: Path) -
     task = data["tasks"][0]
     assert task["tokens_total"] is None
     assert task["cost_usd"] is None
+
+
+def test_claude_usage_backend_backfills_from_claude_thread_session(repo: Path) -> None:
+    state_path, logs_path = create_codex_session_usage_sources(repo, model_provider="anthropic")
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "claude-backfill-task",
+        "--title",
+        "Claude Backfill Task",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--started-at",
+        "2026-03-29T09:00:00+00:00",
+        "--finished-at",
+        "2026-03-29T09:10:00+00:00",
+        "--codex-state-path",
+        str(repo / "missing_state.sqlite"),
+        "--codex-logs-path",
+        str(repo / "missing_logs.sqlite"),
+    ).returncode == 0
+
+    backend = ClaudeUsageBackend()
+    window = resolve_backend_usage_window(
+        backend,
+        state_path=state_path,
+        logs_path=logs_path,
+        cwd=repo,
+        started_at="2026-03-29T09:00:00+00:00",
+        finished_at="2026-03-29T09:10:00+00:00",
+        pricing_path=PRICING,
+    )
+
+    assert window.backend_name == "claude"
+    assert window.total_tokens == 1625
+    assert window.cost_usd == 0.006263
 
 
 def test_merge_tasks_combines_attempt_history_into_kept_task(repo: Path) -> None:
