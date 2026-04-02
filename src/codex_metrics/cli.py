@@ -4,8 +4,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sqlite3
+import subprocess
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone  # noqa: F401
@@ -28,6 +28,13 @@ from codex_metrics.history_audit import (
 )
 from codex_metrics.history_audit import (
     render_audit_report as render_history_audit_report,
+)
+from codex_metrics.history_ingest import (
+    IngestSummary,
+    default_raw_warehouse_path,
+)
+from codex_metrics.history_ingest import (
+    ingest_codex_history as run_ingest_codex_history,
 )
 from codex_metrics.usage_backends import (
     ClaudeUsageBackend,
@@ -125,6 +132,7 @@ METRICS_JSON_PATH = Path("metrics/codex_metrics.json")
 REPORT_MD_PATH = Path("docs/codex-metrics.md")
 CODEX_STATE_PATH = Path.home() / ".codex" / "state_5.sqlite"
 CODEX_LOGS_PATH = Path.home() / ".codex" / "logs_1.sqlite"
+RAW_WAREHOUSE_PATH = default_raw_warehouse_path(METRICS_JSON_PATH)
 USAGE_FIELD_PATTERNS = {
     "input_tokens": re.compile(r"\binput_token_count=(\d+)"),
     "cached_input_tokens": re.compile(r"\bcached_token_count=(\d+)"),
@@ -163,6 +171,10 @@ class ActiveTaskResolution:
     goal_id: str | None
     message: str
     started_work_report: StartedWorkReport | None = None
+
+
+def ingest_codex_history(source_root: Path, warehouse_path: Path) -> IngestSummary:
+    return run_ingest_codex_history(source_root=source_root, warehouse_path=warehouse_path)
 
 
 def _run_git(cwd: Path, *args: str) -> str | None:
@@ -1112,6 +1124,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  %(prog)s update --task-id 2026-03-29-001 --status success --notes \"Validated\"\n"
             "  %(prog)s update --task-id 2026-03-29-002 --title \"Retry CSV import\" --task-type product --supersedes-task-id 2026-03-29-001 --status success\n"
             "  %(prog)s ensure-active-task\n"
+            "  %(prog)s ingest-codex-history --source-root ~/.codex\n"
             "  %(prog)s audit-cost-coverage\n"
             "  %(prog)s sync-usage\n"
         ),
@@ -1352,6 +1365,21 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+
+    ingest_parser = subparsers.add_parser(
+        "ingest-codex-history",
+        help="Ingest local ~/.codex history into a raw SQLite warehouse",
+        description=(
+            "Read thread metadata, session transcripts, telemetry events, and logs from a local "
+            "Codex history directory into a raw warehouse for later derivation."
+        ),
+    )
+    ingest_parser.add_argument("--source-root", default=str(Path.home() / ".codex"), help="Local Codex history root to read")
+    ingest_parser.add_argument(
+        "--warehouse-path",
+        default=str(RAW_WAREHOUSE_PATH),
+        help="SQLite warehouse path for raw imported data",
+    )
 
     cost_audit_parser = subparsers.add_parser(
         "audit-cost-coverage",
@@ -1662,6 +1690,9 @@ def main() -> int:
 
     if args.command == "audit-history":
         return commands.handle_audit_history(args, sys.modules[__name__])
+
+    if args.command == "ingest-codex-history":
+        return commands.handle_ingest_codex_history(args, sys.modules[__name__])
 
     if args.command == "audit-cost-coverage":
         return commands.handle_audit_cost_coverage(args, sys.modules[__name__])

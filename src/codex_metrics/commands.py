@@ -61,6 +61,7 @@ class CommandRuntime(Protocol):
     def ensure_active_task(self, data: dict[str, Any], cwd: Path) -> Any: ...
     def get_active_goals(self, data: dict[str, Any]) -> list[dict[str, Any]]: ...
     def audit_history(self, data: dict[str, Any]) -> AuditReport: ...
+    def ingest_codex_history(self, source_root: Path, warehouse_path: Path) -> Any: ...
     def render_audit_report(self, report: AuditReport) -> str: ...
     def audit_cost_coverage(
         self,
@@ -442,6 +443,24 @@ def handle_audit_history(args: Namespace, cli_module: CommandRuntime) -> int:
     data = cli_module.load_metrics(metrics_path)
     report = cli_module.audit_history(data)
     print(cli_module.render_audit_report(report))
+    return 0
+
+
+def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+    source_root = Path(args.source_root).expanduser()
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    with cli_module.metrics_mutation_lock(warehouse_path):
+        summary = cli_module.ingest_codex_history(source_root, warehouse_path)
+    print(f"Ingested Codex history into {summary.warehouse_path}")
+    print(f"Source root: {summary.source_root}")
+    print(f"Scanned files: {summary.scanned_files}")
+    print(f"Imported files: {summary.imported_files}")
+    print(f"Skipped files: {summary.skipped_files}")
+    print(f"Threads: {summary.threads}")
+    print(f"Sessions: {summary.sessions}")
+    print(f"Session events: {summary.session_events}")
+    print(f"Messages: {summary.messages}")
+    print(f"Logs: {summary.logs}")
     return 0
 
 

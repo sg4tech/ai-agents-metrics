@@ -144,6 +144,12 @@ Audit stored history for likely misses, partial-fit recoveries, stale in-progres
 codex-metrics audit-history
 ```
 
+Ingest local `~/.codex` history into a raw SQLite warehouse:
+
+```bash
+codex-metrics ingest-codex-history --help
+```
+
 Audit why closed product goals are still missing cost coverage:
 
 ```bash
