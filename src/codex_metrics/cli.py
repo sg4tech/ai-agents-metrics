@@ -27,6 +27,13 @@ from codex_metrics.history_audit import (
 from codex_metrics.history_audit import (
     render_audit_report as render_history_audit_report,
 )
+from codex_metrics.usage_backends import (
+    UsageBackend,
+    UsageWindow,
+)
+from codex_metrics.usage_backends import (
+    resolve_usage_window as resolve_backend_usage_window,
+)
 
 build_operator_review = reporting.build_operator_review
 audit_history = build_history_audit_report
@@ -248,7 +255,7 @@ def find_codex_thread_id(state_path: Path, cwd: Path, thread_id: str | None) -> 
     return None if row is None else str(row["id"])
 
 
-def resolve_codex_usage_window(
+def _resolve_codex_usage_window_impl(
     state_path: Path,
     logs_path: Path,
     cwd: Path,
@@ -342,6 +349,72 @@ def resolve_codex_usage_window(
         if detected_model is None and event.get("model") is not None:
             detected_model = event["model"]
     return total_cost, total_tokens, total_input_tokens, total_cached_input_tokens, total_output_tokens, detected_model
+
+
+class _CodexUsageBackend:
+    name = "codex"
+
+    def resolve_window(
+        self,
+        *,
+        state_path: Path,
+        logs_path: Path,
+        cwd: Path,
+        started_at: str | None,
+        finished_at: str | None,
+        pricing_path: Path,
+        thread_id: str | None = None,
+    ) -> UsageWindow:
+        cost_usd, total_tokens, input_tokens, cached_input_tokens, output_tokens, agent_name = _resolve_codex_usage_window_impl(
+            state_path=state_path,
+            logs_path=logs_path,
+            cwd=cwd,
+            started_at=started_at,
+            finished_at=finished_at,
+            pricing_path=pricing_path,
+            thread_id=thread_id,
+        )
+        return UsageWindow(
+            cost_usd=cost_usd,
+            total_tokens=total_tokens,
+            input_tokens=input_tokens,
+            cached_input_tokens=cached_input_tokens,
+            output_tokens=output_tokens,
+            model_name=agent_name,
+            backend_name=self.name,
+        )
+
+
+DEFAULT_USAGE_BACKEND: UsageBackend = _CodexUsageBackend()
+
+
+def resolve_codex_usage_window(
+    state_path: Path,
+    logs_path: Path,
+    cwd: Path,
+    started_at: str | None,
+    finished_at: str | None,
+    pricing_path: Path,
+    thread_id: str | None = None,
+) -> tuple[float | None, int | None, int | None, int | None, int | None, str | None]:
+    window = resolve_backend_usage_window(
+        DEFAULT_USAGE_BACKEND,
+        state_path=state_path,
+        logs_path=logs_path,
+        cwd=cwd,
+        started_at=started_at,
+        finished_at=finished_at,
+        pricing_path=pricing_path,
+        thread_id=thread_id,
+    )
+    return (
+        window.cost_usd,
+        window.total_tokens,
+        window.input_tokens,
+        window.cached_input_tokens,
+        window.output_tokens,
+        window.model_name,
+    )
 
 
 def find_session_rollout_path(sessions_root: Path, thread_id: str) -> Path | None:
@@ -559,6 +632,7 @@ def bootstrap_project(
 def resolve_goal_usage_updates(
     *,
     task: GoalRecord,
+    usage_backend: UsageBackend = DEFAULT_USAGE_BACKEND,
     cost_usd_add: float | None,
     cost_usd_set: float | None,
     tokens_add: int | None,
@@ -587,6 +661,7 @@ def resolve_goal_usage_updates(
     int | None,
     int | None,
     str | None,
+    str | None,
 ]:
     explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
     explicit_token_fields_used = tokens_add is not None or tokens_set is not None
@@ -610,7 +685,8 @@ def resolve_goal_usage_updates(
     )
     detected_agent_name = None
     if usage_cost_usd is None and usage_total_tokens is None:
-        auto_cost_usd, auto_total_tokens, auto_input_tokens, auto_cached_input_tokens, auto_output_tokens, auto_model = resolve_codex_usage_window(
+        window = resolve_backend_usage_window(
+            usage_backend,
             state_path=codex_state_path,
             logs_path=codex_logs_path,
             cwd=cwd,
@@ -619,8 +695,14 @@ def resolve_goal_usage_updates(
             pricing_path=pricing_path,
             thread_id=codex_thread_id,
         )
+        auto_cost_usd = window.cost_usd
+        auto_total_tokens = window.total_tokens
+        auto_input_tokens = window.input_tokens
+        auto_cached_input_tokens = window.cached_input_tokens
+        auto_output_tokens = window.output_tokens
+        auto_model = window.model_name
         if auto_cost_usd is not None or auto_total_tokens is not None:
-            detected_agent_name = "codex"
+            detected_agent_name = window.backend_name
 
     return (
         usage_cost_usd,
@@ -667,6 +749,7 @@ def upsert_task(
     codex_logs_path: Path,
     codex_thread_id: str | None,
     cwd: Path,
+    usage_backend: UsageBackend = DEFAULT_USAGE_BACKEND,
 ) -> dict[str, Any]:
     tasks: list[dict[str, Any]] = data["goals"]
     entries: list[dict[str, Any]] = data["entries"]
@@ -716,6 +799,7 @@ def upsert_task(
     ) = (
         resolve_goal_usage_updates(
             task=task,
+            usage_backend=usage_backend,
             cost_usd_add=cost_usd_add,
             cost_usd_set=cost_usd_set,
             tokens_add=tokens_add,
@@ -1082,12 +1166,14 @@ def sync_codex_usage(
     codex_state_path: Path,
     codex_logs_path: Path,
     codex_thread_id: str | None,
+    usage_backend: UsageBackend = DEFAULT_USAGE_BACKEND,
 ) -> int:
     updated_tasks = 0
     tasks: list[dict[str, Any]] = data["goals"]
     for task in tasks:
         previous_task = dict(task)
-        auto_cost_usd, auto_total_tokens, auto_input_tokens, auto_cached_input_tokens, auto_output_tokens, auto_model = resolve_codex_usage_window(
+        window = resolve_backend_usage_window(
+            usage_backend,
             state_path=codex_state_path,
             logs_path=codex_logs_path,
             cwd=cwd,
@@ -1096,6 +1182,12 @@ def sync_codex_usage(
             pricing_path=pricing_path,
             thread_id=codex_thread_id,
         )
+        auto_cost_usd = window.cost_usd
+        auto_total_tokens = window.total_tokens
+        auto_input_tokens = window.input_tokens
+        auto_cached_input_tokens = window.cached_input_tokens
+        auto_output_tokens = window.output_tokens
+        auto_model = window.model_name
         if (
             auto_cost_usd is None
             and auto_total_tokens is None
@@ -1151,7 +1243,8 @@ def audit_cost_coverage(
         pricing_path: Path,
         thread_id: str | None = None,
     ) -> tuple[float | None, int | None]:
-        cost_usd, total_tokens, _, _, _, _ = resolve_codex_usage_window(
+        window = resolve_backend_usage_window(
+            DEFAULT_USAGE_BACKEND,
             state_path=state_path,
             logs_path=logs_path,
             cwd=cwd,
@@ -1160,7 +1253,7 @@ def audit_cost_coverage(
             pricing_path=pricing_path,
             thread_id=thread_id,
         )
-        return cost_usd, total_tokens
+        return window.cost_usd, window.total_tokens
 
     return build_cost_report(
         data,
