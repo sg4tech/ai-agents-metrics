@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from codex_metrics import storage
+from codex_metrics import file_immutability, storage
 from codex_metrics.domain import load_metrics
 
 
 def _unlock_metrics_file(path: Path) -> None:
-    commands = storage._immutability_command()
+    commands = file_immutability.DEFAULT_FILE_IMMUTABILITY_BACKEND.command_pair()
     if commands is None or not path.exists():
         return
     unlock_command, _ = commands
     try:
-        storage._run_file_immutability_command(unlock_command, path)
+        file_immutability.DEFAULT_FILE_IMMUTABILITY_BACKEND.run_command(unlock_command, path)
     except Exception:
         pass
 

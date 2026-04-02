@@ -22,6 +22,7 @@ if str(ABS_SRC) not in sys.path:
     sys.path.insert(0, str(ABS_SRC))
 
 import codex_metrics as codex_metrics_pkg
+from codex_metrics import file_immutability
 from codex_metrics import storage
 from codex_metrics.usage_backends import ClaudeUsageBackend, select_usage_backend
 from codex_metrics.usage_backends import resolve_usage_window as resolve_backend_usage_window
@@ -378,11 +379,11 @@ def repo(tmp_path: Path) -> Path:
     yield tmp_path
 
     metrics_path = tmp_path / "metrics" / "codex_metrics.json"
-    immutability_commands = storage._immutability_command()
+    immutability_commands = file_immutability.DEFAULT_FILE_IMMUTABILITY_BACKEND.command_pair()
     if immutability_commands is not None and metrics_path.exists():
         unlock_command, _ = immutability_commands
         try:
-            storage._run_file_immutability_command(unlock_command, metrics_path)
+            file_immutability.DEFAULT_FILE_IMMUTABILITY_BACKEND.run_command(unlock_command, metrics_path)
         except Exception:
             pass
 
