@@ -22,8 +22,7 @@ if str(ABS_SRC) not in sys.path:
     sys.path.insert(0, str(ABS_SRC))
 
 import codex_metrics as codex_metrics_pkg
-from codex_metrics import file_immutability
-from codex_metrics import storage
+from codex_metrics import file_immutability, storage
 from codex_metrics.usage_backends import ClaudeUsageBackend, select_usage_backend
 from codex_metrics.usage_backends import resolve_usage_window as resolve_backend_usage_window
 
@@ -1428,22 +1427,26 @@ def test_parallel_auto_id_creates_distinct_goals(repo: Path) -> None:
 def test_entries_preserve_prior_attempt_when_new_attempt_starts(repo: Path) -> None:
     assert run_cmd(repo, "init", "--force").returncode == 0
 
-    assert run_cmd(
+    start_result = run_cmd(
         repo,
-        "update",
-        "--task-id",
-        "entry-task-002",
+        "start-task",
         "--title",
         "Multiple attempts task",
         "--task-type",
         "product",
-    ).returncode == 0
+    )
+    assert start_result.returncode == 0, start_result.stderr
+    goal_id = next(
+        line.removeprefix("Updated goal ").strip()
+        for line in start_result.stdout.splitlines()
+        if line.startswith("Updated goal ")
+    )
 
     assert run_cmd(
         repo,
         "update",
         "--task-id",
-        "entry-task-002",
+        goal_id,
         "--attempts-delta",
         "1",
         "--notes",
@@ -1454,7 +1457,7 @@ def test_entries_preserve_prior_attempt_when_new_attempt_starts(repo: Path) -> N
         repo,
         "update",
         "--task-id",
-        "entry-task-002",
+        goal_id,
         "--attempts-delta",
         "1",
         "--cost-usd-add",
@@ -1469,7 +1472,7 @@ def test_entries_preserve_prior_attempt_when_new_attempt_starts(repo: Path) -> N
         repo,
         "update",
         "--task-id",
-        "entry-task-002",
+        goal_id,
         "--status",
         "success",
         "--notes",
@@ -1478,22 +1481,26 @@ def test_entries_preserve_prior_attempt_when_new_attempt_starts(repo: Path) -> N
 
     data = read_json(repo / "metrics" / "codex_metrics.json")
     entries = sorted(
-        [entry for entry in data["entries"] if entry["goal_id"] == "entry-task-002"],
+        [entry for entry in data["entries"] if entry["goal_id"] == goal_id],
         key=lambda entry: entry["entry_id"],
     )
 
-    assert len(entries) == 2
+    assert len(entries) == 3
     assert entries[0]["status"] == "fail"
     assert entries[0]["inferred"] is True
     assert entries[0]["failure_reason"] is None
-    assert entries[1]["status"] == "success"
-    assert entries[1]["inferred"] is False
+    assert entries[1]["status"] == "fail"
+    assert entries[1]["inferred"] is True
     assert entries[1]["failure_reason"] is None
-    assert entries[1]["cost_usd"] == 0.2
-    assert entries[1]["tokens_total"] == 500
-    assert data["summary"]["entries"]["closed_entries"] == 2
+    assert "First attempt started" in entries[1]["notes"]
+    assert entries[2]["status"] == "success"
+    assert entries[2]["inferred"] is False
+    assert entries[2]["failure_reason"] is None
+    assert entries[2]["cost_usd"] == 0.2
+    assert entries[2]["tokens_total"] == 500
+    assert data["summary"]["entries"]["closed_entries"] == 3
     assert data["summary"]["entries"]["successes"] == 1
-    assert data["summary"]["entries"]["fails"] == 1
+    assert data["summary"]["entries"]["fails"] == 2
     assert data["summary"]["entries"]["failure_reasons"] == {}
 
 

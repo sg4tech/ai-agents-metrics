@@ -30,10 +30,34 @@ Repository workflow and policy live in:
 - `AGENTS.md`
 - `docs/codex-metrics-policy.md`
 
-Git commit subject validation lives in `.githooks/commit-msg`. Enable the repo hooks with:
+Local Linear setup lives in:
+
+- `docs/local-linear-setup.md`
+
+Task lifecycle guidance lives in:
+
+- `docs/task-lifecycle.md`
+
+Repository git hooks live in `.githooks/`. Enable them with:
 
 ```bash
 git config core.hooksPath .githooks
+```
+
+Current hooks:
+
+- `.githooks/commit-msg` validates commit subjects against the `CODEX-123: summary` / `NO-TASK: summary` contract
+- `.githooks/pre-commit` runs `ruff check` on staged Python files to catch import-order and other lint drift before commit
+- `.githooks/pre-push` runs `make verify` only when the pushed range contains code-affecting changes; docs-only pushes skip it
+
+The hooks are intentionally layered:
+
+- `pre-commit` is the fast local lint barrier
+- `pre-push` is the heavier repository-wide verification barrier for code changes
+- docs-only pushes skip `make verify` to avoid unnecessary friction
+
+```bash
+make verify
 ```
 
 ## Quick Start

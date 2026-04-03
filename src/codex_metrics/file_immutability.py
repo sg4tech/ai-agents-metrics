@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Iterator
 
 
 class FileImmutabilityBackend:
@@ -30,7 +31,7 @@ class FileImmutabilityBackend:
         subprocess.run([*command, str(path)], check=True, capture_output=True, text=True)
 
     @contextlib.contextmanager
-    def guard(self, path: Path):
+    def guard(self, path: Path) -> Iterator[None]:
         commands = self.command_pair()
         if commands is None:
             yield
@@ -55,6 +56,6 @@ def metrics_file_immutability_guard(
     path: Path,
     *,
     backend: FileImmutabilityBackend = DEFAULT_FILE_IMMUTABILITY_BACKEND,
-):
+) -> Iterator[None]:
     with backend.guard(path):
         yield

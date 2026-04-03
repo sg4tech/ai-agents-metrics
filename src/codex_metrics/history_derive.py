@@ -529,7 +529,7 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
 
             for session_path, session_message_rows in message_rows_by_session.items():
                 usage_groups_for_session = message_usage_groups.get(session_path, {})
-                attempt_index = next(
+                session_attempt_index: int | None = next(
                     (index for index, session_row in enumerate(thread_sessions, start=1) if session_row["session_path"] == session_path),
                     None,
                 )
@@ -542,7 +542,7 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
                     total_tokens = _sum_known_int([row["total_tokens"] for row in usage_rows])
                     usage_event = usage_rows[0] if usage_rows else None
                     usage_event_id = None if usage_event is None else usage_event["usage_event_id"]
-                    usage_event_index = None if usage_event is None else int(usage_event["event_index"])
+                    message_usage_event_index: int | None = None if usage_event is None else int(usage_event["event_index"])
                     usage_timestamp = None if usage_event is None else _normalize_timestamp(usage_event["timestamp"])
                     message_model = _resolve_message_model(usage_event, thread_row["model"])
                     message_timestamp = _normalize_timestamp(message_row["timestamp"])
@@ -561,7 +561,7 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
                             message_row["thread_id"],
                             message_row["source_path"],
                             message_row["session_path"],
-                            attempt_index,
+                            session_attempt_index,
                             message_row["event_index"],
                             message_row["message_index"],
                             message_row["role"],
@@ -570,7 +570,7 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
                             message_row["text"],
                             message_model,
                             usage_event_id,
-                            usage_event_index,
+                            message_usage_event_index,
                             usage_timestamp,
                             input_tokens,
                             cached_input_tokens,
