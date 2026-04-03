@@ -24,6 +24,16 @@ The first version should support at least:
 - temporary unlock, write, and re-lock behavior
 - a failure mode that leaves the file protected if the update fails partway through
 
+## Verification Status
+
+The repository has already verified the code-level path:
+
+- the storage layer uses a real OS-level immutability guard
+- the helper contract is covered by tests
+- the CLI roundtrip still works
+
+The remaining open item is live validation of the constrained privileged updater path on both macOS and Linux.
+
 ## Non-Goals
 
 This feature should not:

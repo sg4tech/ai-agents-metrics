@@ -117,13 +117,16 @@ codex-metrics render-report
 codex-metrics sync-usage
 codex-metrics ingest-codex-history --help
 codex-metrics normalize-codex-history --help
+codex-metrics derive-codex-history --help
+codex-metrics compare-metrics-history
 ```
 
 The public workflow contract should stay agent-agnostic. Provider-specific detection and telemetry support belong behind internal adapters, not in required public CLI flags.
 
 Automatic local usage sync is currently implemented for Codex telemetry. Other agents are still in scope for the product, but their support should land through the same universal command surface.
 
-When repository work has already started but no active task exists yet, prefer `codex-metrics ensure-active-task` before continuing with other mutating commands.
+When repository work has already started but no active task exists yet, prefer `codex-metrics ensure-active-task` before continuing with active-work commands.
+Closed-goal repair via `finish-task` or a status-closing `update` remains available for history correction, but it should stay narrow and explicit.
 
 If `codex-metrics` is expected but unavailable, treat that as an `environment_issue` or installation mismatch and report it clearly.
 

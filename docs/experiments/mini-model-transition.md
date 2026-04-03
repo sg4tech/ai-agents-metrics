@@ -4,7 +4,7 @@
 
 - Draft date: `2026-04-02`
 - Owner: `product / metrics`
-- Related hypothesis: `H-011` in `docs/product-hypotheses.md`
+- Related hypothesis: `H-012` in `docs/product-hypotheses.md`
 
 ## Goal
 
@@ -64,6 +64,23 @@ If possible, compare by task class as well:
 - tests and verification
 - debugging or repair work
 
+## Current Readout
+
+Observed in the local warehouse on `2026-04-03`:
+
+- `gpt-5.4` assistant-message cost: `0.303335 USD/message` on the observed history slice
+- `gpt-5.4-mini` assistant-message cost: `0.048555 USD/message` on the observed history slice
+- `gpt-5.4` session-slice cost: `93.210561 USD/session`
+- `gpt-5.4-mini` session-slice cost: `3.431234 USD/session`
+- transition-day `2026-04-02` also favored mini on cost, but it was a mixed day with both models active
+
+Interpretation:
+
+- The cost signal is clearly in favor of `mini`.
+- The observed savings are large enough to treat the policy shift as economically worthwhile on the current data.
+- The result is still mix-sensitive, so the experiment is cost-confirmed but not a perfect quality-equivalence proof.
+- If we want a stricter decision later, we should re-check quality and retry pressure on a larger post-switch slice.
+
 ## Decision Rule
 
 Treat the switch as successful only if:
@@ -77,6 +94,12 @@ Treat it as a bad trade if:
 - cost savings are erased by retries
 - adjacent-work or partial-fit behavior gets worse
 - debugging work becomes slower enough to offset the cheaper model
+
+## Current Decision
+
+- Cost objective: achieved on the observed history slice.
+- Quality objective: still under observation, but no clear counter-signal has replaced the cost win yet.
+- Recommended operating stance: keep `mini-first` as the default, while escalating to the larger model for hard or ambiguous work.
 
 ## Recheck Trigger
 
