@@ -17,6 +17,7 @@ from codex_metrics.observability import (
     record_goal_mutation_observation,
     record_usage_sync_observation,
 )
+from codex_metrics.retro_timeline import RetroTimelineReport
 from codex_metrics.workflow_fsm import (
     WorkflowEvent,
 )
@@ -67,11 +68,21 @@ class CommandRuntime(Protocol):
     def resolve_workflow_resolution(self, data: dict[str, Any], cwd: Path, event: WorkflowEvent) -> Any: ...
     def audit_history(self, data: dict[str, Any]) -> AuditReport: ...
     def compare_metrics_to_history(self, data: dict[str, Any], *, warehouse_path: Path, cwd: Path, metrics_path: Path) -> HistoryCompareReport: ...
+    def derive_retro_timeline(
+        self,
+        data: dict[str, Any],
+        *,
+        warehouse_path: Path,
+        cwd: Path,
+        metrics_path: Path,
+        window_size: int,
+    ) -> RetroTimelineReport: ...
     def ingest_codex_history(self, source_root: Path, warehouse_path: Path) -> Any: ...
     def normalize_codex_history(self, warehouse_path: Path) -> Any: ...
     def derive_codex_history(self, warehouse_path: Path) -> Any: ...
     def render_audit_report(self, report: AuditReport) -> str: ...
     def render_history_compare_report(self, report: HistoryCompareReport) -> str: ...
+    def render_retro_timeline_report(self, report: RetroTimelineReport) -> str: ...
     def audit_cost_coverage(
         self,
         data: dict[str, Any],
@@ -523,6 +534,24 @@ def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     print(f"Retry chains: {summary.retry_chains}")
     print(f"Message facts: {summary.message_facts}")
     print(f"Session usage: {summary.session_usage}")
+    return 0
+
+
+def handle_derive_retro_timeline(args: Namespace, cli_module: CommandRuntime) -> int:
+    metrics_path = Path(args.metrics_path)
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    cwd = Path(args.cwd).expanduser()
+    data = cli_module.load_metrics(metrics_path)
+    cli_module.recompute_summary(data)
+    with cli_module.metrics_mutation_lock(warehouse_path):
+        report = cli_module.derive_retro_timeline(
+            data,
+            warehouse_path=warehouse_path,
+            cwd=cwd,
+            metrics_path=metrics_path,
+            window_size=args.window_size,
+        )
+    print(cli_module.render_retro_timeline_report(report))
     return 0
 
 

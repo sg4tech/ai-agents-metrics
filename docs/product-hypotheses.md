@@ -39,3 +39,4 @@ Quick map:
 | `H-019` | `active` | `docs/product-hypotheses/H-019.md` | Higher agent autonomy may improve result quality and lower cost by separating discovery from delivery |
 | `H-020` | `validated` | `docs/product-hypotheses/H-020.md` | Workspace-wide history parsing may be required before cross-project analysis becomes reliable |
 | `H-021` | `active` | `docs/product-hypotheses/H-021.md` | A system-level immutable flag on the metrics file may reduce accidental edits, but it only works with a constrained privileged updater |
+| `H-022` | `active` | `docs/product-hypotheses/H-022.md` | A retrospective timeline layer may be required before we can evaluate whether retrospectives improve later product outcomes |

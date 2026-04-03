@@ -54,6 +54,12 @@ from codex_metrics.history_normalize import (
 from codex_metrics.history_normalize import (
     normalize_codex_history as run_normalize_codex_history,
 )
+from codex_metrics.retro_timeline import (
+    derive_retro_timeline as run_derive_retro_timeline,
+)
+from codex_metrics.retro_timeline import (
+    render_retro_timeline_report as render_retro_timeline_text_report,
+)
 from codex_metrics.usage_backends import (
     ClaudeUsageBackend,
     UsageBackend,
@@ -72,6 +78,7 @@ from codex_metrics.workflow_fsm import (
 build_operator_review = reporting.build_operator_review
 audit_history = build_history_audit_report
 compare_metrics_to_history = build_history_compare_report
+derive_retro_timeline = run_derive_retro_timeline
 format_coverage = reporting.format_coverage
 format_num = reporting.format_num
 format_pct = reporting.format_pct
@@ -81,6 +88,7 @@ print_summary = reporting.print_summary
 render_cost_audit_report = render_cost_coverage_audit_report
 render_audit_report = render_history_audit_report
 render_history_compare_report = render_compare_report
+render_retro_timeline_report = render_retro_timeline_text_report
 
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
 ALLOWED_TASK_TYPES = domain.ALLOWED_TASK_TYPES
@@ -1453,6 +1461,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="SQLite warehouse path that already contains normalized Codex history",
     )
 
+    retro_timeline_parser = subparsers.add_parser(
+        "derive-retro-timeline",
+        help="Derive before/after product-metric windows around retrospective events",
+        description=(
+            "Read the metrics ledger, build a retrospective timeline dataset, write it into the SQLite warehouse, "
+            "and print before/after product-metric windows around each retro."
+        ),
+    )
+    retro_timeline_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    retro_timeline_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
+    retro_timeline_parser.add_argument("--cwd", default=str(Path.cwd()))
+    retro_timeline_parser.add_argument("--window-size", type=int, default=5)
+
     cost_audit_parser = subparsers.add_parser(
         "audit-cost-coverage",
         help="Explain why product goals are missing cost coverage",
@@ -1774,6 +1795,9 @@ def main() -> int:
 
     if args.command == "derive-codex-history":
         return commands.handle_derive_codex_history(args, sys.modules[__name__])
+
+    if args.command == "derive-retro-timeline":
+        return commands.handle_derive_retro_timeline(args, sys.modules[__name__])
 
     if args.command == "audit-cost-coverage":
         return commands.handle_audit_cost_coverage(args, sys.modules[__name__])
