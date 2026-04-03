@@ -1465,8 +1465,8 @@ def build_parser() -> argparse.ArgumentParser:
         "derive-retro-timeline",
         help="Derive before/after product-metric windows around retrospective events",
         description=(
-            "Read the metrics ledger, build a retrospective timeline dataset, write it into the SQLite warehouse, "
-            "and print before/after product-metric windows around each retro."
+            "Read normalized Codex history from main.normalized_messages, build a retrospective timeline dataset, "
+            "write it into the SQLite warehouse, and print before/after product-metric windows around each retro."
         ),
     )
     retro_timeline_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))

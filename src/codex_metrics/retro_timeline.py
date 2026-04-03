@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,10 +15,16 @@ from codex_metrics.reporting import format_pct, format_usd
 @dataclass(frozen=True)
 class RetroTimelineEvent:
     retro_event_id: str
-    goal_id: str | None
+    message_id: str
+    thread_id: str | None
+    session_path: str
+    event_index: int
+    message_index: int
+    message_role: str
     event_time: str
     event_date: str
     project_cwd: str
+    retro_file_path: str
     title: str
     summary: str | None
     source_kind: str
@@ -93,6 +100,13 @@ def _parse_timestamp(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def _normalize_timestamp(value: str | None) -> str | None:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    return cleaned if cleaned else None
+
+
 def _compact_text(value: str | None, *, limit: int = 120) -> str | None:
     if value is None:
         return None
@@ -118,40 +132,95 @@ def _effective_goals_from_data(data: dict[str, Any]) -> list[EffectiveGoalRecord
     return build_effective_goals([goal_from_dict(goal) for goal in data.get("goals", [])])
 
 
-def _build_retro_events(effective_goals: list[EffectiveGoalRecord], *, cwd: Path) -> list[RetroTimelineEvent]:
-    events: list[RetroTimelineEvent] = []
-    project_cwd = str(cwd.resolve())
-    for goal in effective_goals:
-        if goal.goal_type != "retro" or goal.status not in {"success", "fail"}:
+_RETRO_MESSAGE_PATH_PATTERN = re.compile(r"docs/retros/[^)\]\s]+\.md", re.IGNORECASE)
+
+
+def _title_from_retro_path(retro_file_path: str) -> str:
+    stem = Path(retro_file_path).stem
+    match = re.match(r"^\d{4}-\d{2}-\d{2}-(.+)$", stem)
+    cleaned = match.group(1) if match is not None else stem
+    return cleaned.replace("-", " ").strip() or stem
+
+
+def _extract_retro_paths(message_text: str) -> list[str]:
+    seen: set[str] = set()
+    paths: list[str] = []
+    for match in _RETRO_MESSAGE_PATH_PATTERN.findall(message_text):
+        normalized = match.strip().rstrip(".,;:")
+        if normalized not in seen:
+            seen.add(normalized)
+            paths.append(normalized)
+    return paths
+
+
+def _load_retro_events_from_messages(conn: sqlite3.Connection, *, cwd: Path) -> list[RetroTimelineEvent]:
+    try:
+        message_rows = conn.execute(
+            """
+            SELECT
+                m.message_id,
+                m.thread_id,
+                m.session_path,
+                m.source_path,
+                m.event_index,
+                m.message_index,
+                m.role,
+                m.text,
+                m.timestamp
+            FROM main.normalized_messages AS m
+            JOIN main.normalized_threads AS t ON t.thread_id = m.thread_id
+            WHERE t.cwd = ? AND m.role = 'assistant' AND lower(m.text) LIKE '%docs/retros/%'
+            ORDER BY m.timestamp, m.thread_id, m.session_path, m.event_index, m.message_index
+            """,
+            (str(cwd.resolve()),),
+        ).fetchall()
+    except sqlite3.OperationalError as exc:
+        raise ValueError(
+            "Warehouse does not contain main.normalized_messages; run normalize-codex-history first"
+        ) from exc
+
+    events_by_path: dict[str, RetroTimelineEvent] = {}
+    for row in message_rows:
+        timestamp = _normalize_timestamp(row["timestamp"])
+        if timestamp is None:
             continue
-        event_time = _goal_timestamp(goal)
-        if event_time is None:
+        retro_paths = _extract_retro_paths(row["text"])
+        if not retro_paths:
             continue
-        raw_payload = {
-            "goal_id": goal.goal_id,
-            "title": goal.title,
-            "status": goal.status,
-            "attempts": goal.attempts,
-            "started_at": goal.started_at,
-            "finished_at": goal.finished_at,
-            "notes": goal.notes,
-            "failure_reason": goal.failure_reason,
-            "source_kind": "ledger",
-        }
-        events.append(
-            RetroTimelineEvent(
-                retro_event_id=f"retro-event:{goal.goal_id}",
-                goal_id=goal.goal_id,
-                event_time=event_time,
-                event_date=event_time[:10],
-                project_cwd=project_cwd,
-                title=goal.title,
-                summary=_compact_text(goal.notes),
-                source_kind="ledger",
+        for retro_path in retro_paths:
+            if retro_path in events_by_path:
+                continue
+            raw_payload = {
+                "message_id": row["message_id"],
+                "thread_id": row["thread_id"],
+                "session_path": row["session_path"],
+                "source_path": row["source_path"],
+                "event_index": row["event_index"],
+                "message_index": row["message_index"],
+                "role": row["role"],
+                "timestamp": timestamp,
+                "retro_file_path": retro_path,
+                "text": row["text"],
+                "source_kind": "message",
+            }
+            events_by_path[retro_path] = RetroTimelineEvent(
+                retro_event_id=f"retro-event:{Path(retro_path).stem}",
+                message_id=row["message_id"],
+                thread_id=row["thread_id"],
+                session_path=row["session_path"],
+                event_index=int(row["event_index"]),
+                message_index=int(row["message_index"]),
+                message_role=row["role"],
+                event_time=timestamp,
+                event_date=timestamp[:10],
+                project_cwd=str(cwd.resolve()),
+                retro_file_path=retro_path,
+                title=_title_from_retro_path(retro_path),
+                summary=_compact_text(row["text"], limit=180),
+                source_kind="message",
                 raw_json=_json_dumps(raw_payload),
             )
-        )
-    return sorted(events, key=lambda event: (event.event_time, event.retro_event_id))
+    return sorted(events_by_path.values(), key=lambda event: (_parse_timestamp(event.event_time), event.retro_event_id))
 
 
 def _build_window(
@@ -259,7 +328,10 @@ def build_retro_timeline_report(
         raise ValueError("window_size must be positive")
 
     effective_goals = _effective_goals_from_data(data)
-    retro_events = _build_retro_events(effective_goals, cwd=cwd)
+    warehouse_path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(warehouse_path) as conn:
+        conn.row_factory = sqlite3.Row
+        retro_events = _load_retro_events_from_messages(conn, cwd=cwd)
     product_goals = [
         goal
         for goal in effective_goals
@@ -309,10 +381,16 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         """
         CREATE TABLE IF NOT EXISTS retro_timeline_events (
             retro_event_id TEXT PRIMARY KEY,
-            goal_id TEXT,
+            message_id TEXT NOT NULL,
+            thread_id TEXT,
+            session_path TEXT NOT NULL,
+            event_index INTEGER NOT NULL,
+            message_index INTEGER NOT NULL,
+            message_role TEXT NOT NULL,
             event_time TEXT NOT NULL,
             event_date TEXT NOT NULL,
             project_cwd TEXT NOT NULL,
+            retro_file_path TEXT NOT NULL,
             title TEXT NOT NULL,
             summary TEXT,
             source_kind TEXT NOT NULL,
@@ -378,16 +456,24 @@ def persist_retro_timeline_report(report: RetroTimelineReport) -> None:
         conn.executemany(
             """
             INSERT INTO retro_timeline_events (
-                retro_event_id, goal_id, event_time, event_date, project_cwd, title, summary, source_kind, raw_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                retro_event_id, message_id, thread_id, session_path, event_index, message_index,
+                message_role, event_time, event_date, project_cwd, retro_file_path, title, summary,
+                source_kind, raw_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
                     event.retro_event_id,
-                    event.goal_id,
+                    event.message_id,
+                    event.thread_id,
+                    event.session_path,
+                    event.event_index,
+                    event.message_index,
+                    event.message_role,
                     event.event_time,
                     event.event_date,
                     event.project_cwd,
+                    event.retro_file_path,
                     event.title,
                     event.summary,
                     event.source_kind,
@@ -501,7 +587,9 @@ def render_retro_timeline_report(report: RetroTimelineReport) -> str:
             [
                 f"[retro] {record.event.event_time} | {record.event.title}",
                 f"- retro_event_id: {record.event.retro_event_id}",
+                f"- message_id: {record.event.message_id}",
                 f"- source_kind: {record.event.source_kind}",
+                f"- retro_file_path: {record.event.retro_file_path}",
                 f"- summary: {record.event.summary or 'n/a'}",
                 f"- before_goals: {record.before_window.product_goals_closed}",
                 (
