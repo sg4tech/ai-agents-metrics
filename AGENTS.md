@@ -15,11 +15,20 @@ For product-management, framing, and metrics-interpretation work, also read:
 - `docs/product-hypotheses.md`
 - the relevant `docs/product-hypotheses/H-xxx.md` file
 
+For history/search/reconstruction work, also read:
+
+- `docs/history-pipeline.md`
+- `src/codex_metrics/history_ingest.py`
+- `src/codex_metrics/history_normalize.py`
+- `src/codex_metrics/history_derive.py`
+
 ## Core working style
 
 - During module splits or structural refactors, preserve the existing import/export surface until a breaking change is explicitly intended and validated.
 - Treat shim modules, entrypoints, and re-exported symbols that are exercised by tests or automation as part of the compatibility contract, not as disposable implementation details.
 - For workflow and lifecycle changes, prefer an explicit state machine over scattered guard checks; write or update the state/event matrix tests before changing behavior.
+- For changes that introduce system-level side effects, reason about the full side-effect surface instead of only the primary artifact; cleanup and verification should cover files, attributes, locks, temp directories, subprocesses, and any other mutated global state.
+- For history search or transcript analysis, treat `raw_messages`, `raw_token_usage`, `normalized_messages`, `derived_timeline_events`, and `derived_goals` as the canonical pipeline waypoints before inventing new storage.
 - When product framing or success criteria are not yet confirmed by the user, treat drafts as hypotheses, not settled truth.
 - When acting as PM, structure proposals explicitly as hypotheses with expected upside, main risks, alternatives, and a confidence level.
 - Log meaningful product or metrics hypotheses in `docs/product-hypotheses.md` and the matching `docs/product-hypotheses/H-xxx.md` file instead of leaving them only in chat.
