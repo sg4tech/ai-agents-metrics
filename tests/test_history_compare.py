@@ -89,8 +89,8 @@ def _create_compare_warehouse(path: Path, *, repo_cwd: Path) -> None:
         )
         conn.execute(
             """
-            CREATE TABLE derived_usage_slices (
-                usage_slice_id TEXT PRIMARY KEY,
+            CREATE TABLE derived_session_usage (
+                session_usage_id TEXT PRIMARY KEY,
                 thread_id TEXT NOT NULL,
                 source_path TEXT NOT NULL,
                 session_path TEXT NOT NULL,
@@ -178,7 +178,7 @@ def _create_compare_warehouse(path: Path, *, repo_cwd: Path) -> None:
         )
         conn.execute(
             """
-            INSERT INTO derived_usage_slices VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 "usage-1",

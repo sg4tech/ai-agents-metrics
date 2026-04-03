@@ -1444,7 +1444,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Derive analysis marts from normalized Codex history",
         description=(
             "Read the normalized warehouse populated by normalize-codex-history and build reusable "
-            "analysis marts for goals, attempts, timelines, retry chains, and usage slices."
+            "analysis marts for goals, attempts, timelines, retry chains, and session usage."
         ),
     )
     derive_parser.add_argument(

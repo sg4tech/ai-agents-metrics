@@ -56,12 +56,19 @@ def _table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
     return row is not None
 
 
+def _session_usage_table_name(conn: sqlite3.Connection) -> str:
+    if _table_exists(conn, "derived_session_usage"):
+        return "derived_session_usage"
+    raise ValueError("Warehouse does not contain derived Codex history; run derive-codex-history first")
+
+
 def _warehouse_scope_row(conn: sqlite3.Connection, *, cwd: str | None = None) -> HistoryCompareScopeRow:
     where_clause = ""
     params: tuple[Any, ...] = ()
     if cwd is not None:
         where_clause = "WHERE cwd = ?"
         params = (cwd,)
+    session_usage_table = _session_usage_table_name(conn)
 
     thread_count = int(conn.execute(f"SELECT count(*) FROM derived_goals {where_clause}", params).fetchone()[0])
     attempt_count = int(
@@ -81,28 +88,28 @@ def _warehouse_scope_row(conn: sqlite3.Connection, *, cwd: str | None = None) ->
     )
     usage_threads = int(
         conn.execute(
-            f"SELECT count(DISTINCT thread_id) FROM derived_usage_slices WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause}) AND total_tokens IS NOT NULL",
+            f"SELECT count(DISTINCT thread_id) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause}) AND total_tokens IS NOT NULL",
             params,
         ).fetchone()[0]
     )
     input_tokens = _sum_nullable_int(
         conn,
-        f"SELECT sum(input_tokens) FROM derived_usage_slices WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
+        f"SELECT sum(input_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
         params,
     )
     cached_input_tokens = _sum_nullable_int(
         conn,
-        f"SELECT sum(cached_input_tokens) FROM derived_usage_slices WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
+        f"SELECT sum(cached_input_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
         params,
     )
     output_tokens = _sum_nullable_int(
         conn,
-        f"SELECT sum(output_tokens) FROM derived_usage_slices WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
+        f"SELECT sum(output_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
         params,
     )
     total_tokens = _sum_nullable_int(
         conn,
-        f"SELECT sum(total_tokens) FROM derived_usage_slices WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
+        f"SELECT sum(total_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",
         params,
     )
     if _table_exists(conn, "derived_projects"):
@@ -178,7 +185,7 @@ def load_history_compare_warehouse_data(*, warehouse_path: Path, cwd: Path) -> H
         conn.row_factory = sqlite3.Row
         try:
             conn.execute("SELECT 1 FROM derived_goals LIMIT 1").fetchone()
-            conn.execute("SELECT 1 FROM derived_usage_slices LIMIT 1").fetchone()
+            _session_usage_table_name(conn)
         except sqlite3.OperationalError as exc:
             raise ValueError(
                 "Warehouse does not contain derived Codex history; run derive-codex-history first"
