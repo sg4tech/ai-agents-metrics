@@ -27,3 +27,13 @@ Use this file as a short-lived memory aid for product and metrics ideas that are
   - treat the idea as a plausible process hypothesis
   - do not treat the current history as proof
 
+## 2026-04-03
+
+### Retro/meta follow-up
+
+- `./tools/codex-metrics compare-metrics-history` shows the reconstructed local warehouse slice is still a subset view: 24 project threads in the observed slice versus 222 closed goals in the ledger.
+- `./tools/codex-metrics audit-history` flags several retro goals as likely misses, so `retro` work itself is mixed and cannot be treated as uniformly positive.
+- Practical takeaway:
+  - keep `H-015` active as a coarse process hypothesis
+  - treat [H-022](/Users/viktor/PycharmProjects/codex-metrics/docs/product-hypotheses/H-022.md) as the next measurement step for before/after analysis
+  - avoid upgrading the current signal from descriptive to causal

@@ -449,6 +449,10 @@ def persist_retro_timeline_report(report: RetroTimelineReport) -> None:
     report.warehouse_path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(report.warehouse_path) as conn:
         _ensure_schema(conn)
+        conn.execute("DROP TABLE IF EXISTS retro_timeline_events")
+        conn.execute("DROP TABLE IF EXISTS retro_metric_windows")
+        conn.execute("DROP TABLE IF EXISTS retro_window_deltas")
+        _ensure_schema(conn)
         conn.execute("DELETE FROM retro_timeline_events")
         conn.execute("DELETE FROM retro_metric_windows")
         conn.execute("DELETE FROM retro_window_deltas")
