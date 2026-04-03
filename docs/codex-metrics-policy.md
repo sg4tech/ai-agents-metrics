@@ -93,6 +93,8 @@ The issue should contain, at minimum:
 
 Do not start coding until the work is represented in Linear. If the scope changes mid-stream, update the issue first and continue through that issue rather than drifting into undocumented work.
 
+Standalone retrospective work is the exception. A retrospective writeup logged in `docs/retros/` and tracked as `goal_type=retro` does not require a Linear issue unless the user explicitly wants that retrospective tied back to a delivery issue.
+
 ### Commit Subject Rules
 
 Use a Linear-linked commit subject for engineering work:
@@ -103,7 +105,11 @@ If a change is intentionally not tied to a Linear issue, use the explicit no-tas
 
 - `NO-TASK: summary`
 
-Do not use an unmarked free-form commit subject for engineering work. The validator should reject subjects that omit both prefixes.
+Retrospective-only commits must use the explicit no-task prefix:
+
+- `NO-TASK: summary`
+
+Do not use an unmarked free-form commit subject for engineering work. The validator should reject subjects that omit both prefixes, and retrospective-only commits should not use a Linear-linked subject.
 
 ### At Goal Start
 

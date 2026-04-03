@@ -21,6 +21,33 @@ def test_validate_commit_subject_accepts_explicit_no_task_subject() -> None:
     assert result.reason is None
 
 
+def test_validate_commit_subject_rejects_linear_subject_for_retro_only_commit() -> None:
+    result = validate_commit_subject(
+        "CODEX-123: retro cleanup",
+        staged_paths=["docs/retros/2026-04-03-example.md"],
+    )
+    assert result.allowed is False
+    assert "Retrospective-only commits must use NO-TASK: summary." in result.reason
+
+
+def test_validate_commit_subject_accepts_no_task_subject_for_retro_only_commit() -> None:
+    result = validate_commit_subject(
+        "NO-TASK: add retrospective",
+        staged_paths=["docs/retros/2026-04-03-example.md"],
+    )
+    assert result.allowed is True
+    assert result.reason is None
+
+
+def test_validate_commit_subject_allows_linear_subject_when_retro_is_mixed_with_other_work() -> None:
+    result = validate_commit_subject(
+        "CODEX-123: ship fix with retro",
+        staged_paths=["docs/retros/2026-04-03-example.md", "src/codex_metrics/commit_message.py"],
+    )
+    assert result.allowed is True
+    assert result.reason is None
+
+
 def test_validate_commit_subject_rejects_unmarked_subject() -> None:
     result = validate_commit_subject("update commit hook validation")
     assert result.allowed is False
