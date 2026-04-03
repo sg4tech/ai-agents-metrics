@@ -483,9 +483,13 @@ def test_start_task_records_structured_event_and_debug_log(repo: Path) -> None:
             "FROM events ORDER BY occurred_at ASC, event_id ASC"
         ).fetchall()
 
-    assert len(rows) == 2
-    event_types = {row["event_type"] for row in rows}
-    assert event_types == {"cli_invoked", "goal_created"}
+    assert len(rows) == 3
+    event_types = [row["event_type"] for row in rows]
+    assert event_types.count("cli_invoked") == 2
+    assert event_types.count("goal_created") == 1
+    commands = [row["command"] for row in rows]
+    assert commands.count("init") == 1
+    assert commands.count("start-task") == 2
     goal_created_row = next(row for row in rows if row["event_type"] == "goal_created")
     assert goal_created_row["command"] == "start-task"
     assert goal_created_row["goal_type"] == "meta"
@@ -511,7 +515,8 @@ def test_show_records_cli_invocation_event(repo: Path) -> None:
     with sqlite3.connect(events_db) as conn:
         conn.row_factory = sqlite3.Row
         row = conn.execute(
-            "SELECT event_type, command, payload_json FROM events ORDER BY occurred_at DESC, event_id DESC LIMIT 1"
+            "SELECT event_type, command, payload_json FROM events WHERE event_type = 'cli_invoked' AND command = 'show' "
+            "ORDER BY occurred_at DESC, event_id DESC LIMIT 1"
         ).fetchone()
 
     assert row is not None
