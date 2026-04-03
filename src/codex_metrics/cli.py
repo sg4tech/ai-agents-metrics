@@ -54,6 +54,7 @@ from codex_metrics.history_normalize import (
 from codex_metrics.history_normalize import (
     normalize_codex_history as run_normalize_codex_history,
 )
+from codex_metrics.observability import record_cli_invocation_observation
 from codex_metrics.retro_timeline import (
     derive_retro_timeline as run_derive_retro_timeline,
 )
@@ -1750,11 +1751,38 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
     return kept_task
 
 
+def _record_cli_invocation(args: argparse.Namespace) -> None:
+    metrics_path = Path(getattr(args, "metrics_path", METRICS_JSON_PATH))
+    command = getattr(args, "command", None)
+    if command is None:
+        return
+    payload: dict[str, Any] = {
+        "cwd": str(Path.cwd()),
+    }
+    task_id = getattr(args, "task_id", None)
+    if task_id is not None:
+        payload["task_id"] = task_id
+    keep_task_id = getattr(args, "keep_task_id", None)
+    if keep_task_id is not None:
+        payload["keep_task_id"] = keep_task_id
+    drop_task_id = getattr(args, "drop_task_id", None)
+    if drop_task_id is not None:
+        payload["drop_task_id"] = drop_task_id
+    record_cli_invocation_observation(
+        metrics_path,
+        command=command,
+        cwd=str(Path.cwd()),
+        task_id=task_id,
+        extra_payload=payload,
+    )
+
+
 def main() -> int:
     from codex_metrics import commands
 
     parser = build_parser()
     args = parser.parse_args()
+    _record_cli_invocation(args)
 
     if args.command == "init":
         return commands.handle_init(args, sys.modules[__name__])

@@ -264,6 +264,38 @@ def _record_event_best_effort(
             pass
 
 
+def record_cli_invocation_observation(
+    metrics_path: Path,
+    *,
+    command: str,
+    cwd: str,
+    task_id: str | None = None,
+    extra_payload: dict[str, Any] | None = None,
+) -> None:
+    payload: dict[str, Any] = {
+        "command": command,
+        "cwd": cwd,
+    }
+    if task_id is not None:
+        payload["task_id"] = task_id
+    if extra_payload:
+        payload.update(extra_payload)
+    _record_event_best_effort(
+        metrics_path=metrics_path,
+        event_type="cli_invoked",
+        payload=payload,
+        command=command,
+        goal_id=task_id,
+        goal_type=None,
+        status_before=None,
+        status_after=None,
+        attempts_before=None,
+        attempts_after=None,
+        result_fit_before=None,
+        result_fit_after=None,
+    )
+
+
 def _changed_fields(previous_task: dict[str, Any] | None, current_task: dict[str, Any]) -> list[str]:
     if previous_task is None:
         return sorted(

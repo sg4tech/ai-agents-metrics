@@ -4,7 +4,14 @@ import json
 import sqlite3
 from pathlib import Path
 
-from codex_metrics.observability import observability_paths, record_goal_mutation_observation
+import pytest
+
+import codex_metrics.observability as observability
+from codex_metrics.observability import (
+    observability_paths,
+    record_cli_invocation_observation,
+    record_goal_mutation_observation,
+)
 
 
 def test_record_goal_mutation_observation_writes_sqlite_and_debug_log(tmp_path: Path) -> None:
@@ -60,3 +67,49 @@ def test_record_goal_mutation_observation_writes_sqlite_and_debug_log(tmp_path: 
     debug_log = paths.debug_log_path.read_text(encoding="utf-8")
     assert row["event_id"] in debug_log
     assert "event_type=\"goal_created\"" in debug_log
+
+
+def test_record_cli_invocation_observation_writes_sqlite_and_debug_log(tmp_path: Path) -> None:
+    metrics_path = tmp_path / "metrics" / "codex_metrics.json"
+
+    record_cli_invocation_observation(
+        metrics_path,
+        command="show",
+        cwd="/tmp/workspace",
+        task_id="goal-1",
+    )
+
+    paths = observability_paths(metrics_path)
+    assert paths.event_store_path.exists()
+    assert paths.debug_log_path.exists()
+
+    with sqlite3.connect(paths.event_store_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM events").fetchone()
+
+    assert row is not None
+    assert row["event_type"] == "cli_invoked"
+    assert row["command"] == "show"
+    assert row["goal_id"] == "goal-1"
+    payload = json.loads(row["payload_json"])
+    assert payload["command"] == "show"
+    assert payload["cwd"] == "/tmp/workspace"
+    assert payload["task_id"] == "goal-1"
+    debug_log = paths.debug_log_path.read_text(encoding="utf-8")
+    assert row["event_id"] in debug_log
+    assert "event_type=\"cli_invoked\"" in debug_log
+
+
+def test_record_cli_invocation_observation_best_effort_on_store_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    metrics_path = tmp_path / "metrics" / "codex_metrics.json"
+    monkeypatch.setattr(observability, "_store_event", lambda **_: (_ for _ in ()).throw(RuntimeError("boom")))
+
+    record_cli_invocation_observation(metrics_path, command="show", cwd="/tmp/workspace")
+
+    paths = observability_paths(metrics_path)
+    assert not paths.event_store_path.exists()
+    debug_log = paths.debug_log_path.read_text(encoding="utf-8")
+    assert "event_type=\"observability_write_failed\"" in debug_log
+    assert "command=\"show\"" in debug_log

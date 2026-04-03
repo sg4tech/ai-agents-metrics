@@ -28,18 +28,30 @@ Secondary users:
 
 ## Job To Be Done
 
-When an AI agent analyzes AI-agent-assisted work, it should be able to determine whether workflow changes are improving result quality and speed without letting AI cost eat engineering profit, so that it can recommend what to keep, what to change, and what to investigate next.
+When an AI agent analyzes AI-agent-assisted work, it should be able to manage the effectiveness and economics of that work, and then give the human sponsor the analysis needed to decide what to keep, what to change, and what to investigate next.
+
+Primary external scenario:
+
+- an AI agent reviews a real workflow change in this repository or nearby work
+- the agent compares history before and after that change
+- the agent explains whether quality, speed, and cost improved
+- the human sponsor uses that analysis to decide whether the change should stay, be revised, or be reverted
 
 ## Core User Problem
 
 Without this tool:
 
 - it is hard for an agent to tell whether workflow changes create real leverage or just extra activity
-- quality and speed are easy to summarize incorrectly from closure metrics alone
+- quality, speed, and cost are easy to summarize incorrectly from closure metrics alone
 - AI usage cost is easy to underweight or overread without structured context
 - retries and failed paths get lost, which makes agent recommendations weaker
 
-The tool exists to make the relationship between outcome quality, delivery effort, and AI cost explicit enough to manage.
+The tool exists to make the relationship between outcome quality, delivery effort, and AI cost explicit enough to manage, so the agent can produce grounded analysis instead of a vague metrics recap.
+
+In this framing:
+
+- effectiveness means quality plus speed
+- economics means cost, token usage, and waste control
 
 ## Confirmed Context So Far
 
@@ -47,9 +59,10 @@ The following product truths are already confirmed:
 
 - the primary user is the AI agent that analyzes the metrics
 - the human user is the receiver of final synthesized conclusions, not the main reader of raw metrics
-- quality matters more than speed
-- cost matters because AI is paid usage and should not eat engineering profit
-- the product should help decide what workflow changes actually work and what should be changed again
+- quality, speed, and cost all matter
+- effectiveness means quality and speed together
+- economics means cost, token usage, and waste control together
+- the product should help decide whether workflow changes actually work and what should be changed again
 - the public product contract should stay agent-agnostic by default, even when telemetry or runtime adapters are provider-specific underneath
 
 The following product questions are still intentionally open and should be treated as active hypotheses until better evidence exists:
@@ -62,19 +75,18 @@ The following product questions are still intentionally open and should be treat
 
 1. Use an AI coding agent such as Codex or Claude to work on a real engineering goal.
 2. Record goals, attempts, failures, and cost signals as the work happens.
-3. Let an AI agent read goal-level and entry-level metrics together.
-4. Have the agent produce synthesized conclusions about what improved, what regressed, and what should change next.
-5. Deliver those conclusions to the human sponsor as final analysis rather than raw metric interpretation.
+3. Let an AI agent read goal-level and entry-level metrics together, plus history-derived evidence when it is available.
+4. Have the agent produce the analysis needed to judge whether the workflow change improved quality, speed, and cost.
+5. Deliver that analysis to the human sponsor rather than raw metric interpretation.
 
 ## Core Decisions Supported
 
 The tool should help the analyzing agent answer:
 
-1. Are my workflow changes making the output closer to what I wanted on the first try?
-2. Is development getting faster without lowering quality?
-3. Which usage patterns create too much retry pressure?
-4. Is AI cost still small enough relative to the value of the work?
-5. What should I change next in how I operate this agent workflow?
+1. Did this workflow change improve quality?
+2. Did this workflow change improve speed?
+3. Did this workflow change improve cost efficiency enough to matter?
+4. Should this workflow change stay, be revised, or be reverted?
 
 ## North Star
 
@@ -94,7 +106,7 @@ Cost matters because AI is paid usage and should not eat engineering profit, but
 
 ## Quality Priority
 
-Quality matters more than speed.
+Quality matters most in the analysis, even when speed and cost are also important.
 
 The current practical proxy for quality is:
 
@@ -144,10 +156,11 @@ Current primary metrics:
 - entry failure reasons
 - known total cost and known total tokens
 - model identity on goals and attempts for analysis slices
+- history-derived before/after comparisons when available
 
 Current interpretation rule:
 
-- goal-level success must always be read together with entry-level retry pressure
+- goal-level success must always be read together with entry-level retry pressure and history-derived context
 - current quality-related metrics are provisional agent-facing proxies and should be refined empirically over time
 - cost is a business signal for how painful success or miss was
 - failure reasons are primarily a debugging signal for what the agent should recommend changing next
@@ -166,7 +179,7 @@ In scope now:
 - goal and attempt history
 - retry and failure visibility
 - partial automatic usage and cost ingestion from local Codex telemetry
-- agent-facing analysis surfaces for retros and verification
+- agent-facing analysis surfaces for retros, verification, and workflow-change analysis
 
 Out of scope for now:
 
@@ -192,7 +205,7 @@ That means:
 In one month, success should look like:
 
 - the framing remains stable around agent-first analysis value
-- the metrics help an agent decide which Codex workflow changes to keep
+- the metrics help an agent decide whether a workflow change improved quality, speed, and cost
 - quality signals are trusted more than intuition alone
 - cost visibility is good enough to spot obviously wasteful patterns
 
@@ -200,7 +213,7 @@ In one month, success should look like:
 
 In one quarter, success should look like:
 
-- the tool is routinely used by agents to refine Codex operating practice
-- the resulting analyses can point to concrete workflow changes that improved output quality
+- the tool is routinely used by agents to judge real workflow changes
+- the resulting analyses can point to concrete workflow changes that improved quality, speed, and cost
 - token and cost waste are being reduced without hurting result quality
 - the system is helping protect engineering profit, not just describe engineering history

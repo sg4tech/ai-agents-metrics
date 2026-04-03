@@ -478,21 +478,49 @@ def test_start_task_records_structured_event_and_debug_log(repo: Path) -> None:
 
     with sqlite3.connect(events_db) as conn:
         conn.row_factory = sqlite3.Row
-        row = conn.execute(
+        rows = conn.execute(
             "SELECT event_id, event_type, command, goal_id, goal_type, status_after, attempts_after, payload_json "
-            "FROM events ORDER BY occurred_at DESC, event_id DESC LIMIT 1"
+            "FROM events ORDER BY occurred_at ASC, event_id ASC"
+        ).fetchall()
+
+    assert len(rows) == 2
+    event_types = {row["event_type"] for row in rows}
+    assert event_types == {"cli_invoked", "goal_created"}
+    goal_created_row = next(row for row in rows if row["event_type"] == "goal_created")
+    assert goal_created_row["command"] == "start-task"
+    assert goal_created_row["goal_type"] == "meta"
+    assert goal_created_row["status_after"] == "in_progress"
+    assert goal_created_row["attempts_after"] == 1
+    payload = json.loads(goal_created_row["payload_json"])
+    assert payload["command"] == "start-task"
+    assert payload["status_after"] == "in_progress"
+    debug_text = debug_log.read_text(encoding="utf-8")
+    for row in rows:
+        assert row["event_id"] in debug_text
+
+
+def test_show_records_cli_invocation_event(repo: Path) -> None:
+    assert run_cmd(repo, "init").returncode == 0
+
+    result = run_cmd(repo, "show")
+
+    assert result.returncode == 0, result.stderr
+    events_db = repo / "metrics" / ".codex-metrics" / "events.sqlite"
+    debug_log = repo / "metrics" / ".codex-metrics" / "events.debug.log"
+
+    with sqlite3.connect(events_db) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT event_type, command, payload_json FROM events ORDER BY occurred_at DESC, event_id DESC LIMIT 1"
         ).fetchone()
 
     assert row is not None
-    assert row["event_type"] == "goal_created"
-    assert row["command"] == "start-task"
-    assert row["goal_type"] == "meta"
-    assert row["status_after"] == "in_progress"
-    assert row["attempts_after"] == 1
+    assert row["event_type"] == "cli_invoked"
+    assert row["command"] == "show"
     payload = json.loads(row["payload_json"])
-    assert payload["command"] == "start-task"
-    assert payload["status_after"] == "in_progress"
-    assert row["event_id"] in debug_log.read_text(encoding="utf-8")
+    assert payload["command"] == "show"
+    assert payload["cwd"] == str(repo)
+    assert "event_type=\"cli_invoked\"" in debug_log.read_text(encoding="utf-8")
 
 
 def test_ensure_active_task_is_idempotent_when_active_goal_exists(repo: Path) -> None:
