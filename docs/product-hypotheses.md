@@ -43,3 +43,4 @@ Quick map:
 | `H-023` | `active` | `docs/product-hypotheses/H-023.md` | A public-first core with a private overlay may be the safest way to open-source `codex-metrics` without breaking internal iteration |
 | `H-024` | `active` | `docs/product-hypotheses/H-024.md` | The public repository may need generated SEO-ready docs and landing pages from the start to make open-source distribution discoverable |
 | `H-025` | `active` | `docs/product-hypotheses/H-025.md` | `bootstrap` may need to become a project starter that can create a new workspace directory and optional non-codex starter setup |
+| `H-026` | `active` | `docs/product-hypotheses/H-026.md` | Full-suite automated tests may lower development cost by shrinking the feedback loop and token spend |

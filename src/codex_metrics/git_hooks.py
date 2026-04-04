@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from collections.abc import Iterable, Sequence
@@ -89,7 +90,10 @@ class GitHookRunner:
         return changed_paths
 
     def run_verify(self) -> int:
-        result = subprocess.run(["make", "verify"], check=False)
+        env = os.environ.copy()
+        for variable in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_PREFIX"):
+            env.pop(variable, None)
+        result = subprocess.run(["make", "verify"], check=False, env=env)
         return result.returncode
 
 

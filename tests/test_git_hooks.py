@@ -117,3 +117,38 @@ def test_run_pre_push_deduplicates_paths_across_ref_updates() -> None:
 
     assert exit_code == 0
     assert runner.verify_runs == 1
+
+
+def test_run_verify_clears_git_hook_environment(monkeypatch) -> None:
+    observed: dict[str, object] = {}
+
+    def fake_run(args, check, env):  # type: ignore[no-untyped-def]
+        observed["args"] = args
+        observed["check"] = check
+        observed["env"] = env
+
+        class _Result:
+            returncode = 0
+
+        return _Result()
+
+    monkeypatch.setenv("GIT_DIR", "/tmp/fake-git-dir")
+    monkeypatch.setenv("GIT_WORK_TREE", "/tmp/fake-work-tree")
+    monkeypatch.setenv("GIT_INDEX_FILE", "/tmp/fake-index")
+    monkeypatch.setenv("GIT_PREFIX", "/tmp/fake-prefix")
+    monkeypatch.setenv("KEEP_ME", "1")
+    monkeypatch.setattr("codex_metrics.git_hooks.subprocess.run", fake_run)
+
+    runner = GitHookRunner()
+    exit_code = runner.run_verify()
+
+    assert exit_code == 0
+    assert observed["args"] == ["make", "verify"]
+    assert observed["check"] is False
+    env = observed["env"]
+    assert isinstance(env, dict)
+    assert env["KEEP_ME"] == "1"
+    assert "GIT_DIR" not in env
+    assert "GIT_WORK_TREE" not in env
+    assert "GIT_INDEX_FILE" not in env
+    assert "GIT_PREFIX" not in env
