@@ -82,6 +82,7 @@ def test_immutability_backend_selects_linux_chattr_commands(monkeypatch: pytest.
     monkeypatch.setattr(file_immutability.os, "name", "posix", raising=False)
     monkeypatch.setattr(file_immutability.os, "uname", lambda: type("Uname", (), {"sysname": "Linux"})(), raising=False)
     monkeypatch.setattr(file_immutability.shutil, "which", lambda command: f"/usr/bin/{command}")
+    monkeypatch.setattr(backend, "_probe_permitted", lambda commands: True)
 
     assert backend.command_pair() == (["chattr", "-i"], ["chattr", "+i"])
 
@@ -91,8 +92,21 @@ def test_immutability_backend_selects_darwin_chflags_commands(monkeypatch: pytes
     monkeypatch.setattr(file_immutability.os, "name", "posix", raising=False)
     monkeypatch.setattr(file_immutability.os, "uname", lambda: type("Uname", (), {"sysname": "Darwin"})(), raising=False)
     monkeypatch.setattr(file_immutability.shutil, "which", lambda command: f"/usr/bin/{command}")
+    monkeypatch.setattr(backend, "_probe_permitted", lambda commands: True)
 
     assert backend.command_pair() == (["chflags", "nouchg"], ["chflags", "uchg"])
+
+
+def test_immutability_backend_returns_none_when_command_exists_but_not_permitted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    backend = file_immutability.FileImmutabilityBackend()
+    monkeypatch.setattr(file_immutability.os, "name", "posix", raising=False)
+    monkeypatch.setattr(file_immutability.os, "uname", lambda: type("Uname", (), {"sysname": "Linux"})(), raising=False)
+    monkeypatch.setattr(file_immutability.shutil, "which", lambda command: f"/usr/bin/{command}")
+    monkeypatch.setattr(backend, "_probe_permitted", lambda commands: False)
+
+    assert backend.command_pair() is None
 
 
 def test_immutability_backend_returns_none_on_non_posix(monkeypatch: pytest.MonkeyPatch) -> None:
