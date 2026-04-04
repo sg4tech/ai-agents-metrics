@@ -29,6 +29,9 @@ from codex_metrics.history_audit import (
 from codex_metrics.history_audit import (
     render_audit_report as render_history_audit_report,
 )
+from codex_metrics.history_audit import (
+    render_audit_report_json as render_history_audit_json_report,
+)
 from codex_metrics.history_compare import (
     compare_metrics_to_history as build_history_compare_report,
 )
@@ -60,6 +63,9 @@ from codex_metrics.public_boundary import (
 )
 from codex_metrics.public_boundary import (
     render_public_boundary_report as render_public_boundary_text_report,
+)
+from codex_metrics.public_boundary import (
+    render_public_boundary_report_json as render_public_boundary_json_report,
 )
 from codex_metrics.public_boundary import (
     verify_public_boundary as run_verify_public_boundary,
@@ -97,8 +103,10 @@ generate_report_md = reporting.generate_report_md
 print_summary = reporting.print_summary
 render_cost_audit_report = render_cost_coverage_audit_report
 render_audit_report = render_history_audit_report
+render_audit_report_json = render_history_audit_json_report
 render_history_compare_report = render_compare_report
 render_public_boundary_report = render_public_boundary_text_report
+render_public_boundary_report_json = render_public_boundary_json_report
 render_retro_timeline_report = render_retro_timeline_text_report
 
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
@@ -1421,6 +1429,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    audit_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render audit candidates as JSON instead of human-readable text.",
+    )
 
     compare_parser = subparsers.add_parser(
         "compare-metrics-history",
@@ -1513,6 +1526,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     public_boundary_parser.add_argument("--repo-root", default=".")
     public_boundary_parser.add_argument("--rules-path", default=str(PUBLIC_BOUNDARY_RULES_PATH))
+    public_boundary_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render findings as JSON instead of human-readable text.",
+    )
 
     subparsers.add_parser(
         "ensure-active-task",

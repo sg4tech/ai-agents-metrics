@@ -82,9 +82,11 @@ class CommandRuntime(Protocol):
     def derive_codex_history(self, warehouse_path: Path) -> Any: ...
     def verify_public_boundary(self, *, repo_root: Path, rules_path: Path) -> Any: ...
     def render_audit_report(self, report: AuditReport) -> str: ...
+    def render_audit_report_json(self, report: AuditReport) -> str: ...
     def render_history_compare_report(self, report: HistoryCompareReport) -> str: ...
     def render_retro_timeline_report(self, report: RetroTimelineReport) -> str: ...
     def render_public_boundary_report(self, report: Any) -> str: ...
+    def render_public_boundary_report_json(self, report: Any) -> str: ...
     def audit_cost_coverage(
         self,
         data: dict[str, Any],
@@ -465,7 +467,10 @@ def handle_audit_history(args: Namespace, cli_module: CommandRuntime) -> int:
     metrics_path = Path(args.metrics_path)
     data = cli_module.load_metrics(metrics_path)
     report = cli_module.audit_history(data)
-    print(cli_module.render_audit_report(report))
+    if getattr(args, "json", False):
+        print(cli_module.render_audit_report_json(report))
+    else:
+        print(cli_module.render_audit_report(report))
     return 0
 
 
@@ -580,7 +585,10 @@ def handle_verify_public_boundary(args: Namespace, cli_module: CommandRuntime) -
         repo_root=Path(args.repo_root).expanduser(),
         rules_path=Path(args.rules_path).expanduser(),
     )
-    print(cli_module.render_public_boundary_report(report))
+    if getattr(args, "json", False):
+        print(cli_module.render_public_boundary_report_json(report))
+    else:
+        print(cli_module.render_public_boundary_report(report))
     return 0 if not report.findings else 1
 
 
