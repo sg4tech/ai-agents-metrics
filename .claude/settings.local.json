@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config --local core.hooksPath)",
+      "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config core.hooksPath)",
+      "Bash(./.venv/bin/python -m pytest tests/test_git_hooks.py tests/test_commit_message.py -v)",
+      "Bash(.venv/bin/python -m pytest tests/test_storage_immutability.py -v)",
+      "Bash(.venv/bin/python --version)",
+      "Bash(make verify:*)"
+    ]
+  }
+}
