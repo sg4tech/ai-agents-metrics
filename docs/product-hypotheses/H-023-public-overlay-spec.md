@@ -259,6 +259,26 @@ Exit criteria:
 - internal-only content remains accessible
 - the same public code is no longer maintained in two separate places inside private
 
+### Current State Snapshot
+
+As of `2026-04-04`, the split is functionally real rather than only planned:
+
+- public repository exists at `codex-metrics-public`
+- private repository mirrors the public repo under `oss/`
+- public boundary verification runs locally and in CI
+- the pre-push hook sanitizes git environment variables before invoking `make verify`
+- public onboarding docs now exist in the public surface
+
+### Remaining Gaps
+
+The split is usable, but a few public-facing items are still worth doing before we call the public repo “fully polished”:
+
+- branch protection and required-check policy on the public GitHub repo
+- a more explicit public contribution/release cadence
+- if the public repo starts attracting outside contributors, issue and PR templates
+- any future public-safe rewrite of policy/framing docs that should be visible to external users
+- a decision about whether `docs/product-framing.md` or related strategy docs should get public-safe counterparts
+
 ### Phase 3: Validate Outbound Sync
 
 Objective:

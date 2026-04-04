@@ -92,6 +92,23 @@ That means:
 - CI for the public repository should also run the same check
 - any future public release workflow should call the same verification rather than a weaker duplicate
 
+## Current Implementation Notes
+
+The initial implementation has already landed with the following shape:
+
+- a dedicated `verify-public-boundary` command is available
+- the command is wired into `make verify`
+- the public repository CI runs the same boundary check
+- the verifier supports allowlisted roots, forbidden paths/globs/extensions, and content markers
+- the pre-commit hook in the public repo uses the same boundary check
+
+The remaining work is mostly operational hardening and public polish:
+
+- keep the allowlist current as the public surface grows
+- add or refine fixtures whenever a new leak pattern is discovered
+- keep boundary rules and docs synchronized between private `oss/` and the public repo
+- make sure future workflow changes do not weaken the public boundary by accident
+
 ## Verification Target
 
 The verifier runs against the public repository working tree.
