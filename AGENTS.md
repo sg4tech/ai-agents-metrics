@@ -2,7 +2,7 @@
 
 ## Read first
 
-Before starting or continuing any engineering task, always read:
+Before starting or continuing any engineering task, run `git pull` to ensure the working branch is up to date, then read:
 
 - `AGENTS.md`
 - `docs/codex-metrics-policy.md`
