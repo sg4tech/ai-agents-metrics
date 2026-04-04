@@ -66,4 +66,5 @@ ignored_paths = [
 
 marker_ignored_paths = [
   "tests/test_public_boundary.py",
+  "tests/test_git_hooks.py",
 ]
