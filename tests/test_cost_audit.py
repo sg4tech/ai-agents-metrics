@@ -35,7 +35,6 @@ def test_cost_audit_flags_incomplete_goal_window(tmp_path: Path) -> None:
         codex_logs_path=tmp_path / "logs.sqlite",
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "ignored",
         resolve_usage_window=lambda *_args: (1.0, 10),
     )
@@ -74,7 +73,6 @@ def test_cost_audit_flags_zero_duration_goal_window(tmp_path: Path) -> None:
         codex_logs_path=logs_path,
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
         resolve_usage_window=lambda *_args: (None, None),
     )
@@ -109,7 +107,6 @@ def test_cost_audit_flags_missing_telemetry_files(tmp_path: Path) -> None:
         codex_logs_path=tmp_path / "logs.sqlite",
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "ignored",
         resolve_usage_window=lambda *_args: (1.0, 10),
     )
@@ -147,7 +144,6 @@ def test_cost_audit_flags_thread_unresolved(tmp_path: Path) -> None:
         codex_logs_path=logs_path,
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: None,
         resolve_usage_window=lambda *_args: (1.0, 10),
     )
@@ -185,7 +181,6 @@ def test_cost_audit_flags_missing_usage_data(tmp_path: Path) -> None:
         codex_logs_path=logs_path,
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
         resolve_usage_window=lambda *_args: (None, None),
     )
@@ -223,7 +218,6 @@ def test_cost_audit_flags_sync_gap_when_usage_is_recoverable(tmp_path: Path) -> 
         codex_logs_path=logs_path,
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
         resolve_usage_window=lambda *_args: (0.25, 1234),
     )
@@ -261,7 +255,6 @@ def test_cost_audit_flags_partial_stored_coverage(tmp_path: Path) -> None:
         codex_logs_path=logs_path,
         cwd=tmp_path,
         codex_thread_id=None,
-        claude_root=tmp_path,
         find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
         resolve_usage_window=lambda *_args: (0.25, 1234),
     )
@@ -314,7 +307,6 @@ def test_render_cost_audit_report_groups_candidates(tmp_path: Path) -> None:
             codex_logs_path=logs_path,
             cwd=tmp_path,
             codex_thread_id=None,
-            claude_root=tmp_path,
             find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
             resolve_usage_window=lambda *_args: (0.25, 1234),
         )
@@ -356,7 +348,6 @@ def test_render_cost_audit_report_for_empty_candidates_is_concise(tmp_path: Path
             codex_logs_path=logs_path,
             cwd=tmp_path,
             codex_thread_id=None,
-            claude_root=tmp_path,
             find_thread_id=lambda _state, _cwd, _thread_id: "thread-1",
             resolve_usage_window=lambda *_args: (0.25, 1234),
         )
