@@ -3378,6 +3378,60 @@ def test_sync_usage_is_noop_when_no_matching_thread_is_found(repo: Path) -> None
     assert task["cost_usd"] is None
 
 
+def test_sync_usage_writes_agent_name_when_claude_fallback_fires(repo: Path) -> None:
+    """sync-usage detects Claude from JSONL and persists agent_name on the task."""
+    claude_root = repo / "dot-claude"
+    create_claude_jsonl_usage_sources(
+        repo,
+        claude_root=claude_root,
+        cwd=repo,
+        model="claude-sonnet-4-6",
+        event_timestamp="2026-03-29T09:05:00.000Z",
+        input_tokens=1000,
+        output_tokens=300,
+    )
+    assert run_cmd(repo, "init", "--force").returncode == 0
+    assert run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "claude-backfill",
+        "--title",
+        "Claude backfill task",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--started-at",
+        "2026-03-29T09:00:00+00:00",
+        "--finished-at",
+        "2026-03-29T09:10:00+00:00",
+        "--codex-state-path",
+        str(repo / "missing_state.sqlite"),
+        "--codex-logs-path",
+        str(repo / "missing_logs.sqlite"),
+    ).returncode == 0
+
+    sync_result = run_cmd(
+        repo,
+        "sync-usage",
+        "--usage-state-path",
+        str(repo / "missing_state.sqlite"),
+        "--usage-logs-path",
+        str(repo / "missing_logs.sqlite"),
+        "--claude-root",
+        str(claude_root),
+    )
+
+    assert sync_result.returncode == 0, sync_result.stderr
+    assert "Synchronized usage for 1 task(s)" in sync_result.stdout
+    data = read_json(repo / "metrics" / "codex_metrics.json")
+    task = data["tasks"][0]
+    assert task["agent_name"] == "claude"
+    assert task["tokens_total"] is not None
+    assert task["cost_usd"] is not None
+
+
 def test_sync_canonical_usage_alias_still_works(repo: Path) -> None:
     state_path, logs_path = create_codex_usage_sources(repo)
     assert run_cmd(repo, "init", "--force").returncode == 0
@@ -3698,39 +3752,6 @@ def test_claude_usage_backend_haiku_alias_resolves_pricing(tmp_path: Path) -> No
     assert window.cost_usd == 0.0035
     assert window.model_name == "claude-haiku-4-5"
 
-
-def test_detect_claude_presence_true_when_jsonl_exists(tmp_path: Path) -> None:
-    import codex_metrics.cli as cli_module
-
-    claude_root = tmp_path / "dot-claude"
-    cwd = tmp_path / "repo"
-    cwd.mkdir()
-    encoded = str(cwd).replace("/", "-").replace(".", "-")
-    project_dir = claude_root / "projects" / encoded
-    project_dir.mkdir(parents=True)
-    (project_dir / "session.jsonl").write_text("{}\n", encoding="utf-8")
-
-    assert cli_module._detect_claude_presence(cwd, claude_root=claude_root) is True
-
-
-def test_detect_claude_presence_false_when_no_dir(tmp_path: Path) -> None:
-    import codex_metrics.cli as cli_module
-
-    claude_root = tmp_path / "dot-claude"
-    claude_root.mkdir()
-    assert cli_module._detect_claude_presence(tmp_path / "repo", claude_root=claude_root) is False
-
-
-def test_detect_claude_presence_false_when_dir_empty(tmp_path: Path) -> None:
-    import codex_metrics.cli as cli_module
-
-    claude_root = tmp_path / "dot-claude"
-    cwd = tmp_path / "repo"
-    cwd.mkdir()
-    encoded = str(cwd).replace("/", "-").replace(".", "-")
-    (claude_root / "projects" / encoded).mkdir(parents=True)  # exists but no .jsonl files
-
-    assert cli_module._detect_claude_presence(cwd, claude_root=claude_root) is False
 
 
 def test_resolve_goal_usage_updates_detects_claude_via_fallback(

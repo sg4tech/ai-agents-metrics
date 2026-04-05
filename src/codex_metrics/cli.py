@@ -1148,16 +1148,6 @@ def bootstrap_project(
     return result.messages
 
 
-def _detect_claude_presence(cwd: Path, *, claude_root: Path = CLAUDE_ROOT) -> bool:
-    """Return True if Claude Code JSONL telemetry exists for the given working directory.
-
-    Checks for any .jsonl files under claude_root/projects/{encoded_cwd}/.
-    """
-    project_dir = claude_root / "projects" / _encode_cwd_for_claude(cwd)
-    if not project_dir.exists():
-        return False
-    return any(project_dir.glob("*.jsonl"))
-
 
 def resolve_goal_usage_updates(
     *,
