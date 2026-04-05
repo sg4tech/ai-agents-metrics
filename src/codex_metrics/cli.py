@@ -1178,6 +1178,7 @@ def resolve_goal_usage_updates(
     cwd: Path,
     started_at: str | None,
     finished_at: str | None,
+    claude_root: Path = CLAUDE_ROOT,
 ) -> tuple[
     float | None,
     int | None,
@@ -1209,7 +1210,7 @@ def resolve_goal_usage_updates(
         usage_state_path = codex_state_path
     elif effective_agent_name == "claude":
         resolved_usage_backend = ClaudeUsageBackend()
-        usage_state_path = CLAUDE_ROOT
+        usage_state_path = claude_root
     else:
         resolved_usage_backend = select_usage_backend(codex_state_path, cwd, codex_thread_id)
         usage_state_path = codex_state_path
@@ -1262,7 +1263,7 @@ def resolve_goal_usage_updates(
         ):
             claude_window = resolve_backend_usage_window(
                 ClaudeUsageBackend(),
-                state_path=CLAUDE_ROOT,
+                state_path=claude_root,
                 logs_path=codex_logs_path,
                 cwd=cwd,
                 started_at=started_at if started_at is not None else task.started_at,
@@ -1329,6 +1330,7 @@ def upsert_task(
     codex_logs_path: Path,
     codex_thread_id: str | None,
     cwd: Path,
+    claude_root: Path = CLAUDE_ROOT,
     usage_backend: UsageBackend | None = None,
 ) -> dict[str, Any]:
     tasks: list[dict[str, Any]] = data["goals"]
@@ -1395,6 +1397,7 @@ def upsert_task(
             cwd=cwd,
             started_at=started_at,
             finished_at=finished_at,
+            claude_root=claude_root,
         )
     )
     apply_goal_updates(
@@ -1551,6 +1554,7 @@ def build_parser() -> argparse.ArgumentParser:
     start_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     start_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     start_parser.add_argument("--codex-thread-id")
+    start_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
     start_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     start_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
     start_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
@@ -1581,6 +1585,7 @@ def build_parser() -> argparse.ArgumentParser:
     continue_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     continue_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     continue_parser.add_argument("--codex-thread-id")
+    continue_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
     continue_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     continue_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
     continue_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
@@ -1617,6 +1622,7 @@ def build_parser() -> argparse.ArgumentParser:
     finish_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     finish_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     finish_parser.add_argument("--codex-thread-id")
+    finish_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
     finish_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     finish_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
     finish_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
@@ -1665,6 +1671,7 @@ def build_parser() -> argparse.ArgumentParser:
     update_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     update_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     update_parser.add_argument("--codex-thread-id")
+    update_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
     update_parser.add_argument("--failure-reason", choices=sorted(ALLOWED_FAILURE_REASONS), help="Primary failure reason for a failed goal")
     update_parser.add_argument(
         "--result-fit",
@@ -1775,6 +1782,7 @@ def build_parser() -> argparse.ArgumentParser:
     cost_audit_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     cost_audit_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     cost_audit_parser.add_argument("--codex-thread-id")
+    cost_audit_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
     public_boundary_parser = subparsers.add_parser(
         "verify-public-boundary",
@@ -1808,6 +1816,7 @@ def build_parser() -> argparse.ArgumentParser:
     sync_parser.add_argument("--usage-state-path", "--codex-state-path", dest="usage_state_path", default=str(CODEX_STATE_PATH))
     sync_parser.add_argument("--usage-logs-path", "--codex-logs-path", dest="usage_logs_path", default=str(CODEX_LOGS_PATH))
     sync_parser.add_argument("--usage-thread-id", "--codex-thread-id", dest="usage_thread_id")
+    sync_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
     sync_legacy_parser = subparsers.add_parser(
         "sync-codex-usage",
@@ -1821,6 +1830,7 @@ def build_parser() -> argparse.ArgumentParser:
     sync_legacy_parser.add_argument("--usage-state-path", "--codex-state-path", dest="usage_state_path", default=str(CODEX_STATE_PATH))
     sync_legacy_parser.add_argument("--usage-logs-path", "--codex-logs-path", dest="usage_logs_path", default=str(CODEX_LOGS_PATH))
     sync_legacy_parser.add_argument("--usage-thread-id", "--codex-thread-id", dest="usage_thread_id")
+    sync_legacy_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
     merge_parser = subparsers.add_parser(
         "merge-tasks",
@@ -1852,6 +1862,7 @@ def sync_usage(
     usage_logs_path: Path,
     usage_thread_id: str | None,
     usage_backend: UsageBackend | None = None,
+    claude_root: Path = CLAUDE_ROOT,
 ) -> int:
     updated_tasks = 0
     tasks: list[dict[str, Any]] = data["goals"]
@@ -1863,7 +1874,7 @@ def sync_usage(
             effective_state_path = usage_state_path
         elif task_agent_name == "claude":
             resolved_backend = ClaudeUsageBackend()
-            effective_state_path = CLAUDE_ROOT
+            effective_state_path = claude_root
         else:
             resolved_backend = select_usage_backend(usage_state_path, cwd, usage_thread_id)
             effective_state_path = usage_state_path
@@ -1887,7 +1898,7 @@ def sync_usage(
         ):
             claude_window = resolve_backend_usage_window(
                 ClaudeUsageBackend(),
-                state_path=CLAUDE_ROOT,
+                state_path=claude_root,
                 logs_path=usage_logs_path,
                 cwd=cwd,
                 started_at=task.get("started_at"),

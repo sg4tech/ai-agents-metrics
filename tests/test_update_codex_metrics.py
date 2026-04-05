@@ -3795,6 +3795,7 @@ def test_resolve_goal_usage_updates_detects_claude_via_fallback(
         cwd=cwd,
         started_at=None,
         finished_at=None,
+        claude_root=claude_root,
     )
     # Claude fallback triggered and data found → agent detected
     assert detected_agent_name == "claude"
@@ -3857,6 +3858,7 @@ def test_resolve_goal_usage_updates_no_detection_when_no_data_in_window(
         cwd=cwd,
         started_at=None,
         finished_at=None,
+        claude_root=claude_root,
     )
     # No data in window → no detection
     assert detected_agent_name is None
@@ -3914,6 +3916,7 @@ def test_resolve_goal_usage_updates_does_not_overwrite_stored_agent_name(
         cwd=cwd,
         started_at=None,
         finished_at=None,
+        claude_root=claude_root,
     )
     # No detection write needed since agent_name already stored
     assert detected_agent_name is None
@@ -3981,6 +3984,7 @@ def test_resolve_goal_usage_updates_routes_to_claude_backend(
         cwd=cwd,
         started_at=None,
         finished_at=None,
+        claude_root=claude_root,
     )
 
     # Tokens resolved from JSONL
