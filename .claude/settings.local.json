@@ -16,6 +16,7 @@
       "Bash(.venv/bin/python --version)",
       "Bash(.venv/bin/python -m pytest *)",
       "Bash(PYTHONPATH=* .venv/bin/python *)",
+      "Bash(PYTHONPATH=* .venv/bin/codex-metrics *)",
       "Bash(PYTHONPATH=* ./tools/codex-metrics *)",
       "Bash(./tools/codex-metrics *)",
       "Bash(python3 -c *)",
