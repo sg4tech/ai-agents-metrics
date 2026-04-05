@@ -3736,10 +3736,11 @@ def test_detect_claude_presence_false_when_dir_empty(tmp_path: Path, monkeypatch
     assert cli_module._detect_claude_presence(cwd) is False
 
 
-def test_resolve_goal_usage_updates_detects_claude_and_sets_agent_name(
+def test_resolve_goal_usage_updates_detects_claude_via_fallback(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """At start-task time (no usage yet), detection from JSONL presence should set agent_name=claude."""
+    """When Codex SQLite is absent, Claude JSONL with data in the time window is used as fallback.
+    This correctly handles mixed-agent repos: the backend that has actual telemetry wins."""
     import codex_metrics.cli as cli_module
     from codex_metrics.domain import GoalRecord
 
@@ -3751,10 +3752,10 @@ def test_resolve_goal_usage_updates_detects_claude_and_sets_agent_name(
         cwd=cwd,
         model="claude-sonnet-4-6",
         event_timestamp="2026-03-29T09:05:00.000Z",
-        input_tokens=0,
+        input_tokens=400,
         cache_creation_tokens=0,
         cache_read_tokens=0,
-        output_tokens=0,  # no tokens yet (task just started)
+        output_tokens=100,
     )
     monkeypatch.setattr(cli_module, "CLAUDE_ROOT", claude_root)
 
@@ -3766,7 +3767,7 @@ def test_resolve_goal_usage_updates_detects_claude_and_sets_agent_name(
         status="in_progress",
         attempts=1,
         started_at="2026-03-29T09:00:00+00:00",
-        finished_at=None,
+        finished_at="2026-03-29T09:10:00+00:00",
         cost_usd=None,
         input_tokens=None,
         cached_input_tokens=None,
@@ -3788,6 +3789,68 @@ def test_resolve_goal_usage_updates_detects_claude_and_sets_agent_name(
         cached_input_tokens=None,
         output_tokens=None,
         pricing_path=PRICING,
+        codex_state_path=tmp_path / "missing.sqlite",  # Codex absent
+        codex_logs_path=tmp_path / "missing_logs.sqlite",
+        codex_thread_id=None,
+        cwd=cwd,
+        started_at=None,
+        finished_at=None,
+    )
+    # Claude fallback triggered and data found → agent detected
+    assert detected_agent_name == "claude"
+
+
+def test_resolve_goal_usage_updates_no_detection_when_no_data_in_window(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """At start-task time (no telemetry yet), neither backend has data → agent_name stays None."""
+    import codex_metrics.cli as cli_module
+    from codex_metrics.domain import GoalRecord
+
+    cwd = tmp_path / "repo"
+    cwd.mkdir()
+    # Claude JSONL exists but has NO events in the task time window (task just started)
+    claude_root = create_claude_jsonl_usage_sources(
+        tmp_path,
+        claude_root=tmp_path / "dot-claude",
+        cwd=cwd,
+        model="claude-sonnet-4-6",
+        event_timestamp="2026-03-28T10:00:00.000Z",  # old event, outside the window
+        input_tokens=999,
+        output_tokens=999,
+    )
+    monkeypatch.setattr(cli_module, "CLAUDE_ROOT", claude_root)
+
+    task = GoalRecord(
+        goal_id="test-goal",
+        title="Test",
+        goal_type="product",
+        supersedes_goal_id=None,
+        status="in_progress",
+        attempts=1,
+        started_at="2026-03-29T09:00:00+00:00",
+        finished_at=None,  # not finished yet
+        cost_usd=None,
+        input_tokens=None,
+        cached_input_tokens=None,
+        output_tokens=None,
+        tokens_total=None,
+        failure_reason=None,
+        notes=None,
+        agent_name=None,
+    )
+
+    *_, detected_agent_name = cli_module.resolve_goal_usage_updates(
+        task=task,
+        cost_usd_add=None,
+        cost_usd_set=None,
+        tokens_add=None,
+        tokens_set=None,
+        model=None,
+        input_tokens=None,
+        cached_input_tokens=None,
+        output_tokens=None,
+        pricing_path=PRICING,
         codex_state_path=tmp_path / "missing.sqlite",
         codex_logs_path=tmp_path / "missing_logs.sqlite",
         codex_thread_id=None,
@@ -3795,7 +3858,8 @@ def test_resolve_goal_usage_updates_detects_claude_and_sets_agent_name(
         started_at=None,
         finished_at=None,
     )
-    assert detected_agent_name == "claude"
+    # No data in window → no detection
+    assert detected_agent_name is None
 
 
 def test_resolve_goal_usage_updates_does_not_overwrite_stored_agent_name(
@@ -3929,6 +3993,59 @@ def test_resolve_goal_usage_updates_routes_to_claude_backend(
     assert auto_cost == 0.00453
     # agent_name already stored — no detection write
     assert detected_agent_name is None
+
+
+def test_audit_cost_coverage_reports_sync_gap_for_claude_goal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Claude goal with JSONL data in window but no stored cost is classified as sync_gap."""
+    import codex_metrics.cli as cli_module
+
+    cwd = tmp_path / "repo"
+    cwd.mkdir()
+    claude_root = create_claude_jsonl_usage_sources(
+        tmp_path,
+        claude_root=tmp_path / "dot-claude",
+        cwd=cwd,
+        model="claude-sonnet-4-6",
+        event_timestamp="2026-03-29T09:05:00.000Z",
+        input_tokens=1000,
+        output_tokens=200,
+    )
+    monkeypatch.setattr(cli_module, "CLAUDE_ROOT", claude_root)
+
+    data = {
+        "goals": [
+            {
+                "goal_id": "claude-sync-gap",
+                "title": "Claude goal with no stored cost",
+                "goal_type": "product",
+                "status": "success",
+                "attempts": 1,
+                "started_at": "2026-03-29T09:00:00+00:00",
+                "finished_at": "2026-03-29T09:10:00+00:00",
+                "cost_usd": None,
+                "tokens_total": None,
+                "agent_name": "claude",
+            }
+        ],
+        "entries": [],
+    }
+
+    report = cli_module.audit_cost_coverage(
+        data,
+        pricing_path=PRICING,
+        codex_state_path=tmp_path / "missing.sqlite",
+        codex_logs_path=tmp_path / "missing_logs.sqlite",
+        codex_thread_id=None,
+        cwd=cwd,
+        claude_root=claude_root,
+    )
+
+    assert len(report.candidates) == 1
+    candidate = report.candidates[0]
+    assert candidate.category == "sync_gap"
+    assert candidate.goal_id == "claude-sync-gap"
 
 
 def test_missing_usage_state_uses_unknown_backend(repo: Path) -> None:

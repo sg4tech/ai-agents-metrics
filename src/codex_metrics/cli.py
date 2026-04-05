@@ -575,8 +575,6 @@ def _resolve_claude_usage_window_impl(
       cache_read_input_tokens → cached_input_tokens (cheap cached reads, mapped to existing domain field)
       cache_creation_input_tokens → included in cost and total_tokens (write-to-cache, not a separate domain field)
       output_tokens          → output_tokens
-
-    state_path is repurposed as claude_root (e.g. ~/.claude) per the design decision in H-010.
     """
     if started_at is None:
         return None, None, None, None, None, None
@@ -1154,7 +1152,6 @@ def _detect_claude_presence(cwd: Path) -> bool:
     """Return True if Claude Code JSONL telemetry exists for the given working directory.
 
     Checks for any .jsonl files under ~/.claude/projects/{encoded_cwd}/.
-    Used to auto-detect the active agent at goal start time.
     """
     project_dir = CLAUDE_ROOT / "projects" / _encode_cwd_for_claude(cwd)
     if not project_dir.exists():
@@ -1199,16 +1196,14 @@ def resolve_goal_usage_updates(
     explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
     explicit_token_fields_used = tokens_add is not None or tokens_set is not None
 
-    # Determine effective agent: stored value takes priority; otherwise detect from environment.
-    # detected_agent_name is only non-None when we want to write it to the goal (i.e. not yet stored).
+    # Determine effective agent from stored value; detection happens via actual telemetry data below.
     effective_agent_name = task.agent_name
     detected_agent_name: str | None = None
-    if effective_agent_name is None:
-        if _detect_claude_presence(cwd):
-            effective_agent_name = "claude"
-            detected_agent_name = "claude"
 
-    # Select backend, routing Claude goals to the JSONL backend.
+    # Select primary backend.
+    # For goals with a stored agent_name, route directly to the correct backend.
+    # For goals without a stored agent_name, use the Codex backend (existing detection via SQLite),
+    # then fall back to Claude if Codex returns no data (see below).
     if usage_backend is not None:
         resolved_usage_backend: UsageBackend = usage_backend
         usage_state_path = codex_state_path
@@ -1254,10 +1249,39 @@ def resolve_goal_usage_updates(
         auto_cached_input_tokens = window.cached_input_tokens
         auto_output_tokens = window.output_tokens
         auto_model = window.model_name
+
+        # If the primary backend returned nothing and no agent_name is stored,
+        # try Claude as a fallback.  This handles mixed-agent repos correctly:
+        # rather than guessing at start time (file-presence heuristic), we let
+        # the actual telemetry data decide which agent ran this goal.
+        if (
+            auto_cost_usd is None
+            and auto_total_tokens is None
+            and effective_agent_name is None
+            and usage_backend is None
+        ):
+            claude_window = resolve_backend_usage_window(
+                ClaudeUsageBackend(),
+                state_path=CLAUDE_ROOT,
+                logs_path=codex_logs_path,
+                cwd=cwd,
+                started_at=started_at if started_at is not None else task.started_at,
+                finished_at=finished_at if finished_at is not None else task.finished_at,
+                pricing_path=pricing_path,
+                thread_id=None,
+            )
+            if claude_window.cost_usd is not None or claude_window.total_tokens is not None:
+                window = claude_window
+                auto_cost_usd = window.cost_usd
+                auto_total_tokens = window.total_tokens
+                auto_input_tokens = window.input_tokens
+                auto_cached_input_tokens = window.cached_input_tokens
+                auto_output_tokens = window.output_tokens
+                auto_model = window.model_name
+
         if auto_cost_usd is not None or auto_total_tokens is not None:
-            # Only write agent_name to the goal when it is a fresh discovery
-            # (not already stored and not already detected from JSONL presence).
-            if detected_agent_name is None and task.agent_name is None:
+            # Write agent_name only when it is a fresh discovery (not already stored).
+            if task.agent_name is None:
                 detected_agent_name = window.backend_name
 
     return (
@@ -1853,6 +1877,26 @@ def sync_usage(
             pricing_path=pricing_path,
             thread_id=usage_thread_id,
         )
+        # If the primary backend returned nothing and no agent_name is stored,
+        # try Claude as a fallback (handles mixed-agent repos).
+        if (
+            window.cost_usd is None
+            and window.total_tokens is None
+            and task_agent_name is None
+            and usage_backend is None
+        ):
+            claude_window = resolve_backend_usage_window(
+                ClaudeUsageBackend(),
+                state_path=CLAUDE_ROOT,
+                logs_path=usage_logs_path,
+                cwd=cwd,
+                started_at=task.get("started_at"),
+                finished_at=task.get("finished_at"),
+                pricing_path=pricing_path,
+                thread_id=None,
+            )
+            if claude_window.cost_usd is not None or claude_window.total_tokens is not None:
+                window = claude_window
         auto_cost_usd = window.cost_usd
         auto_total_tokens = window.total_tokens
         auto_input_tokens = window.input_tokens
@@ -1922,6 +1966,7 @@ def audit_cost_coverage(
     codex_logs_path: Path,
     codex_thread_id: str | None,
     cwd: Path,
+    claude_root: Path = CLAUDE_ROOT,
 ) -> CostAuditReport:
     from codex_metrics.cost_audit import audit_cost_coverage as build_cost_report
 
@@ -1934,8 +1979,14 @@ def audit_cost_coverage(
         pricing_path: Path,
         thread_id: str | None = None,
     ) -> tuple[float | None, int | None]:
+        # Route to ClaudeUsageBackend when state_path is claude_root (Claude goal).
+        # For Codex goals, fall back to SQLite-based backend detection.
+        if state_path == claude_root:
+            backend: UsageBackend = ClaudeUsageBackend()
+        else:
+            backend = select_usage_backend(state_path, cwd, thread_id)
         window = resolve_backend_usage_window(
-            select_usage_backend(state_path, cwd, thread_id),
+            backend,
             state_path=state_path,
             logs_path=logs_path,
             cwd=cwd,
@@ -1951,6 +2002,7 @@ def audit_cost_coverage(
         pricing_path=pricing_path,
         codex_state_path=codex_state_path,
         codex_logs_path=codex_logs_path,
+        claude_root=claude_root,
         cwd=cwd,
         codex_thread_id=codex_thread_id,
         find_thread_id=find_usage_thread_id,
