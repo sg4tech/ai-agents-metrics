@@ -44,7 +44,7 @@ The three-stage transcript workflow: `ingest` loads raw Codex sources into the S
 
 ### inferred entry
 
-An `AttemptEntryRecord` with `inferred=true`, meaning the row was synthesized during history reconstruction or auto-closed by the updater rather than captured as an explicit user-visible attempt record.
+An `AttemptEntryRecord` with `inferred=true`, meaning the row was synthesized during history reconstruction in the history pipeline or auto-closed when a newer attempt started, rather than captured as an explicit user-visible attempt record.
 
 ### immutability guard
 
@@ -53,6 +53,10 @@ The OS-level wrapper around `save_metrics` that temporarily clears the file's im
 ### known vs complete coverage
 
 `known_*` counts mean some data exists for a successful goal, while `complete_*` counts mean every goal in the supersession chain has that data; the split exists so partial coverage can be reported without pretending it is full coverage.
+
+### model
+
+The model name attached to a goal or attempt record when it is known; it is aggregated into `model_complete_goals` and `mixed_model_goals` so the summary can distinguish goals with a single consistent model from goals whose attempts used different models.
 
 ### result_fit
 
