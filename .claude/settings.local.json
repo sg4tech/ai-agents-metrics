@@ -48,7 +48,8 @@
       "WebFetch(domain:redreamality.com)",
       "WebFetch(domain:steviee.medium.com)",
       "WebFetch(domain:ainativedev.io)",
-      "WebFetch(domain:codestandup.com)"
+      "WebFetch(domain:codestandup.com)",
+      "Bash(wc *)"
     ]
   }
 }
