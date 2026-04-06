@@ -1,4 +1,9 @@
-.PHONY: lint typecheck test verify verify-public-boundary export-public-tree public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull coverage dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke
+.PHONY: init lint typecheck test verify verify-public-boundary export-public-tree public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull coverage dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke
+
+init:
+	python3 -m venv .venv
+	.venv/bin/pip install -U pip setuptools wheel
+	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
 
 lint:
 	./.venv/bin/ruff check .
