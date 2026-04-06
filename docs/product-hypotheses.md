@@ -48,3 +48,4 @@ Quick map:
 | `H-028` | `active` | `docs/product-hypotheses/H-028.md` | Human oversight cost may be a larger hidden expense than AI API cost |
 | `H-029` | `validated` | `docs/product-hypotheses/H-029.md` | A symlink from CLAUDE.md to AGENTS.md may improve rule uptake by putting instructions directly in context |
 | `H-030` | `active` | `docs/product-hypotheses/H-030.md` | Event sourcing may eliminate git merge conflicts on the metrics file while preserving history and sync |
+| `H-031` | `active` | `docs/product-hypotheses/H-031.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
