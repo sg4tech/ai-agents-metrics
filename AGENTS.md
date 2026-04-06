@@ -2,6 +2,8 @@
 
 ## Read first
 
+Before starting any engineering task in a worktree, run `make init` to set up the local Python environment. Do not symlink `.venv` from the main repo — each worktree has its own environment.
+
 Before starting or continuing any engineering task, run `git pull` to ensure the working branch is up to date, then read:
 
 During a task, run `git pull` again before writing new code if significant time has passed or before starting a new subtask — other agents or the user may have pushed changes in the meantime.
