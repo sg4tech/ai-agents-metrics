@@ -26,11 +26,29 @@
       "WebFetch(domain:www.anthropic.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:github.com)",
-      "Bash(/usr/local/bin/gh --version)",
-      "Bash(/opt/homebrew/bin/gh --version)",
-      "Bash(/opt/homebrew/bin/gh run:*)",
+      "Bash(/usr/local/bin/gh *)",
+      "Bash(/opt/homebrew/bin/gh *)",
       "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); goals=[g for g in data.get\\(''''goals'''',[]\\) if ''''H-010'''' in g.get\\(''''title'''',''''''''\\)]; [print\\(json.dumps\\({k:v for k,v in g.items\\(\\) if k != ''''notes''''},indent=2\\)\\) for g in goals]\")",
-      "Bash(PYTHONPATH=src .venv/bin/python -c \":*)"
+      "Bash(PYTHONPATH=src .venv/bin/python -c \":*)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "WebSearch",
+      "WebFetch(domain:docs.bmad-method.org)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:bennycheung.github.io)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:github.github.com)",
+      "WebFetch(domain:github.blog)",
+      "WebFetch(domain:blog.logrocket.com)",
+      "WebFetch(domain:den.dev)",
+      "WebFetch(domain:developer.microsoft.com)",
+      "WebFetch(domain:intuitionlabs.ai)",
+      "WebFetch(domain:blog.scottlogic.com)",
+      "WebFetch(domain:martinfowler.com)",
+      "WebFetch(domain:redreamality.com)",
+      "WebFetch(domain:steviee.medium.com)",
+      "WebFetch(domain:ainativedev.io)",
+      "WebFetch(domain:codestandup.com)"
     ]
   }
 }
