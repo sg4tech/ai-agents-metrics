@@ -4,7 +4,9 @@
       "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config --local core.hooksPath)",
       "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config core.hooksPath)",
       "Bash(.venv/bin/python -m pytest:*)",
-      "Bash(.venv/bin/python --version)"
+      "Bash(.venv/bin/python --version)",
+      "Bash(grep -r \"uchg\\\\|chflags\\\\|immutable\\\\|codex_metrics.json\" /Users/viktor/PycharmProjects/codex-metrics --include=*.sh --include=*.py --include=*.json --include=Makefile -l)",
+      "Bash(/dev/null --include=*.py --include=*.sh -n)"
     ]
   }
 }
