@@ -26,6 +26,18 @@ For history/search/reconstruction work, also read:
 - `src/codex_metrics/history_normalize.py`
 - `src/codex_metrics/history_derive.py`
 
+## Reference documentation
+
+The following docs exist for reference — consult them as needed, not on every task:
+
+- `docs/architecture.md` — code structure: modules, pipeline stages, storage, CLI entry points
+- `docs/data-schema.md` — full field reference for `codex_metrics.json` (GoalRecord, AttemptEntryRecord, summary)
+- `docs/data-invariants.md` — business rules enforced by validation logic
+- `docs/glossary.md` — terminology: goal vs task, entry vs attempt, inferred, supersedes chain, EffectiveGoalRecord, etc.
+- `docs/decisions.md` — why key architectural choices were made
+- `docs/testing-guide.md` — test structure, conftest.py, factory patterns, common pitfalls
+- `docs/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
+
 ## Core working style
 
 - For engineering work, treat Linear as the source of truth for intake and traceability: create or update the relevant Linear issue before writing code, capture the requirements and acceptance criteria there, and work only through that issue.
