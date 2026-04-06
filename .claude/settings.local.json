@@ -3,10 +3,34 @@
     "allow": [
       "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config --local core.hooksPath)",
       "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics config core.hooksPath)",
-      "Bash(.venv/bin/python -m pytest:*)",
-      "Bash(.venv/bin/python --version)",
-      "Bash(grep -r \"uchg\\\\|chflags\\\\|immutable\\\\|codex_metrics.json\" /Users/viktor/PycharmProjects/codex-metrics --include=*.sh --include=*.py --include=*.json --include=Makefile -l)",
-      "Bash(/dev/null --include=*.py --include=*.sh -n)"
+      "Bash(git -C /Users/viktor/PycharmProjects/codex-metrics/.claude/worktrees/*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git status *)",
+      "Bash(git pull *)",
+      "Bash(git show *)",
+      "Bash(make *)",
+      "Bash(ln -sf /Users/viktor/PycharmProjects/codex-metrics/.venv .venv)",
+      "Bash(ln -s AGENTS.md CLAUDE.md)",
+      "Bash(.venv/bin/python *)",
+      "Bash(.venv/bin/pytest *)",
+      "Bash(.venv/bin/codex-metrics *)",
+      "Bash(PYTHONPATH=* .venv/bin/python *)",
+      "Bash(PYTHONPATH=* .venv/bin/codex-metrics *)",
+      "Bash(PYTHONPATH=* ./tools/codex-metrics *)",
+      "Bash(PYTHONPATH=src make verify)",
+      "Bash(./tools/codex-metrics *)",
+      "Bash(python3 -c *)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(/usr/local/bin/gh --version)",
+      "Bash(/opt/homebrew/bin/gh --version)",
+      "Bash(/opt/homebrew/bin/gh run:*)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); goals=[g for g in data.get\\(''''goals'''',[]\\) if ''''H-010'''' in g.get\\(''''title'''',''''''''\\)]; [print\\(json.dumps\\({k:v for k,v in g.items\\(\\) if k != ''''notes''''},indent=2\\)\\) for g in goals]\")",
+      "Bash(PYTHONPATH=src .venv/bin/python -c \":*)"
     ]
   }
 }
