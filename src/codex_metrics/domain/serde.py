@@ -1,18 +1,19 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from codex_metrics.domain.models import AttemptEntryRecord, EffectiveGoalRecord, GoalRecord
 from codex_metrics.domain.time_utils import parse_iso_datetime_flexible
 
 
-def _parse_ts(value: str | None, field: str) -> Any:
+def _parse_ts(value: str | None, field: str) -> datetime | None:
     if value is None:
         return None
     return parse_iso_datetime_flexible(value, field)
 
 
-def _dump_ts(value: Any) -> str | None:
+def _dump_ts(value: datetime | None) -> str | None:
     if value is None:
         return None
     return value.isoformat()

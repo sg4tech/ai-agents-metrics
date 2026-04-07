@@ -24,6 +24,7 @@ from codex_metrics.domain import (
     finalize_goal_update,
     next_goal_id,
     parse_iso_datetime,
+    parse_iso_datetime_flexible,
     sync_goal_attempt_entries,
     update_latest_attempt_entry,
     validate_entry_record,
@@ -43,7 +44,7 @@ SPEC.loader.exec_module(MODULE)
 
 def _ts(value: object) -> object:
     if isinstance(value, str):
-        return parse_iso_datetime(value, "ts")
+        return parse_iso_datetime_flexible(value, "ts")
     return value
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
@@ -193,7 +193,7 @@ def aggregate_chain_model(chain: list[GoalRecord]) -> tuple[str | None, bool, bo
     return aggregated_model, model_complete, model_consistent
 
 
-def aggregate_chain_timestamps(chain: list[GoalRecord]) -> tuple[Any, Any]:
+def aggregate_chain_timestamps(chain: list[GoalRecord]) -> tuple[datetime | None, datetime | None]:
     started_at = None
     finished_at = None
     for goal in chain:
