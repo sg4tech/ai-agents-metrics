@@ -1,1 +1,1 @@
-private/codex-metrics-policy.md
+public/codex-metrics-policy.md

@@ -32,13 +32,13 @@ For history/search/reconstruction work, also read:
 
 The following docs exist for reference — consult them as needed, not on every task:
 
-- `docs/private/architecture.md` — code structure: modules, pipeline stages, storage, CLI entry points
-- `docs/private/data-schema.md` — full field reference for the in-memory data model (GoalRecord, AttemptEntryRecord, summary); storage is `metrics/events.ndjson`
-- `docs/private/data-invariants.md` — business rules enforced by validation logic
+- `docs/public/architecture.md` — code structure: modules, pipeline stages, storage, CLI entry points
+- `docs/public/data-schema.md` — full field reference for the in-memory data model (GoalRecord, AttemptEntryRecord, summary); storage is `metrics/events.ndjson`
+- `docs/public/data-invariants.md` — business rules enforced by validation logic
 - `docs/public/glossary.md` — terminology: goal vs task, entry vs attempt, inferred, supersedes chain, EffectiveGoalRecord, etc.
-- `docs/private/decisions.md` — why key architectural choices were made
+- `docs/public/decisions.md` — why key architectural choices were made
 - `docs/public/testing-guide.md` — test structure, conftest.py, factory patterns, common pitfalls
-- `docs/private/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
+- `docs/public/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
 - `docs/private/public-overlay-sync.md` — operational runbook for syncing between this private repo and the public `oss/` subtree (`make public-overlay-push`, `make public-overlay-pull`, conflict resolution, boundary rules)
 
 ## Core working style
