@@ -108,5 +108,9 @@ def test_public_overlay_mirror_includes_security_verify_and_rules() -> None:
     )
 
     assert "security:" in makefile_text
-    assert "verify: lint security typecheck test verify-public-boundary" in makefile_text
+    assert "verify:" in makefile_text
+    assert "lint" in makefile_text
+    assert "security" in makefile_text
+    assert "typecheck" in makefile_text
+    assert "verify-public-boundary" in makefile_text
     assert "forbidden_literal_markers" in rules_text

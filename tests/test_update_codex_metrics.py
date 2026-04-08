@@ -776,7 +776,7 @@ def test_module_install_self_creates_module_launcher(repo: Path) -> None:
     installed_text = installed_path.read_text(encoding="utf-8")
     assert installed_text.startswith("#!/bin/sh\n")
     assert sys.executable in installed_text
-    assert f"export PYTHONPATH='{ABS_SRC}'" in installed_text
+    assert f"export PYTHONPATH='{ABS_SRC.resolve()}'" in installed_text
     assert "-m codex_metrics" in installed_text
 
 
