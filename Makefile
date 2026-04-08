@@ -47,7 +47,7 @@ public-overlay-pull:
 
 coverage:
 	./.venv/bin/coverage erase
-	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/test_update_codex_metrics.py tests/test_update_codex_metrics_domain.py tests/test_history_audit.py tests/test_reporting.py
+	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/private/test_update_codex_metrics.py tests/private/test_update_codex_metrics_domain.py tests/public/test_history_audit.py tests/private/test_reporting.py
 	./.venv/bin/coverage combine
 	./.venv/bin/coverage report -m
 

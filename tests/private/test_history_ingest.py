@@ -12,7 +12,7 @@ import pytest
 
 from codex_metrics.history_ingest import _extract_message_text, _optional_row_value
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = Path("scripts/update_codex_metrics.py")
 ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
 ABS_SRC = WORKSPACE_ROOT / "src"

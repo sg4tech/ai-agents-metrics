@@ -33,7 +33,7 @@ from codex_metrics.domain import (
 )
 from codex_metrics.reporting import build_operator_review
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "update_codex_metrics.py"
+SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "update_codex_metrics.py"
 SPEC = importlib.util.spec_from_file_location("update_codex_metrics_module", SCRIPT_PATH)
 assert SPEC is not None
 assert SPEC.loader is not None

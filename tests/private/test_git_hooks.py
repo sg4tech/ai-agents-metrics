@@ -209,7 +209,7 @@ def test_pre_commit_uses_git_worktree_root_for_security_scan(tmp_path: Path) -> 
     worktree_repo.mkdir()
 
     (main_repo / ".githooks").mkdir(parents=True)
-    pre_commit_source = Path(__file__).resolve().parents[1] / ".githooks" / "pre-commit"
+    pre_commit_source = Path(__file__).resolve().parents[2] / ".githooks" / "pre-commit"
     (main_repo / ".githooks" / "pre-commit").write_text(pre_commit_source.read_text(encoding="utf-8"), encoding="utf-8")
     (main_repo / ".githooks" / "pre-commit").chmod(0o755)
 

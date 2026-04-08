@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = Path("scripts/update_codex_metrics.py")
 ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
 ABS_SRC = WORKSPACE_ROOT / "src"

@@ -1,7 +1,7 @@
 """CLAUDE.md must be a symlink pointing to AGENTS.md — never a standalone file."""
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).parent.parent
+REPO_ROOT = Path(__file__).parent.parent.parent
 CLAUDE_MD = REPO_ROOT / "CLAUDE.md"
 
 
