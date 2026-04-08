@@ -105,6 +105,7 @@ The initial implementation has already landed with the following shape:
 - the pre-commit hook in the private repo now invokes that `security` command before Ruff, so dangerous data is blocked early in the local workflow
 - the pre-commit and commit-msg hooks resolve the repository root with `git rev-parse --show-toplevel`, so linked worktrees target the active worktree instead of the hook script's physical location
 - log-like runtime outputs are ignored at the git level so they are less likely to be staged in the first place
+- the implementation has been locally validated by unit tests, shell syntax checks, and real git-commit smoke runs
 
 The remaining work is mostly operational hardening and public polish:
 
