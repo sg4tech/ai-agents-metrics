@@ -23,6 +23,9 @@ from codex_metrics.cost_audit import (
 from codex_metrics.cost_audit import (
     render_cost_audit_report as render_cost_coverage_audit_report,
 )
+from codex_metrics.cost_audit import (
+    render_cost_audit_report_json as render_cost_coverage_audit_json_report,
+)
 from codex_metrics.history_audit import (
     audit_history as build_history_audit_report,
 )
@@ -38,11 +41,17 @@ from codex_metrics.history_compare import (
 from codex_metrics.history_compare import (
     render_history_compare_report as render_compare_report,
 )
+from codex_metrics.history_compare import (
+    render_history_compare_report_json as render_compare_json_report,
+)
 from codex_metrics.history_derive import (
     DeriveSummary,
 )
 from codex_metrics.history_derive import (
     derive_codex_history as run_derive_codex_history,
+)
+from codex_metrics.history_derive import (
+    render_derive_summary_json as render_derive_summary_json_report,
 )
 from codex_metrics.history_ingest import (
     IngestSummary,
@@ -51,11 +60,17 @@ from codex_metrics.history_ingest import (
 from codex_metrics.history_ingest import (
     ingest_codex_history as run_ingest_codex_history,
 )
+from codex_metrics.history_ingest import (
+    render_ingest_summary_json as render_ingest_summary_json_report,
+)
 from codex_metrics.history_normalize import (
     NormalizeSummary,
 )
 from codex_metrics.history_normalize import (
     normalize_codex_history as run_normalize_codex_history,
+)
+from codex_metrics.history_normalize import (
+    render_normalize_summary_json as render_normalize_summary_json_report,
 )
 from codex_metrics.observability import record_cli_invocation_observation
 from codex_metrics.public_boundary import (
@@ -75,6 +90,9 @@ from codex_metrics.retro_timeline import (
 )
 from codex_metrics.retro_timeline import (
     render_retro_timeline_report as render_retro_timeline_text_report,
+)
+from codex_metrics.retro_timeline import (
+    render_retro_timeline_report_json as render_retro_timeline_json_report,
 )
 from codex_metrics.usage_backends import (
     ClaudeUsageBackend,
@@ -102,12 +120,19 @@ format_usd = reporting.format_usd
 generate_report_md = reporting.generate_report_md
 print_summary = reporting.print_summary
 render_cost_audit_report = render_cost_coverage_audit_report
+render_cost_audit_report_json = render_cost_coverage_audit_json_report
 render_audit_report = render_history_audit_report
 render_audit_report_json = render_history_audit_json_report
 render_history_compare_report = render_compare_report
+render_history_compare_report_json = render_compare_json_report
 render_public_boundary_report = render_public_boundary_text_report
 render_public_boundary_report_json = render_public_boundary_json_report
 render_retro_timeline_report = render_retro_timeline_text_report
+render_retro_timeline_report_json = render_retro_timeline_json_report
+render_ingest_summary_json = render_ingest_summary_json_report
+render_normalize_summary_json = render_normalize_summary_json_report
+render_derive_summary_json = render_derive_summary_json_report
+render_summary_json = reporting.render_summary_json
 
 ALLOWED_STATUSES = domain.ALLOWED_STATUSES
 ALLOWED_TASK_TYPES = domain.ALLOWED_TASK_TYPES
@@ -1419,6 +1444,11 @@ def build_parser() -> argparse.ArgumentParser:
         description="Print the current summary, cost coverage, and operator review.",
     )
     show_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    show_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the metrics summary as JSON instead of human-readable text.",
+    )
 
     audit_parser = subparsers.add_parser(
         "audit-history",
@@ -1446,6 +1476,11 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     compare_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
     compare_parser.add_argument("--cwd", default=str(Path.cwd()))
+    compare_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the comparison as JSON instead of human-readable text.",
+    )
 
     ingest_parser = subparsers.add_parser(
         "ingest-codex-history",
@@ -1461,6 +1496,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(RAW_WAREHOUSE_PATH),
         help="SQLite warehouse path for raw imported data",
     )
+    ingest_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the ingest summary as JSON instead of human-readable text.",
+    )
 
     normalize_parser = subparsers.add_parser(
         "normalize-codex-history",
@@ -1474,6 +1514,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--warehouse-path",
         default=str(RAW_WAREHOUSE_PATH),
         help="SQLite warehouse path that already contains raw imported data",
+    )
+    normalize_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the normalize summary as JSON instead of human-readable text.",
     )
 
     derive_parser = subparsers.add_parser(
@@ -1489,6 +1534,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(RAW_WAREHOUSE_PATH),
         help="SQLite warehouse path that already contains normalized Codex history",
     )
+    derive_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the derive summary as JSON instead of human-readable text.",
+    )
 
     retro_timeline_parser = subparsers.add_parser(
         "derive-retro-timeline",
@@ -1502,6 +1552,11 @@ def build_parser() -> argparse.ArgumentParser:
     retro_timeline_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
     retro_timeline_parser.add_argument("--cwd", default=str(Path.cwd()))
     retro_timeline_parser.add_argument("--window-size", type=int, default=5)
+    retro_timeline_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the retrospective timeline as JSON instead of human-readable text.",
+    )
 
     cost_audit_parser = subparsers.add_parser(
         "audit-cost-coverage",
@@ -1515,6 +1570,11 @@ def build_parser() -> argparse.ArgumentParser:
     cost_audit_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
     cost_audit_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     cost_audit_parser.add_argument("--codex-thread-id")
+    cost_audit_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Render the cost audit as JSON instead of human-readable text.",
+    )
 
     public_boundary_parser = subparsers.add_parser(
         "verify-public-boundary",

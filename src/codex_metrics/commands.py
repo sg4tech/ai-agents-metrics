@@ -12,6 +12,9 @@ from typing import Any, Protocol
 from codex_metrics.cost_audit import CostAuditReport
 from codex_metrics.history_audit import AuditReport
 from codex_metrics.history_compare import HistoryCompareReport
+from codex_metrics.history_derive import DeriveSummary
+from codex_metrics.history_ingest import IngestSummary
+from codex_metrics.history_normalize import NormalizeSummary
 from codex_metrics.observability import (
     record_goal_merge_observation,
     record_goal_mutation_observation,
@@ -41,6 +44,7 @@ class CommandRuntime(Protocol):
     def load_metrics(self, path: Path) -> dict[str, Any]: ...
     def recompute_summary(self, data: dict[str, Any]) -> None: ...
     def print_summary(self, data: dict[str, Any]) -> None: ...
+    def render_summary_json(self, data: dict[str, Any]) -> str: ...
     def sync_usage(
         self,
         data: dict[str, Any],
@@ -84,9 +88,14 @@ class CommandRuntime(Protocol):
     def render_audit_report(self, report: AuditReport) -> str: ...
     def render_audit_report_json(self, report: AuditReport) -> str: ...
     def render_history_compare_report(self, report: HistoryCompareReport) -> str: ...
+    def render_history_compare_report_json(self, report: HistoryCompareReport) -> str: ...
     def render_retro_timeline_report(self, report: RetroTimelineReport) -> str: ...
+    def render_retro_timeline_report_json(self, report: RetroTimelineReport) -> str: ...
     def render_public_boundary_report(self, report: Any) -> str: ...
     def render_public_boundary_report_json(self, report: Any) -> str: ...
+    def render_ingest_summary_json(self, summary: IngestSummary) -> str: ...
+    def render_normalize_summary_json(self, summary: NormalizeSummary) -> str: ...
+    def render_derive_summary_json(self, summary: DeriveSummary) -> str: ...
     def audit_cost_coverage(
         self,
         data: dict[str, Any],
@@ -98,6 +107,7 @@ class CommandRuntime(Protocol):
         cwd: Path,
     ) -> CostAuditReport: ...
     def render_cost_audit_report(self, report: CostAuditReport) -> str: ...
+    def render_cost_audit_report_json(self, report: CostAuditReport) -> str: ...
     def merge_tasks(self, data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> dict[str, Any]: ...
     def get_task(self, tasks: list[dict[str, Any]], task_id: str) -> dict[str, Any] | None: ...
     def upsert_task(
@@ -427,7 +437,10 @@ def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
         warning = f"Warning: {resolution.decision.message}."
     if warning is not None:
         print(warning)
-    cli_module.print_summary(data)
+    if getattr(args, "json", False):
+        print(cli_module.render_summary_json(data))
+    else:
+        cli_module.print_summary(data)
     return 0
 
 
@@ -485,7 +498,10 @@ def handle_compare_metrics_to_history(args: Namespace, cli_module: CommandRuntim
         cwd=cwd,
         metrics_path=metrics_path,
     )
-    print(cli_module.render_history_compare_report(report))
+    if getattr(args, "json", False):
+        print(cli_module.render_history_compare_report_json(report))
+    else:
+        print(cli_module.render_history_compare_report(report))
     return 0
 
 
@@ -494,24 +510,27 @@ def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.ingest_codex_history(source_root, warehouse_path)
-    print(f"Ingested Codex history into {summary.warehouse_path}")
-    print(f"Source root: {summary.source_root}")
-    print(f"Scanned files: {summary.scanned_files}")
-    print(f"Imported files: {summary.imported_files}")
-    print(f"Skipped files: {summary.skipped_files}")
-    print(f"Projects: {summary.projects}")
-    print(f"Threads: {summary.threads}")
-    print(f"Sessions: {summary.sessions}")
-    print(f"Session events: {summary.session_events}")
-    print(f"Token count events: {summary.token_count_events}")
-    print(f"Token usage events: {summary.token_usage_events}")
-    print(f"Input tokens: {summary.input_tokens}")
-    print(f"Cached input tokens: {summary.cached_input_tokens}")
-    print(f"Output tokens: {summary.output_tokens}")
-    print(f"Reasoning output tokens: {summary.reasoning_output_tokens}")
-    print(f"Total tokens: {summary.total_tokens}")
-    print(f"Messages: {summary.messages}")
-    print(f"Logs: {summary.logs}")
+    if getattr(args, "json", False):
+        print(cli_module.render_ingest_summary_json(summary))
+    else:
+        print(f"Ingested Codex history into {summary.warehouse_path}")
+        print(f"Source root: {summary.source_root}")
+        print(f"Scanned files: {summary.scanned_files}")
+        print(f"Imported files: {summary.imported_files}")
+        print(f"Skipped files: {summary.skipped_files}")
+        print(f"Projects: {summary.projects}")
+        print(f"Threads: {summary.threads}")
+        print(f"Sessions: {summary.sessions}")
+        print(f"Session events: {summary.session_events}")
+        print(f"Token count events: {summary.token_count_events}")
+        print(f"Token usage events: {summary.token_usage_events}")
+        print(f"Input tokens: {summary.input_tokens}")
+        print(f"Cached input tokens: {summary.cached_input_tokens}")
+        print(f"Output tokens: {summary.output_tokens}")
+        print(f"Reasoning output tokens: {summary.reasoning_output_tokens}")
+        print(f"Total tokens: {summary.total_tokens}")
+        print(f"Messages: {summary.messages}")
+        print(f"Logs: {summary.logs}")
     return 0
 
 
@@ -519,13 +538,16 @@ def handle_normalize_codex_history(args: Namespace, cli_module: CommandRuntime) 
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.normalize_codex_history(warehouse_path)
-    print(f"Normalized Codex history in {summary.warehouse_path}")
-    print(f"Projects: {summary.projects}")
-    print(f"Threads: {summary.threads}")
-    print(f"Sessions: {summary.sessions}")
-    print(f"Messages: {summary.messages}")
-    print(f"Usage events: {summary.usage_events}")
-    print(f"Logs: {summary.logs}")
+    if getattr(args, "json", False):
+        print(cli_module.render_normalize_summary_json(summary))
+    else:
+        print(f"Normalized Codex history in {summary.warehouse_path}")
+        print(f"Projects: {summary.projects}")
+        print(f"Threads: {summary.threads}")
+        print(f"Sessions: {summary.sessions}")
+        print(f"Messages: {summary.messages}")
+        print(f"Usage events: {summary.usage_events}")
+        print(f"Logs: {summary.logs}")
     return 0
 
 
@@ -533,14 +555,17 @@ def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.derive_codex_history(warehouse_path)
-    print(f"Derived Codex history in {summary.warehouse_path}")
-    print(f"Projects: {summary.projects}")
-    print(f"Goals: {summary.goals}")
-    print(f"Attempts: {summary.attempts}")
-    print(f"Timeline events: {summary.timeline_events}")
-    print(f"Retry chains: {summary.retry_chains}")
-    print(f"Message facts: {summary.message_facts}")
-    print(f"Session usage: {summary.session_usage}")
+    if getattr(args, "json", False):
+        print(cli_module.render_derive_summary_json(summary))
+    else:
+        print(f"Derived Codex history in {summary.warehouse_path}")
+        print(f"Projects: {summary.projects}")
+        print(f"Goals: {summary.goals}")
+        print(f"Attempts: {summary.attempts}")
+        print(f"Timeline events: {summary.timeline_events}")
+        print(f"Retry chains: {summary.retry_chains}")
+        print(f"Message facts: {summary.message_facts}")
+        print(f"Session usage: {summary.session_usage}")
     return 0
 
 
@@ -558,7 +583,10 @@ def handle_derive_retro_timeline(args: Namespace, cli_module: CommandRuntime) ->
             metrics_path=metrics_path,
             window_size=args.window_size,
         )
-    print(cli_module.render_retro_timeline_report(report))
+    if getattr(args, "json", False):
+        print(cli_module.render_retro_timeline_report_json(report))
+    else:
+        print(cli_module.render_retro_timeline_report(report))
     return 0
 
 
@@ -576,7 +604,10 @@ def handle_audit_cost_coverage(args: Namespace, cli_module: CommandRuntime) -> i
         codex_thread_id=args.codex_thread_id,
         cwd=Path.cwd(),
     )
-    print(cli_module.render_cost_audit_report(report))
+    if getattr(args, "json", False):
+        print(cli_module.render_cost_audit_report_json(report))
+    else:
+        print(cli_module.render_cost_audit_report(report))
     return 0
 
 
