@@ -17,7 +17,7 @@ The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this r
 
 For product-management, framing, and metrics-interpretation work, also read:
 
-- `docs/private/product-framing.md`
+- `docs/public/product-framing.md`
 - `docs/private/product-hypotheses.md`
 - the relevant `docs/private/product-hypotheses/H-xxx.md` file
 
