@@ -83,10 +83,8 @@ def test_is_meaningful_worktree_path_returns_false_for_unknown_top_level_file() 
 
 def _make_git_mock(rev_parse_result: str | None, status_result: str | None):
     """Return a side_effect function for patching _run_git."""
-    calls: list[str] = []
 
     def _run_git(_cwd: Path, *args: str) -> str | None:
-        calls.append(args[0])
         if args[0] == "rev-parse":
             return rev_parse_result
         if args[0] == "status":
@@ -151,6 +149,16 @@ def test_detect_started_work_rename_parsed_correctly() -> None:
     assert any("src/new.py" in p for p in report.changed_paths)
 
 
+def test_detect_started_work_status_unavailable_after_rev_parse() -> None:
+    """rev-parse succeeds but git status returns None → git_available=False."""
+    with patch("codex_metrics.git_state._run_git", side_effect=_make_git_mock("/repo", None)):
+        report = detect_started_work(Path("/repo"))
+
+    assert report.git_available is False
+    assert report.started_work_detected is False
+    assert report.changed_paths == []
+
+
 # ---------------------------------------------------------------------------
 # detect_started_work does NOT require importing from cli
 # ---------------------------------------------------------------------------
@@ -163,5 +171,3 @@ def test_detect_started_work_importable_without_cli() -> None:
     git_state = importlib.import_module("codex_metrics.git_state")
     assert hasattr(git_state, "detect_started_work")
     assert hasattr(git_state, "StartedWorkReport")
-    # cli should not be in the module's dependencies
-    assert "codex_metrics.cli" not in sys.modules or True  # cli may be loaded by other tests
