@@ -7,12 +7,17 @@ from importlib.metadata import version as _installed_version
 
 __all__ = ["__version__"]
 
-try:
-    __version__ = _installed_version("codex-metrics")
-except PackageNotFoundError:
+
+def _resolve_version() -> str:
     try:
-        from codex_metrics._version import (
-            version as __version__,  # type: ignore[no-redef,import-untyped]
-        )
+        return _installed_version("codex-metrics")
+    except PackageNotFoundError:
+        pass
+    try:
+        from codex_metrics._version import version
+        return version
     except ImportError:
-        __version__ = "unknown"
+        return "unknown"
+
+
+__version__ = _resolve_version()
