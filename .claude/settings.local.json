@@ -63,21 +63,26 @@
       "Read(//opt/homebrew/bin/**)",
       "Bash(.venv/bin/pip *)",
       "Bash(ln -s * .venv)",
-      "Bash(PYTHONPATH=src .venv/bin/ruff check --fix src/codex_metrics/domain/__init__.py)",
+      "Bash(PYTHONPATH=src .venv/bin/ruff *)",
       "Read(//Users/viktor/.config/gh/**)",
-      "Bash(PYTHONPATH=src .venv/bin/ruff check .)",
-      "Bash(PYTHONPATH=src .venv/bin/mypy src scripts)",
+      "Bash(PYTHONPATH=src .venv/bin/mypy *)",
       "Skill(commit-commands:commit)",
       "Skill(commit-commands:commit:*)",
       "Bash(xargs ls:*)",
-      "Bash(PYTHONPATH=src python -m codex_metrics --help)",
+      "Bash(PYTHONPATH=src python -m codex_metrics *)",
       "Bash(/opt/homebrew/bin/python3 -m venv .venv)",
       "Bash(gh repo *)",
       "Bash(gh api *)",
       "Skill(code-review:code-review)",
       "Skill(code-review:code-review:*)",
       "Skill(pr-review-toolkit:review-pr)",
-      "Skill(pr-review-toolkit:review-pr:*)"
+      "Skill(pr-review-toolkit:review-pr:*)",
+      "Bash(PYTHONPATH=oss/src python -m pytest *)",
+      "Bash(PYTHONPATH=oss/src .venv/bin/pytest *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"DONE EXIT=$?\")",
+      "Bash(PYTHONPATH=oss/src .venv/bin/ruff check .)",
+      "Bash(echo \"EXIT_CODE:$?\")"
     ]
   }
 }
