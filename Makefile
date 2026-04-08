@@ -1,34 +1,6 @@
-.PHONY: init check-init lint typecheck test verify security verify-public-boundary export-public-tree public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull coverage dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke
+include oss/Makefile
 
-init:
-	git pull origin master
-	/opt/homebrew/bin/python3 -m venv .venv
-	.venv/bin/pip install -U pip setuptools wheel
-	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
-
-lint:
-	./.venv/bin/ruff check .
-
-typecheck:
-	./.venv/bin/mypy src scripts
-
-test:
-	./.venv/bin/python -m pytest tests/
-
-check-init:
-	@test -d .venv || $(MAKE) init
-
-verify: check-init lint security typecheck test
-
-security:
-	./.venv/bin/python -m codex_metrics security --repo-root . --rules-path config/security-rules.toml
-
-verify-public-boundary:
-	@test -n "$(PUBLIC_BOUNDARY_ROOT)" || (echo "Set PUBLIC_BOUNDARY_ROOT to the candidate public repository root before running make verify-public-boundary." && exit 2)
-	./.venv/bin/python -m codex_metrics verify-public-boundary --repo-root "$(PUBLIC_BOUNDARY_ROOT)" --rules-path config/public-boundary-rules.toml
-
-export-public-tree:
-	./.venv/bin/python scripts/export_public_tree.py --output-dir build/public-tree
+.PHONY: public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
 
 public-overlay-status:
 	./.venv/bin/python scripts/public_overlay.py --private-repo-root . status
@@ -44,29 +16,3 @@ public-overlay-push:
 
 public-overlay-pull:
 	./.venv/bin/python scripts/public_overlay.py --private-repo-root . pull --execute
-
-coverage:
-	./.venv/bin/coverage erase
-	CODEX_SUBPROCESS_COVERAGE=1 ./.venv/bin/coverage run -m pytest tests/
-	./.venv/bin/coverage combine
-	./.venv/bin/coverage report -m
-
-dev-refresh-local:
-	./.venv/bin/python -m pip install --no-deps --no-build-isolation -e .
-
-package:
-	rm -rf build dist src/codex_metrics.egg-info
-	./.venv/bin/python -m build --no-isolation
-
-package-standalone:
-	rm -rf build/standalone dist/standalone
-	./.venv/bin/python scripts/build_standalone.py
-
-package-refresh-local: package
-	./.venv/bin/python -m pip install --no-deps --force-reinstall dist/*.whl
-
-package-refresh-global: package-refresh-local package-standalone
-	./dist/standalone/codex-metrics install-self $(INSTALL_SELF_ARGS)
-
-live-usage-smoke:
-	./.venv/bin/python scripts/check_live_usage_recovery.py
