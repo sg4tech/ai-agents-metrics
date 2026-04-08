@@ -4,6 +4,9 @@ set -eu
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
 
+echo "pre-commit: running security scan on staged changes"
+./.venv/bin/python -m codex_metrics security --repo-root "$repo_root" --rules-path "$repo_root/config/security-rules.toml"
+
 staged_python_files="$(git diff --cached --name-only --diff-filter=ACMR -- '*.py')"
 
 if [ -z "$staged_python_files" ]; then

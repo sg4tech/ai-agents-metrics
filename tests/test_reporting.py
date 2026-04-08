@@ -217,3 +217,31 @@ def test_generate_report_md_starts_with_product_quality_section() -> None:
     assert "- Reviewed result fit: 1/1 closed product goals" in rendered
     assert "- Exact Fit Rate (reviewed): 100.00%" in rendered
     assert "Next action:" in rendered
+
+
+def test_generate_report_md_redacts_secret_like_notes_and_titles() -> None:
+    data = _base_metrics()
+    data["goals"] = [
+        {
+            "goal_id": "goal-1",
+            "title": "Rotate token sk-test-secret-value-1234567890",
+            "goal_type": "product",
+            "supersedes_goal_id": None,
+            "status": "success",
+            "attempts": 1,
+            "started_at": "2026-03-31T09:00:00+00:00",
+            "finished_at": "2026-03-31T09:01:00+00:00",
+            "cost_usd": 0.25,
+            "tokens_total": 1000,
+            "failure_reason": None,
+            "notes": "Bearer abcdefghijklmnop",
+            "result_fit": "exact_fit",
+        }
+    ]
+    domain.recompute_summary(data)
+
+    rendered = reporting.generate_report_md(data)
+
+    assert "sk-test-secret-value-1234567890" not in rendered
+    assert "Bearer abcdefghijklmnop" not in rendered
+    assert "[REDACTED]" in rendered

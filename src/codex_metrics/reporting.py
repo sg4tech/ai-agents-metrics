@@ -8,6 +8,7 @@ from codex_metrics.domain import (
     build_effective_goals,
     goal_from_dict,
 )
+from codex_metrics.redaction import redact_text
 
 
 @dataclass(frozen=True)
@@ -512,9 +513,11 @@ def generate_report_md(data: dict[str, Any]) -> str:
         return "\n".join(lines)
 
     for task in sorted(goals, key=lambda x: x.get("started_at") or "", reverse=True):
+        title = redact_text(str(task["title"]))
+        notes = redact_text(str(task.get("notes") or "n/a"))
         lines.extend(
             [
-                f"### {task['goal_id']} — {task['title']}",
+                f"### {task['goal_id']} — {title}",
                 f"- Goal type: {task['goal_type']}",
                 f"- Supersedes goal: {task.get('supersedes_goal_id') or 'n/a'}",
                 f"- Status: {task['status']}",
@@ -531,7 +534,7 @@ def generate_report_md(data: dict[str, Any]) -> str:
                 f"- Tokens: {format_num(task.get('tokens_total'))}",
                 f"- Failure reason: {task.get('failure_reason') or 'n/a'}",
                 f"- Result fit: {task.get('result_fit') or 'n/a'}",
-                f"- Notes: {task.get('notes') or 'n/a'}",
+                f"- Notes: {notes}",
                 "",
             ]
         )

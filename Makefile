@@ -1,6 +1,7 @@
-.PHONY: init lint typecheck test verify verify-public-boundary export-public-tree public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull coverage dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke
+.PHONY: init lint typecheck test verify security verify-public-boundary export-public-tree public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull coverage dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke
 
 init:
+	git pull
 	/opt/homebrew/bin/python3 -m venv .venv
 	.venv/bin/pip install -U pip setuptools wheel
 	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
@@ -15,6 +16,9 @@ test:
 	./.venv/bin/python -m pytest tests/
 
 verify: lint typecheck test
+
+security:
+	./.venv/bin/python -m codex_metrics security --repo-root . --rules-path config/security-rules.toml
 
 verify-public-boundary:
 	@test -n "$(PUBLIC_BOUNDARY_ROOT)" || (echo "Set PUBLIC_BOUNDARY_ROOT to the candidate public repository root before running make verify-public-boundary." && exit 2)

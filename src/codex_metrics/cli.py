@@ -81,6 +81,13 @@ from codex_metrics.public_boundary import (
 from codex_metrics.reporting import (
     generate_report_md,
 )
+from codex_metrics.security import (
+    SecurityReport,
+    render_security_report,
+)
+from codex_metrics.security import (
+    verify_security as run_verify_security,
+)
 from codex_metrics.storage import (
     atomic_write_text,
 )
@@ -107,6 +114,7 @@ CODEX_LOGS_PATH = Path.home() / ".codex" / "logs_1.sqlite"
 CLAUDE_ROOT = Path.home() / ".claude"
 RAW_WAREHOUSE_PATH = default_raw_warehouse_path(METRICS_JSON_PATH)
 PUBLIC_BOUNDARY_RULES_PATH = Path("config/public-boundary-rules.toml")
+SECURITY_RULES_PATH = Path("config/security-rules.toml")
 USAGE_FIELD_PATTERNS = {
     "input_tokens": re.compile(r"\binput_token_count=(\d+)"),
     "cached_input_tokens": re.compile(r"\bcached_token_count=(\d+)"),
@@ -157,6 +165,10 @@ def derive_codex_history(warehouse_path: Path) -> DeriveSummary:
 
 def verify_public_boundary(*, repo_root: Path, rules_path: Path) -> PublicBoundaryReport:
     return run_verify_public_boundary(repo_root=repo_root, rules_path=rules_path)
+
+
+def security(*, repo_root: Path, rules_path: Path) -> SecurityReport:
+    return run_verify_security(repo_root=repo_root, rules_path=rules_path)
 
 
 def _run_git(cwd: Path, *args: str) -> str | None:
@@ -1714,6 +1726,17 @@ def build_parser() -> argparse.ArgumentParser:
     public_boundary_parser.add_argument("--repo-root", default=".")
     public_boundary_parser.add_argument("--rules-path", default=str(PUBLIC_BOUNDARY_RULES_PATH))
 
+    security_parser = subparsers.add_parser(
+        "security",
+        help="Run a fast staged-file security scan",
+        description=(
+            "Scan staged changes for secrets, token patterns, private keys, and other dangerous data "
+            "before it lands in git."
+        ),
+    )
+    security_parser.add_argument("--repo-root", default=".")
+    security_parser.add_argument("--rules-path", default=str(SECURITY_RULES_PATH))
+
     subparsers.add_parser(
         "ensure-active-task",
         help="Recover or verify active task bookkeeping from local git changes",
@@ -2100,6 +2123,14 @@ def main() -> int:
 
     if args.command == "verify-public-boundary":
         return commands.handle_verify_public_boundary(args, sys.modules[__name__])
+
+    if args.command == "security":
+        report = security(
+            repo_root=Path(args.repo_root).expanduser(),
+            rules_path=Path(args.rules_path).expanduser(),
+        )
+        print(render_security_report(report))
+        return 0 if not report.findings else 1
 
     if args.command == "ensure-active-task":
         return commands.handle_ensure_active_task(args, sys.modules[__name__])

@@ -100,6 +100,26 @@ def test_record_cli_invocation_observation_writes_sqlite_and_debug_log(tmp_path:
     assert "event_type=\"cli_invoked\"" in debug_log
 
 
+def test_record_cli_invocation_observation_redacts_sensitive_payload_values(tmp_path: Path) -> None:
+    metrics_path = tmp_path / "metrics" / "codex_metrics.json"
+
+    record_cli_invocation_observation(
+        metrics_path,
+        command="update",
+        cwd="/tmp/workspace",
+        extra_payload={
+            "api_key": "sk-test-secret-value-1234567890",
+            "notes": "Bearer abcdefghijklmnop",
+        },
+    )
+
+    paths = observability_paths(metrics_path)
+    debug_log = paths.debug_log_path.read_text(encoding="utf-8")
+    assert "sk-test-secret-value-1234567890" not in debug_log
+    assert "Bearer abcdefghijklmnop" not in debug_log
+    assert "[REDACTED]" in debug_log
+
+
 def test_record_cli_invocation_observation_best_effort_on_store_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

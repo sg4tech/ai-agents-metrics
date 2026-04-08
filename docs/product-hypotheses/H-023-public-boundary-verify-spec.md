@@ -101,6 +101,9 @@ The initial implementation has already landed with the following shape:
 - the public repository CI runs the same boundary check
 - the verifier supports allowlisted roots, forbidden paths/globs/extensions, and content markers
 - the pre-commit hook in the public repo uses the same boundary check
+- a separate lightweight `security` command now scans staged changes for private-key and token-style leakage before commit
+- the pre-commit hook in the private repo now invokes that `security` command before Ruff, so dangerous data is blocked early in the local workflow
+- log-like runtime outputs are ignored at the git level so they are less likely to be staged in the first place
 
 The remaining work is mostly operational hardening and public polish:
 
@@ -108,6 +111,7 @@ The remaining work is mostly operational hardening and public polish:
 - add or refine fixtures whenever a new leak pattern is discovered
 - keep boundary rules and docs synchronized between private `oss/` and the public repo
 - make sure future workflow changes do not weaken the public boundary by accident
+- extend the `security` command with additional OWASP Top 10-oriented checks as the surface area grows, and keep the same fast path available in both public and private repos
 
 ## Verification Target
 
