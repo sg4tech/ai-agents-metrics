@@ -39,7 +39,7 @@ The following docs exist for reference — consult them as needed, not on every 
 - `docs/private/decisions.md` — why key architectural choices were made
 - `docs/public/testing-guide.md` — test structure, conftest.py, factory patterns, common pitfalls
 - `docs/private/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
-- `docs/public-overlay-sync.md` — operational runbook for syncing between this private repo and the public `oss/` subtree (`make public-overlay-push`, `make public-overlay-pull`, conflict resolution, boundary rules)
+- `docs/private/public-overlay-sync.md` — operational runbook for syncing between this private repo and the public `oss/` subtree (`make public-overlay-push`, `make public-overlay-pull`, conflict resolution, boundary rules)
 
 ## Core working style
 

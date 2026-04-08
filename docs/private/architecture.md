@@ -134,7 +134,6 @@ Key command groups:
 | Script | Purpose |
 |--------|---------|
 | `update_codex_metrics.py` | Legacy compatibility shim |
-| `export_public_tree.py` | Exports public-safe documentation tree |
 | `public_overlay.py` | Bidirectional sync between private repo and `oss/` public mirror |
 | `build_standalone.py` | Builds self-contained binary distribution |
 | `check_live_usage_recovery.py` | Smoke test for live usage data recovery |
@@ -156,7 +155,6 @@ One test file per module; naming mirrors the source:
 | `test_{git_hooks,commit_message,public_boundary}.py` | Integrations |
 | `test_observability.py` | Event recording |
 | `test_public_overlay.py` | Public/private sync |
-| `test_export_public_tree.py` | Export logic |
 | `test_claude_md.py` | Documentation generation |
 
 `conftest.py` provides shared fixtures (temp metrics paths, fake goal factories, etc.).
