@@ -1,5 +1,16 @@
 # AGENTS.md
 
+## Repository structure
+
+`oss/` is the primary development directory. All source code, tests, docs, config, scripts, and the canonical `Makefile` and `pyproject.toml` live there. The private root contains only `docs/private/`, `metrics/`, `AGENTS.md`, `tests/private/` (3 files), `.githooks/`, and a thin glue `Makefile` that does `include oss/Makefile`.
+
+Symlinks that make tooling work from the private root:
+- `docs/public/` → `oss/docs/`
+- `tests/public/` → `oss/tests/`
+- `src/` → `oss/src/`
+
+When doing engineering work, prefer working inside `oss/` directly.
+
 ## Read first
 
 Before starting any engineering task in a worktree, run `make init` to set up the local Python environment. Do not symlink `.venv` from the main repo — each worktree has its own environment.
@@ -80,7 +91,6 @@ Use:
 
 Tracked files:
 - `metrics/events.ndjson` — append-only event log; the source of truth; tracked in git
-- `docs/codex-metrics.md` — optional markdown export, not a required default artifact
 
 Do not edit `metrics/events.ndjson` manually. All mutations must go through the CLI.
 
