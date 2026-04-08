@@ -137,7 +137,6 @@ After changing the CLI, update flow, bootstrap flow, or metrics semantics:
 - run the relevant tests
 - run a CLI smoke test
 - verify that the workflow appends to `metrics/events.ndjson`
-- if the task changes markdown export behavior, also verify `./tools/codex-metrics render-report`
 
 Minimum validation commands:
 
@@ -182,7 +181,6 @@ Local validation reminders:
 - `AGENTS.md` stores project rules; `docs/private/retros/` stores incident history and lessons.
 - After a meaningful task is completed successfully and the retrospective is logged, create a git commit for the finished checkpoint.
 - Do not create a commit just because lint passed or only a partial technical check succeeded; commit only after the actual task outcome is complete and stabilized.
-
 <!-- codex-metrics:start -->
 ## Codex Metrics
 
