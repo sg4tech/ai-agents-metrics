@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from test_history_ingest import create_codex_history_source_root, run_cmd
 
 from codex_metrics.history_derive import (
     _fetch_normalized_logs,
@@ -16,9 +17,8 @@ from codex_metrics.history_derive import (
     _fetch_normalized_usage_events,
 )
 from codex_metrics.history_normalize import _ensure_schema
-from tests.public.test_history_ingest import create_codex_history_source_root, run_cmd
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
 ABS_SRC = WORKSPACE_ROOT / "src"
 
