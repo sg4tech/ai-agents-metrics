@@ -35,10 +35,6 @@ from codex_metrics.domain.validation import (
     validate_task_type,
 )
 
-LEGACY_GOAL_SUPERSEDES_MAP = {
-    "2026-03-29-008": "2026-03-29-007",
-}
-
 
 def round_usd(value: Decimal | float) -> float:
     decimal_value = value if isinstance(value, Decimal) else Decimal(str(value))
@@ -431,8 +427,6 @@ def normalize_legacy_metrics_data(data: dict[str, Any]) -> None:
                 task_type = task.get("task_type", "product")
                 supersedes_task_id = task.get("supersedes_task_id")
                 task_id = task.get("task_id")
-                if task_id in LEGACY_GOAL_SUPERSEDES_MAP and supersedes_task_id is None:
-                    supersedes_task_id = LEGACY_GOAL_SUPERSEDES_MAP[task_id]
                 goal = {
                     "goal_id": task_id,
                     "title": task.get("title"),

@@ -7,7 +7,6 @@ to work without modification.
 """
 
 from codex_metrics.domain.aggregation import (
-    LEGACY_GOAL_SUPERSEDES_MAP,
     aggregate_chain_costs,
     aggregate_chain_model,
     aggregate_chain_timestamps,
@@ -141,7 +140,6 @@ __all__ = [
     "validate_task_type",
     "validate_token_breakdown_consistency",
     # aggregation
-    "LEGACY_GOAL_SUPERSEDES_MAP",
     "append_missing_attempt_entries",
     "apply_attempt_usage_deltas",
     "apply_goal_updates",
