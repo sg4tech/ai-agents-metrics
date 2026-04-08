@@ -9,21 +9,21 @@ Before starting or continuing any engineering task, run `git pull` to ensure the
 During a task, run `git pull` again before writing new code if significant time has passed or before starting a new subtask — other agents or the user may have pushed changes in the meantime.
 
 - `AGENTS.md`
-- `docs/codex-metrics-policy.md`
-- `docs/task-lifecycle.md`
-- `docs/local-linear-setup.md`
+- `docs/private/codex-metrics-policy.md`
+- `docs/private/task-lifecycle.md`
+- `docs/private/local-linear-setup.md`
 
-The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
+The rules in `docs/private/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
 
 For product-management, framing, and metrics-interpretation work, also read:
 
-- `docs/product-framing.md`
-- `docs/product-hypotheses.md`
-- the relevant `docs/product-hypotheses/H-xxx.md` file
+- `docs/private/product-framing.md`
+- `docs/private/product-hypotheses.md`
+- the relevant `docs/private/product-hypotheses/H-xxx.md` file
 
 For history/search/reconstruction work, also read:
 
-- `docs/history-pipeline.md`
+- `docs/private/history-pipeline.md`
 - `src/codex_metrics/history_ingest.py`
 - `src/codex_metrics/history_normalize.py`
 - `src/codex_metrics/history_derive.py`
@@ -32,19 +32,19 @@ For history/search/reconstruction work, also read:
 
 The following docs exist for reference — consult them as needed, not on every task:
 
-- `docs/architecture.md` — code structure: modules, pipeline stages, storage, CLI entry points
-- `docs/data-schema.md` — full field reference for the in-memory data model (GoalRecord, AttemptEntryRecord, summary); storage is `metrics/events.ndjson`
-- `docs/data-invariants.md` — business rules enforced by validation logic
-- `docs/glossary.md` — terminology: goal vs task, entry vs attempt, inferred, supersedes chain, EffectiveGoalRecord, etc.
-- `docs/decisions.md` — why key architectural choices were made
-- `docs/testing-guide.md` — test structure, conftest.py, factory patterns, common pitfalls
-- `docs/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
+- `docs/private/architecture.md` — code structure: modules, pipeline stages, storage, CLI entry points
+- `docs/private/data-schema.md` — full field reference for the in-memory data model (GoalRecord, AttemptEntryRecord, summary); storage is `metrics/events.ndjson`
+- `docs/private/data-invariants.md` — business rules enforced by validation logic
+- `docs/public/glossary.md` — terminology: goal vs task, entry vs attempt, inferred, supersedes chain, EffectiveGoalRecord, etc.
+- `docs/private/decisions.md` — why key architectural choices were made
+- `docs/public/testing-guide.md` — test structure, conftest.py, factory patterns, common pitfalls
+- `docs/private/architecture/README.md` — tracked technical debt (ARCH-001 through ARCH-009)
 - `docs/public-overlay-sync.md` — operational runbook for syncing between this private repo and the public `oss/` subtree (`make public-overlay-push`, `make public-overlay-pull`, conflict resolution, boundary rules)
 
 ## Core working style
 
 - For engineering work, treat Linear as the source of truth for intake and traceability: create or update the relevant Linear issue before writing code, capture the requirements and acceptance criteria there, and work only through that issue.
-- For Linear-driven engineering work, use `docs/task-lifecycle.md` as the working workflow guide and `docs/local-linear-setup.md` as the repo-specific team/status reference.
+- For Linear-driven engineering work, use `docs/private/task-lifecycle.md` as the working workflow guide and `docs/private/local-linear-setup.md` as the repo-specific team/status reference.
 - Standalone retrospective work is explicitly exempt from the Linear-first intake rule. Log the retrospective in `docs/retros/`, track it as `goal_type=retro`, and do not create a Linear issue unless the user explicitly asks to connect it to delivery work.
 - Commit subjects for engineering work must match `CODEX-123: summary`; when a change is intentionally not tied to a Linear issue, use the explicit `NO-TASK: summary` prefix instead. Retrospective-only commits must use `NO-TASK: summary`.
 - During module splits or structural refactors, preserve the existing import/export surface until a breaking change is explicitly intended and validated.
@@ -55,7 +55,7 @@ The following docs exist for reference — consult them as needed, not on every 
 - For history search or transcript analysis, treat `raw_messages`, `raw_token_usage`, `normalized_messages`, `derived_timeline_events`, and `derived_goals` as the canonical pipeline waypoints before inventing new storage.
 - When product framing or success criteria are not yet confirmed by the user, treat drafts as hypotheses, not settled truth.
 - When acting as PM, structure proposals explicitly as hypotheses with expected upside, main risks, alternatives, and a confidence level.
-- Log meaningful product or metrics hypotheses in `docs/product-hypotheses.md` and the matching `docs/product-hypotheses/H-xxx.md` file instead of leaving them only in chat.
+- Log meaningful product or metrics hypotheses in `docs/private/product-hypotheses.md` and the matching `docs/private/product-hypotheses/H-xxx.md` file instead of leaving them only in chat.
 - Re-evaluate logged hypotheses after new evidence, audits, cross-project comparison, or process changes; update the relevant hypothesis file instead of silently replacing the old view.
 - For this product, treat AI agents as the primary consumers of metrics analysis and the human user as the receiver of final synthesized conclusions.
 - Do not optimize product framing around a human manually reading raw metrics first when the intended workflow is agent-first analysis and human-facing final output.
@@ -84,7 +84,7 @@ Tracked files:
 
 Do not edit `metrics/events.ndjson` manually. All mutations must go through the CLI.
 
-For the codex-metrics workflow, goal semantics, reporting invariants, and update/close rules, follow `docs/codex-metrics-policy.md`.
+For the codex-metrics workflow, goal semantics, reporting invariants, and update/close rules, follow `docs/private/codex-metrics-policy.md`.
 Treat metrics bookkeeping as part of the definition of done for this repository.
 Treat metrics from other repositories as read-only inputs for analysis. Never run mutating codex-metrics commands against another project's metrics/report files unless the user explicitly asks for that exact repository to be modified.
 
@@ -114,7 +114,7 @@ For repository-initializer or bootstrap-style commands:
 
 For workflow-shaping CLI changes:
 
-- if a new command or command flow is meant to change how agents should work, update `docs/codex-metrics-policy.md` in the same task
+- if a new command or command flow is meant to change how agents should work, update `docs/private/codex-metrics-policy.md` in the same task
 - keep the packaged policy mirror in sync with the repo policy
 - treat README-only documentation as insufficient for agent-facing workflow changes
 - model lifecycle gating as a state machine when a command’s allowed/blocked behavior depends on repository state
@@ -181,12 +181,12 @@ Local validation reminders:
 Before starting or continuing any engineering task, always read:
 
 - `AGENTS.md`
-- `docs/codex-metrics-policy.md`
+- `docs/private/codex-metrics-policy.md`
 
 Use `tools/codex-metrics ...` in this repository.
 
 If `tools/codex-metrics` is unavailable, stop and report an installation or invocation mismatch before proceeding.
 
-The rules in `docs/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
+The rules in `docs/private/codex-metrics-policy.md` are mandatory and are part of this repository's operating instructions.
 
 <!-- codex-metrics:end -->

@@ -967,7 +967,7 @@ def test_bootstrap_can_create_optional_report_when_requested(repo: Path) -> None
 
 
 def test_packaged_policy_template_matches_repo_policy() -> None:
-    repo_policy = (WORKSPACE_ROOT / "docs" / "codex-metrics-policy.md").read_text(encoding="utf-8")
+    repo_policy = (WORKSPACE_ROOT / "docs" / "private" / "codex-metrics-policy.md").read_text(encoding="utf-8")
     packaged_policy = (
         WORKSPACE_ROOT / "src" / "codex_metrics" / "data" / "bootstrap_codex_metrics_policy.md"
     ).read_text(encoding="utf-8")
