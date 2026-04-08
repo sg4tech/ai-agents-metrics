@@ -1,5 +1,7 @@
 # Linear Task Lifecycle
 
+<!-- private: intentionally kept in docs/private/ — contains Linear-specific workflow configuration for this repository -->
+
 This is the working Linear task lifecycle for Codex-assisted engineering in this repository.
 
 Use it as the practical operating model for moving a task from planned work to implementation, review, and completion.
