@@ -2,7 +2,7 @@
 
 **Priority:** medium
 **Complexity:** low
-**Status:** open
+**Status:** done
 
 ## Problem
 
@@ -22,6 +22,6 @@ For each command: purpose, key flags, typical usage example.
 
 ## Acceptance criteria
 
-- [ ] All commands from `cli.py` are listed
-- [ ] Each command has a 1–2 line description and its main flags
-- [ ] Examples for the most frequently used commands
+- [x] All commands from `cli.py` are listed
+- [x] Each command has a 1–2 line description and its main flags
+- [x] Examples for the most frequently used commands

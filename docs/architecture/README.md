@@ -15,7 +15,7 @@ Each file is a standalone task. When picked up, create a Linear issue and commit
 | [ARCH-005](ARCH-005-detect-started-work-location.md) | Move detect_started_work out of cli.py | medium | low | done |
 | [ARCH-006](ARCH-006-pipeline-typed-contracts.md) | Add typed contracts between pipeline stages | medium | medium | open |
 | [ARCH-007](ARCH-007-legacy-supersedes-map.md) | Remove LEGACY_GOAL_SUPERSEDES_MAP from domain.py | low | low | open |
-| [ARCH-008](ARCH-008-cli-command-reference.md) | Write CLI command reference | medium | low | open |
+| [ARCH-008](ARCH-008-cli-command-reference.md) | Write CLI command reference | medium | low | done |
 | [ARCH-009](ARCH-009-subprocess-coverage.md) | Automate subprocess coverage without manual env toggle | low | low | open |
 
 ## Recommended order
