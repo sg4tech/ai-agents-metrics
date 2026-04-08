@@ -1,6 +1,15 @@
-.PHONY: lint security typecheck test verify verify-public-boundary setup-hooks
+.PHONY: lint security typecheck test verify verify-public-boundary setup-hooks init check-init
 
-PYTHON ?= python3
+PYTHON = .venv/bin/python
+PYTHON3 ?= python3
+
+init:
+	$(PYTHON3) -m venv .venv
+	.venv/bin/pip install -U pip setuptools wheel
+	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
+
+check-init:
+	@test -d .venv || $(MAKE) init
 
 lint:
 	$(PYTHON) -m ruff check .
@@ -20,4 +29,4 @@ verify-public-boundary:
 setup-hooks:
 	git config core.hooksPath .githooks
 
-verify: lint security typecheck test verify-public-boundary
+verify: check-init lint security typecheck test verify-public-boundary

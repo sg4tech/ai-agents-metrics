@@ -75,7 +75,9 @@
       "Bash(gh repo *)",
       "Bash(gh api *)",
       "Skill(code-review:code-review)",
-      "Skill(code-review:code-review:*)"
+      "Skill(code-review:code-review:*)",
+      "Skill(pr-review-toolkit:review-pr)",
+      "Skill(pr-review-toolkit:review-pr:*)"
     ]
   }
 }
