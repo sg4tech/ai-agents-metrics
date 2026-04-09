@@ -141,7 +141,7 @@ After changing the CLI, update flow, bootstrap flow, or metrics semantics:
 Minimum validation commands:
 
 ```bash
-python -m pytest tests/public/test_update_codex_metrics.py
+python -m pytest tests/public/test_metrics_cli.py
 ./tools/ai-agents-metrics show
 ```
 
