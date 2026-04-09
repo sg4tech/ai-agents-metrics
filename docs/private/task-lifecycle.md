@@ -167,5 +167,5 @@ Do not mark the task complete until review and validation both say the work is f
 ## Relationship To Other Docs
 
 - `docs/private/local-linear-setup.md` describes the repo's current Linear team and workflow configuration.
-- `docs/pilots/task-lifecycle-fsm-plan.md` captures the implementation shape for the CLI-side lifecycle enforcement work.
-- `docs/pilots/task-lifecycle-pilot.md` is historical and should not be treated as the active operating model.
+- `docs/private/pilots/task-lifecycle-fsm-plan.md` captures the implementation shape for the CLI-side lifecycle enforcement work.
+- `docs/private/pilots/archive/task-lifecycle-pilot.md` is historical and should not be treated as the active operating model.

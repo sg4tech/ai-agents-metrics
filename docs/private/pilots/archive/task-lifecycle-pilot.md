@@ -1,6 +1,6 @@
 # Task Lifecycle Pilot Archive
 
-This document has been superseded by [`docs/task-lifecycle.md`](../task-lifecycle.md).
+This document has been superseded by [`docs/private/task-lifecycle.md`](../../task-lifecycle.md).
 It is kept only as a historical record of how the workflow was originally explored.
 
 ## Purpose
@@ -218,77 +218,3 @@ Bad pattern:
 ### Lead-only stage transitions
 
 The implementer should not silently upgrade:
-
-- analysis into implementation
-- implementation into acceptance
-- review into PM/product reframing
-
-If the work needs to move stages, call that handoff explicitly.
-
-### Use the current metrics model, not a new schema yet
-
-For the original pilot, do not add a new task engine immediately.
-
-Use the current goal-based system and treat stage as an operational overlay recorded in notes, titles, or explicit handoff comments.
-
-Only automate this if the manual flow proves useful.
-
-### Keep product goals outcome-oriented
-
-Do not create separate product goals for every stage by default.
-
-Prefer:
-
-- one outcome-oriented product goal
-- multiple attempts or notes across stages
-
-Create a new linked goal only when the outcome itself changes, is superseded, or restarts.
-
-## Suggested Manual Pilot Flow
-
-1. Lead defines the task and current stage.
-2. Implementer works only inside that stage.
-3. Lead decides the next stage.
-4. Repeat until demo/acceptance.
-5. Finish with a short retro.
-
-Minimal handoff note template:
-
-- current stage
-- what is now known
-- what remains uncertain
-- what decision is needed to move forward
-
-## What To Measure During The Pilot
-
-Do not over-instrument yet.
-
-Just watch for these signals:
-
-- fewer adjacent or off-target outcomes
-- fewer unclear-task misses
-- cleaner acceptance decisions
-- fewer “we solved a different problem” cases
-- better ability to explain where time and cost were spent
-
-## When To Automate This In The Tool
-
-Automate only if the pilot shows real value.
-
-Good reasons to add explicit lifecycle support later:
-
-- stage transitions are repeatedly useful
-- stage-specific delays or rework become important signals
-- the lead workflow is stable enough to encode
-
-Bad reasons:
-
-- the process merely sounds more professional
-- the team wants stronger structure before proving the pilot helps
-- the workflow is still changing every few tasks
-
-## Recommendation
-
-Start with a manual pilot on a small number of real tasks.
-
-If it improves outcome fidelity and decision quality without creating too much overhead, then add lightweight stage support to the CLI and reporting later.

@@ -44,7 +44,7 @@ This file turns the `public / private / rewrite` boundary into an explicit worki
 | `docs/audits/` | `private` | internal analysis, including third-party project reviews and snapshots |
 | `docs/experiments/` | `rewrite` | potentially reusable, but should be reviewed case by case |
 | `docs/notes/` | `private` | internal notes |
-| `docs/pilots/` | `private` | internal transition planning |
+| `docs/private/pilots/` | `private` | internal transition planning and historical pilot docs |
 | `docs/product-hypotheses/` | `rewrite` | selected public-facing strategy docs may be publishable later |
 | `docs/retros/` | `private` | explicit internal retrospective archive |
 
@@ -71,7 +71,7 @@ These should be excluded from the first public repository without further debate
 - `docs/retros/`
 - `docs/audits/`
 - `docs/notes/`
-- `docs/pilots/`
+- `docs/private/pilots/`
 - `docs/private/local-linear-setup.md`
 - `docs/TODO.md`
 - `metrics/`
