@@ -3,4 +3,4 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 PYTHONPATH="$REPO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONPATH
-exec "$REPO_ROOT/.venv/bin/python" -m codex_metrics "$@"
+exec "$REPO_ROOT/.venv/bin/python" -m ai_agents_metrics "$@"

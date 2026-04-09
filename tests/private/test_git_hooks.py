@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from codex_metrics.git_hooks import (
+from ai_agents_metrics.git_hooks import (
     GitHookRunner,
     run_pre_push,
 )
@@ -31,7 +31,7 @@ def test_run_pre_push_calls_security_scan_for_code_changes() -> None:
     runner = FakeGitHookRunner(
         {
             ("abc123", "def456"): [
-                "src/codex_metrics/git_hooks.py",
+                "src/ai_agents_metrics/git_hooks.py",
                 "README.md",
             ]
         }
@@ -40,7 +40,7 @@ def test_run_pre_push_calls_security_scan_for_code_changes() -> None:
     exit_code = run_pre_push(["refs/heads/main abc123 refs/remotes/origin/main def456\n"], runner=runner)
 
     assert exit_code == 0
-    assert runner.scan_calls == [["src/codex_metrics/git_hooks.py", "README.md"]]
+    assert runner.scan_calls == [["src/ai_agents_metrics/git_hooks.py", "README.md"]]
 
 
 def test_run_pre_push_calls_security_scan_for_docs_only_changes() -> None:
@@ -62,8 +62,8 @@ def test_run_pre_push_calls_security_scan_for_docs_only_changes() -> None:
 def test_run_pre_push_deduplicates_paths_across_ref_updates() -> None:
     runner = FakeGitHookRunner(
         {
-            ("abc123", "def456"): ["src/codex_metrics/git_hooks.py"],
-            ("abc124", "def457"): ["src/codex_metrics/git_hooks.py", "tests/test_git_hooks.py"],
+            ("abc123", "def456"): ["src/ai_agents_metrics/git_hooks.py"],
+            ("abc124", "def457"): ["src/ai_agents_metrics/git_hooks.py", "tests/test_git_hooks.py"],
         }
     )
 
@@ -75,12 +75,12 @@ def test_run_pre_push_deduplicates_paths_across_ref_updates() -> None:
         runner=runner,
     )
 
-    assert runner.scan_calls == [["src/codex_metrics/git_hooks.py", "tests/test_git_hooks.py"]]
+    assert runner.scan_calls == [["src/ai_agents_metrics/git_hooks.py", "tests/test_git_hooks.py"]]
 
 
 def test_run_pre_push_propagates_scan_failure() -> None:
     runner = FakeGitHookRunner(
-        {("abc123", "def456"): ["src/codex_metrics/git_hooks.py"]},
+        {("abc123", "def456"): ["src/ai_agents_metrics/git_hooks.py"]},
         scan_returncode=1,
     )
 

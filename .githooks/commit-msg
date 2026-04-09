@@ -2,4 +2,4 @@
 set -eu
 
 repo_root="$(git rev-parse --show-toplevel)"
-PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m codex_metrics.commit_message "$1"
+PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m ai_agents_metrics.commit_message "$1"

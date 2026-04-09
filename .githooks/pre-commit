@@ -5,7 +5,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 echo "pre-commit: running security scan on staged changes"
-./.venv/bin/python -m codex_metrics security --repo-root "$repo_root" --rules-path "$repo_root/config/security-rules.toml"
+./.venv/bin/python -m ai_agents_metrics security --repo-root "$repo_root" --rules-path "$repo_root/config/security-rules.toml"
 
 active_task="$(./.venv/bin/python - "$repo_root/metrics/events.ndjson" 2>/dev/null <<'PYEOF'
 import sys, json, pathlib
