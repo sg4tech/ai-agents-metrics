@@ -36,10 +36,8 @@ Active:
 | `H-011` | `active` | `docs/product-hypotheses/H-011.md` | A new chat entering an active repository should recover or enforce the active task before mutating work continues |
 | `H-015` | `active` | `docs/product-hypotheses/H-015.md` | Retro or meta work may improve product throughput and lower token cost, but current history is too sparse to confirm it |
 | `H-016` | `active` | `docs/product-hypotheses/H-016.md` | A structured event-logging layer may be required before we can confidently judge which product changes are actually working |
-| `H-017` | `active` | `docs/product-hypotheses/H-017.md` | The product-hypotheses doc should be reorganized around actual decision flow |
 | `H-018` | `active` | `docs/product-hypotheses/H-018.md` | Segmented conversation-text analysis may produce better efficiency signals than structural metrics alone |
 | `H-019` | `active` | `docs/product-hypotheses/H-019.md` | Higher agent autonomy may improve result quality and lower cost by separating discovery from delivery |
-| `H-021` | `active` | `docs/product-hypotheses/H-021.md` | A system-level immutable flag on the metrics file may reduce accidental edits, but it only works with a constrained privileged updater |
 | `H-022` | `active` | `docs/product-hypotheses/H-022.md` | A retrospective timeline layer may be required before we can evaluate whether retrospectives improve later product outcomes |
 | `H-023` | `confirmed` | `docs/product-hypotheses/H-023.md` | A public-first core with a private overlay may be the safest way to open-source `codex-metrics` without breaking internal iteration |
 | `H-024` | `validated` | `docs/product-hypotheses/H-024.md` | The public repository may need generated SEO-ready docs and landing pages from the start to make open-source distribution discoverable |
@@ -48,8 +46,6 @@ Active:
 | `H-027` | `active` | `docs/product-hypotheses/H-027.md` | Task duration may be required before the revenue side of P&L can be estimated |
 | `H-028` | `active` | `docs/product-hypotheses/H-028.md` | Human oversight cost may be a larger hidden expense than AI API cost |
 | `H-031` | `active` | `docs/product-hypotheses/H-031.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
-| `H-032` | `active` | `docs/product-hypotheses/H-032.md` | Renaming to `ai-agents-metrics` may improve public discoverability and long-term positioning |
-
 Planned:
 
 - none yet
@@ -64,9 +60,14 @@ Archived:
 | `H-013` | `archived` | `docs/private/product-hypotheses/archive/H-013.md` | Persisting the model used on each goal or attempt may improve quality and cost analysis |
 | `H-014` | `archived` | `docs/private/product-hypotheses/archive/H-014.md` | Token consumption speed may be useful only when normalized against product throughput |
 | `H-020` | `archived` | `docs/private/product-hypotheses/archive/H-020.md` | Workspace-wide history parsing may be required before cross-project analysis becomes reliable |
+| `H-017` | `archived` | `docs/private/product-hypotheses/archive/H-017.md` | The product-hypotheses doc should be reorganized around actual decision flow |
+| `H-021` | `archived` | `docs/private/product-hypotheses/archive/H-021.md` | A system-level immutable flag on the metrics file may reduce accidental edits, but the end-to-end privileged updater path is still unverified on both target OSes |
 | `H-029` | `archived` | `docs/private/product-hypotheses/archive/H-029.md` | A symlink from CLAUDE.md to AGENTS.md may improve rule uptake by putting instructions directly in context |
 | `H-030` | `archived` | `docs/private/product-hypotheses/archive/H-030.md` | Event sourcing may eliminate git merge conflicts on the metrics file while preserving history and sync |
+| `H-032` | `archived` | `docs/private/product-hypotheses/archive/H-032.md` | Renaming to `ai-agents-metrics` may improve public discoverability and long-term positioning |
 
 Ideas:
 
-- none yet
+| ID | Status | File | Title |
+| --- | --- | --- | --- |
+| `H-033` | `idea` | `docs/private/product-hypotheses/ideas/H-033-html-verdict-report.md` | A polished HTML report may help a human quickly judge whether work is effective or inefficient |
