@@ -49,3 +49,4 @@ Quick map:
 | `H-029` | `validated` | `docs/product-hypotheses/H-029.md` | A symlink from CLAUDE.md to AGENTS.md may improve rule uptake by putting instructions directly in context |
 | `H-030` | `validated` | `docs/product-hypotheses/H-030.md` | Event sourcing may eliminate git merge conflicts on the metrics file while preserving history and sync |
 | `H-031` | `active` | `docs/product-hypotheses/H-031.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
+| `H-032` | `active` | `docs/product-hypotheses/H-032.md` | Renaming to `ai-agents-metrics` may improve public discoverability and long-term positioning |
