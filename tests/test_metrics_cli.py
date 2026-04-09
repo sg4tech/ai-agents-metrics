@@ -14,8 +14,8 @@ from pathlib import Path
 import pytest
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = Path("scripts/update_codex_metrics.py")
-ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
+SCRIPT = Path("scripts/metrics_cli.py")
+ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "metrics_cli.py"
 ABS_SRC = WORKSPACE_ROOT / "src"
 PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
@@ -398,7 +398,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
     (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
 
-    script_target = tmp_path / "scripts" / "update_codex_metrics.py"
+    script_target = tmp_path / "scripts" / "metrics_cli.py"
     script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copytree(ABS_SRC, tmp_path / "src")
     pricing_target = tmp_path / "pricing" / "model_pricing.json"
@@ -494,8 +494,8 @@ def test_start_task_records_structured_event_and_debug_log(repo: Path) -> None:
     result = run_cmd(repo, "start-task", "--title", "Observed task", "--task-type", "meta")
 
     assert result.returncode == 0, result.stderr
-    events_db = repo / "metrics" / ".codex-metrics" / "events.sqlite"
-    debug_log = repo / "metrics" / ".codex-metrics" / "events.debug.log"
+    events_db = repo / "metrics" / ".ai-agents-metrics" / "events.sqlite"
+    debug_log = repo / "metrics" / ".ai-agents-metrics" / "events.debug.log"
     assert events_db.exists()
     assert debug_log.exists()
 
@@ -532,8 +532,8 @@ def test_show_records_cli_invocation_event(repo: Path) -> None:
     result = run_cmd(repo, "show")
 
     assert result.returncode == 0, result.stderr
-    events_db = repo / "metrics" / ".codex-metrics" / "events.sqlite"
-    debug_log = repo / "metrics" / ".codex-metrics" / "events.debug.log"
+    events_db = repo / "metrics" / ".ai-agents-metrics" / "events.sqlite"
+    debug_log = repo / "metrics" / ".ai-agents-metrics" / "events.debug.log"
 
     with sqlite3.connect(events_db) as conn:
         conn.row_factory = sqlite3.Row
@@ -729,7 +729,7 @@ def test_package_module_entrypoint_supports_bootstrap(repo: Path) -> None:
 def test_install_self_creates_launcher_in_target_dir(repo: Path) -> None:
     install_dir = repo / "bin"
     expected_script_paths = {
-        str((repo / "scripts" / "update_codex_metrics.py").resolve()),
+        str((repo / "scripts" / "metrics_cli.py").resolve()),
         str(ABS_SCRIPT.resolve()),
     }
 
@@ -752,7 +752,7 @@ def test_install_self_replaces_existing_target(repo: Path) -> None:
     installed_path = install_dir / "ai-agents-metrics"
     installed_path.write_text("old\n", encoding="utf-8")
     expected_script_paths = {
-        str((repo / "scripts" / "update_codex_metrics.py").resolve()),
+        str((repo / "scripts" / "metrics_cli.py").resolve()),
         str(ABS_SCRIPT.resolve()),
     }
 
@@ -3041,9 +3041,9 @@ def test_script_shim_exposes_cli_version(repo: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     output = result.stdout.strip()
-    assert output.startswith("update_codex_metrics.py ")
+    assert output.startswith("metrics_cli.py ")
     assert re.fullmatch(
-        r"update_codex_metrics\.py \d+\.\d+.*",
+        r"metrics_cli\.py \d+\.\d+.*",
         output,
     )
 
