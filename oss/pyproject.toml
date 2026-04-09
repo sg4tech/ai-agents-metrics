@@ -57,6 +57,10 @@ exclude = [
   "^\\.venv/",
 ]
 
+[[tool.mypy.overrides]]
+module = "ai_agents_metrics._version"
+ignore_missing_imports = true
+
 [tool.coverage.run]
 branch = true
 parallel = true
