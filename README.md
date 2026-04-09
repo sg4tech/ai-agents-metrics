@@ -28,7 +28,7 @@ The main generated artifacts are:
 Repository workflow and policy live in:
 
 - `AGENTS.md`
-- `docs/codex-metrics-policy.md`
+- `docs/ai-agents-metrics-policy.md`
 
 Local Linear setup lives in:
 
@@ -287,7 +287,7 @@ Apply the scaffold:
 This creates or updates:
 
 - `metrics/codex_metrics.json`
-- `docs/codex-metrics-policy.md`
+- `docs/ai-agents-metrics-policy.md`
 - `tools/ai-agents-metrics` repo-local wrapper
 - `AGENTS.md` with a managed `codex-metrics` block
 
@@ -297,7 +297,7 @@ If you also want the optional markdown export during bootstrap:
 /path/to/codex-metrics bootstrap --write-report
 ```
 
-If the target repo already has a conflicting `docs/codex-metrics-policy.md` and you intentionally want to replace it with the packaged template:
+If the target repo already has a conflicting `docs/ai-agents-metrics-policy.md` and you intentionally want to replace it with the packaged template:
 
 ```bash
 /path/to/codex-metrics bootstrap --force

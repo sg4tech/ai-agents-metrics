@@ -82,7 +82,7 @@ Also runs automatically as part of `make public-overlay-push` and `make public-o
 | `src/`, `tests/`, `tools/`, `config/public-boundary-rules.toml` | `oss/` | Yes |
 | `docs/retros/`, `docs/audits/` | outside `oss/` | Never |
 | `metrics/`, local history artifacts | outside `oss/` | Never |
-| `AGENTS.md`, `docs/codex-metrics-policy.md` | outside `oss/` | Manual review required |
+| `AGENTS.md`, `docs/ai-agents-metrics-policy.md` | outside `oss/` | Manual review required |
 
 ## Do Not
 
