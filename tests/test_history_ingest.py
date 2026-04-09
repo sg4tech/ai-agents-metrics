@@ -27,7 +27,7 @@ def _find_paths() -> tuple[Path, Path, Path]:
 
 
 _REPO_ROOT, _SCRIPTS_DIR, _SRC_DIR = _find_paths()
-ABS_SCRIPT = _SCRIPTS_DIR / "update_codex_metrics.py"
+ABS_SCRIPT = _SCRIPTS_DIR / "metrics_cli.py"
 ABS_SRC = _SRC_DIR
 
 
@@ -75,7 +75,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
     (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
 
-    script_target = tmp_path / "scripts" / "update_codex_metrics.py"
+    script_target = tmp_path / "scripts" / "metrics_cli.py"
     script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copytree(ABS_SRC, tmp_path / "src")
 
@@ -304,7 +304,7 @@ def create_codex_history_source_root(root: Path) -> Path:
 
 def test_ingest_codex_history_builds_raw_warehouse(repo: Path) -> None:
     source_root = create_codex_history_source_root(repo)
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     result = run_cmd(
         repo,
@@ -386,7 +386,7 @@ def test_ingest_codex_history_tracks_token_count_coverage(repo: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     result = run_cmd(
         repo,
@@ -411,7 +411,7 @@ def test_ingest_codex_history_tracks_token_count_coverage(repo: Path) -> None:
 
 def test_ingest_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
     source_root = create_codex_history_source_root(repo)
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     first = run_cmd(
         repo,
@@ -444,7 +444,7 @@ def test_ingest_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
 
 
 def test_ingest_codex_history_rejects_missing_source_root(repo: Path) -> None:
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
     missing_root = repo / "does-not-exist"
 
     result = run_cmd(
@@ -464,7 +464,7 @@ def test_ingest_codex_history_handles_partial_source_root_without_state_or_logs(
     source_root = create_codex_history_source_root(repo)
     (source_root / "state_5.sqlite").unlink()
     (source_root / "logs_1.sqlite").unlink()
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     result = run_cmd(
         repo,
@@ -508,7 +508,7 @@ def test_ingest_codex_history_rejects_malformed_sqlite_sources(repo: Path) -> No
     with sqlite3.connect(source_root / "state_5.sqlite") as conn:
         conn.execute("DROP TABLE threads")
         conn.commit()
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     result = run_cmd(
         repo,

@@ -19,7 +19,7 @@ from ai_agents_metrics.history_derive import (
 from ai_agents_metrics.history_normalize import _ensure_schema
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
-ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "update_codex_metrics.py"
+ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "metrics_cli.py"
 ABS_SRC = WORKSPACE_ROOT / "src"
 
 
@@ -30,7 +30,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
     (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
 
-    script_target = tmp_path / "scripts" / "update_codex_metrics.py"
+    script_target = tmp_path / "scripts" / "metrics_cli.py"
     script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copytree(ABS_SRC, tmp_path / "src")
 
@@ -84,7 +84,7 @@ def _add_retry_session(source_root: Path) -> None:
 def test_derive_codex_history_builds_analysis_marts(repo: Path) -> None:
     source_root = create_codex_history_source_root(repo)
     _add_retry_session(source_root)
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     assert (
         run_cmd(
@@ -177,7 +177,7 @@ def test_derive_codex_history_builds_analysis_marts(repo: Path) -> None:
 
 def test_derive_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
     source_root = create_codex_history_source_root(repo)
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "codex_raw_history.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "codex_raw_history.sqlite"
 
     assert (
         run_cmd(
@@ -211,7 +211,7 @@ def test_derive_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
 
 
 def test_derive_codex_history_rejects_missing_normalized_warehouse(repo: Path) -> None:
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "missing.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "missing.sqlite"
 
     result = run_cmd(repo, "derive-codex-history", "--warehouse-path", str(warehouse_path))
 
@@ -220,7 +220,7 @@ def test_derive_codex_history_rejects_missing_normalized_warehouse(repo: Path) -
 
 
 def test_derive_codex_history_rejects_non_normalized_warehouse(repo: Path) -> None:
-    warehouse_path = repo / "metrics" / ".codex-metrics" / "raw.sqlite"
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "raw.sqlite"
     warehouse_path.parent.mkdir(parents=True, exist_ok=True)
     sqlite3.connect(warehouse_path).close()
 
