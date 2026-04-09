@@ -45,7 +45,7 @@ Active:
 | `H-026` | `active` | `docs/product-hypotheses/H-026.md` | Full-suite automated tests may lower development cost by shrinking the feedback loop and token spend |
 | `H-027` | `active` | `docs/product-hypotheses/H-027.md` | Task duration may be required before the revenue side of P&L can be estimated |
 | `H-028` | `active` | `docs/product-hypotheses/H-028.md` | Human oversight cost may be a larger hidden expense than AI API cost |
-| `H-031` | `active` | `docs/product-hypotheses/H-031.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
+| `H-031` | `idea` | `docs/product-hypotheses/ideas/H-031-growthbook.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
 Planned:
 
 - none yet
@@ -71,3 +71,4 @@ Ideas:
 | ID | Status | File | Title |
 | --- | --- | --- | --- |
 | `H-033` | `idea` | `docs/private/product-hypotheses/ideas/H-033-html-verdict-report.md` | A polished HTML report may help a human quickly judge whether work is effective or inefficient |
+| `H-034` | `planned` | `docs/private/product-hypotheses/ideas/H-034-model-pricing-json.md` | A model_pricing.json may be required before cost-per-task estimates become reliable |

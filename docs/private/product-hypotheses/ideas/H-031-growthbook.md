@@ -4,7 +4,7 @@ Single-hypothesis file.
 
 ### H-031 — GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe
 
-- Status: `active`
+- Status: `idea`
 - Priority: `low`
 - Created: `2026-04-06`
 - Statement:
