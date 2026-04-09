@@ -8,6 +8,7 @@ dynamic = ["version"]
 description = "CLI for tracking AI agent task metrics: token cost, retry pressure, and outcome quality."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "Apache-2.0"
 dependencies = []
 
 [project.optional-dependencies]
@@ -19,7 +20,6 @@ codex-metrics = "ai_agents_metrics.cli:console_main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-license-files = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
