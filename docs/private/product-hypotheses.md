@@ -45,6 +45,7 @@ Active:
 | `H-026` | `active` | `docs/product-hypotheses/H-026.md` | Full-suite automated tests may lower development cost by shrinking the feedback loop and token spend |
 | `H-027` | `active` | `docs/product-hypotheses/H-027.md` | Task duration may be required before the revenue side of P&L can be estimated |
 | `H-028` | `active` | `docs/product-hypotheses/H-028.md` | Human oversight cost may be a larger hidden expense than AI API cost |
+| `H-035` | `active` | `docs/product-hypotheses/H-035.md` | History-derived retry pressure may be more reliable than manually-captured attempt counts |
 | `H-031` | `idea` | `docs/product-hypotheses/ideas/H-031-growthbook.md` | GrowthBook may help measure which features are actually useful or useless by making experiments and feature adoption easier to observe |
 Planned:
 

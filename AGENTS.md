@@ -28,7 +28,7 @@ The rules in `docs/ai-agents-metrics-policy.md` are mandatory and are part of th
 
 For product-management, framing, and metrics-interpretation work, also read:
 
-- `docs/public/product-framing.md`
+- `oss/docs/product-framing.md`
 - `docs/private/product-hypotheses.md`
 - the relevant `docs/private/product-hypotheses/H-xxx.md` file
 
