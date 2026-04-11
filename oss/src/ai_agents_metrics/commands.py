@@ -940,3 +940,25 @@ def handle_render_report(args: Namespace, cli_module: CommandRuntime) -> int:
     cli_module.save_report(report_path, data)
     print(f"Rendered markdown report: {report_path}")
     return 0
+
+
+def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
+    from datetime import datetime, timezone
+
+    from ai_agents_metrics.html_report import aggregate_report_data, render_html_report
+
+    metrics_path = Path(args.metrics_path)
+    output_path = Path(args.output)
+    days: int | None = args.days
+
+    data = load_metrics(metrics_path)
+    goals: list[dict] = data.get("goals", [])
+
+    chart_data = aggregate_report_data(goals, days)
+    generated_at = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    html = render_html_report(chart_data, generated_at)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(html, encoding="utf-8")
+    print(f"Rendered HTML report: {output_path}")
+    return 0
