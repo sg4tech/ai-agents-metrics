@@ -23,7 +23,7 @@ def _parse_date(ts: str | None) -> datetime | None:
 
 def _monday_of(dt: datetime) -> datetime:
     return (dt - timedelta(days=dt.weekday())).replace(
-        hour=0, minute=0, second=0, microsecond=0
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
     )
 
 
@@ -657,9 +657,13 @@ def render_html_report(data: dict[str, Any], generated_at: str) -> str:
     gran_noun = "day" if gran == "day" else "week"
     granularity_label = "Daily buckets" if gran == "day" else "Weekly buckets"
 
+    # Escape </script> sequences so the JSON cannot break out of the script block.
+    # This is the standard mitigation for inline JSON-in-HTML.
+    safe_json = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+
     return (
         _HTML_TEMPLATE
-        .replace("{DATA_JSON}", json.dumps(data, ensure_ascii=False))
+        .replace("{DATA_JSON}", safe_json)
         .replace("{GENERATED_AT}", generated_at)
         .replace("{GRANULARITY_LABEL}", granularity_label)
         .replace("{GRAN_NOUN}", gran_noun)

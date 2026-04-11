@@ -268,6 +268,16 @@ def test_render_html_embeds_chart_data():
     assert "2026-01-15" in html
 
 
+def test_render_html_escapes_script_closing_tag():
+    """Inline JSON must not contain </script> — would break the HTML parser."""
+    from ai_agents_metrics.html_report import _empty_data
+
+    data = _empty_data()
+    html = render_html_report(data, "2026-01-15 10:00 UTC")
+    # The raw sequence must not appear inside the <script> block
+    assert "</script>" not in html.split("<script")[1].split("</script>")[0]
+
+
 def test_render_html_no_external_urls():
     from ai_agents_metrics.html_report import _empty_data
 
