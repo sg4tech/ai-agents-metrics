@@ -1,42 +1,14 @@
 #!/bin/sh
 set -eu
 
-repo_root="$(git rev-parse --show-toplevel)"
-cd "$repo_root"
-
-echo "pre-commit: running security scan on staged changes"
-./.venv/bin/python -m ai_agents_metrics security --repo-root "$repo_root" --rules-path "$repo_root/config/security-rules.toml"
-
-active_task="$(./.venv/bin/python - "$repo_root/metrics/events.ndjson" 2>/dev/null <<'PYEOF'
-import sys, json, pathlib
-p = pathlib.Path(sys.argv[1])
-if not p.exists():
-    sys.exit(0)
-goals = {}
-for line in p.read_text().splitlines():
-    g = json.loads(line).get("goal", {})
-    if g.get("goal_id"):
-        goals[g["goal_id"]] = g.get("status")
-print("yes" if any(s == "in_progress" for s in goals.values()) else "no")
-PYEOF
-)"
-if [ "${active_task:-no}" = "no" ]; then
-    echo "pre-commit warning: no active ai-agents-metrics goal — run: ./tools/ai-agents-metrics start-task --title '...' --task-type <product|meta|retro>"
+if ! command -v make >/dev/null 2>&1; then
+  echo "pre-commit: make is required" >&2
+  exit 1
 fi
 
-staged_python_files="$(git diff --cached --name-only --diff-filter=ACMR -- '*.py')"
-
-if [ -z "$staged_python_files" ]; then
-    exit 0
+repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+PYTHON="$repo_root/.venv/bin/python"
+if [ ! -x "$PYTHON" ]; then
+  PYTHON=python3
 fi
-
-if [ -x "$repo_root/.venv/bin/ruff" ]; then
-    ruff_cmd="$repo_root/.venv/bin/ruff"
-else
-    ruff_cmd="python3 -m ruff"
-fi
-
-echo "pre-commit: running Ruff on staged Python files"
-
-# shellcheck disable=SC2086
-printf '%s\n' "$staged_python_files" | xargs $ruff_cmd check --
+make PYTHON="$PYTHON" verify-public-boundary

@@ -17,13 +17,6 @@ venv/
 # OS-generated files
 .DS_Store
 
-# Runtime logs and traces
-logs/
-*.log
-*.trace
-*.stderr
-*.stdout
-
 # Runtime lock files
 *.lock
 
@@ -31,14 +24,11 @@ logs/
 build/
 dist/
 *.egg-info/
+src/ai_agents_metrics/_version.py
 
 # Local observability state
 .codex-metrics/
 metrics/.codex-metrics/
 
-# Local Claude workspace state
-.claude/*
-!.claude/settings.local.json
-
-# Legacy mutable metrics file (replaced by metrics/events.ndjson event log)
-metrics/codex_metrics.json
+# Generated HTML reports (human-facing, not tracked)
+reports/

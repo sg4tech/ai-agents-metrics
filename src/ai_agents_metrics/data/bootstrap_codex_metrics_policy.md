@@ -1,4 +1,4 @@
-# AI Agents Metrics Policy
+# Codex Metrics Policy
 
 This document defines the mandatory minimum policy for tracking AI-agent-assisted engineering work.
 
@@ -40,8 +40,6 @@ Apply this policy when an AI agent materially contributes to an engineering outc
 - `product` for delivery work
 - `retro` for retrospective analysis and writeups
 - `meta` for bookkeeping, policy, audits, tooling governance, and support work
-
-To choose between `product` and `meta`: ask whether the change expands what a user of the tool can do. If yes, use `product`. If the work is internal overhead — tracking, auditing, policy updates, or fixing bookkeeping — use `meta`. Examples: new CLI command or ingest adapter → `product`; updating this policy doc or fixing a metrics tracking bug → `meta`.
 
 Always set `goal_type` explicitly for new goals.
 
@@ -119,8 +117,7 @@ Do not use an unmarked free-form commit subject for engineering work. The valida
 2. Create a new goal if needed.
 3. Set status to `in_progress`.
 4. Initialize attempts to `0`.
-5. Do this before substantial implementation, documentation, or validation work begins. Do not postpone task start bookkeeping until after meaningful progress already exists. The first action before writing any code must be opening a goal with `start-task`.
-6. Any change to `src/` or `tests/` is a hard gate: an open goal must exist before those files are modified. This applies regardless of how the task originated — explicit instruction, conversational question, or observation. The trigger does not matter; the file change does.
+5. Do this before substantial implementation, documentation, or validation work begins. Do not postpone task start bookkeeping until after meaningful progress already exists.
 
 ### On Each Attempt
 
@@ -186,34 +183,6 @@ At minimum:
 - Goal-level success must not hide retry pressure.
 - Product, retro, and meta work must remain distinguishable.
 - Inferred failed attempts may preserve history shape, but they must not pollute diagnostic failure-reason reporting.
-
-### `show` command and history signals
-
-`ai-agents-metrics show` prints the current ledger summary.  Pass `--json` to get a machine-readable JSON object.
-
-When a history warehouse is available (auto-detected by default; override with `--warehouse-path`), `show --json` includes a top-level `history_signals` key:
-
-```json
-{
-  "history_signals": {
-    "project_threads": 72,
-    "retry_threads": 21,
-    "retry_rate": 0.29,
-    "ledger_goal_alignments": 8,
-    "ledger_goals_total": 14
-  }
-}
-```
-
-When no warehouse is available or the warehouse has not been derived yet, `history_signals` is `null`.  Consumers must handle both cases.
-
-- `project_threads` — total history threads attributed to this project (worktrees merged into parent).
-- `retry_threads` — threads that had more than one session (direct proxy for retry pressure).
-- `retry_rate` — `retry_threads / project_threads`; the primary history-derived efficiency signal.
-- `ledger_goal_alignments` — how many closed ledger goals with timestamps have at least one matching history thread in their time window.
-- `ledger_goals_total` — denominator for the alignment ratio.
-
-Use `retry_rate` from `history_signals` as the authoritative retry-pressure signal.  The ledger's own `attempts_per_closed_task` field is a weaker proxy because retries at the conversation level are often not captured in structured attempt records.
 
 ## Anti-Gaming Rules
 
