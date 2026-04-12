@@ -106,8 +106,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             attempt_count INTEGER NOT NULL,
             retry_count INTEGER NOT NULL,
             has_retry_pressure INTEGER NOT NULL,
-            first_attempt_session_path TEXT,
-            last_attempt_session_path TEXT,
+            first_session_path TEXT,
+            last_session_path TEXT,
             raw_json TEXT NOT NULL
         )
         """
