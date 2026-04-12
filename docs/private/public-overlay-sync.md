@@ -99,6 +99,17 @@ The workflow triggers on any tag matching `v*` pushed to the public remote.
    ```
 3. The publish workflow builds and uploads to PyPI automatically via Trusted Publishing — no token required locally
 
+**Tag must point to a public commit.** The tag object must reference a commit
+that exists in the public repo's history. Private-repo commits (merge commits
+from `public-overlay-pull`, private-only changes) are not present on the public
+remote, so `publish.yml` cannot check them out and the build produces a broken
+`0.0.0.dev` version. Always create the tag from a public commit hash:
+```bash
+git fetch public --tags
+git tag v0.x.y public/main      # ← points at the public HEAD
+git push public v0.x.y
+```
+
 **Tag convention:** tags live only on the `public` remote (`sg4tech/ai-agents-metrics`).
 Never create version tags on the private `origin` remote (`sg4tech/codex-metrics`).
 If a tag accidentally lands on `origin`, delete it:
