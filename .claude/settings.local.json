@@ -160,7 +160,9 @@
       "Bash(cd * && git status && *)",
       "Bash(cd * && git status && git diff *)",
       "Bash(cd * && PYTHONPATH=src .venv/bin/lint-imports *)",
-      "Bash(git show * > /tmp/* && diff *)"
+      "Bash(git show * > /tmp/* && diff *)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ],
     "deny": [
       "Bash(chattr*)",
