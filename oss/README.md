@@ -76,13 +76,9 @@ It is not a benchmark, an eval framework, or a model comparison tool. It is a lo
 ```bash
 pip install ai-agents-metrics
 
-# Ingest your agent history (Codex or Claude Code)
-ai-agents-metrics history-ingest                   # reads ~/.codex
-ai-agents-metrics history-ingest --source claude   # reads ~/.claude
-
-# Build the analysis layers
-ai-agents-metrics history-normalize
-ai-agents-metrics history-derive
+# Run the full history pipeline in one step
+ai-agents-metrics history-update                   # reads ~/.codex (Codex)
+ai-agents-metrics history-update --source claude   # reads ~/.claude (Claude Code)
 
 # See retry pressure, token cost, and session timeline
 ai-agents-metrics show
@@ -146,8 +142,14 @@ make package-standalone
 Extract metrics from existing agent session files. Run the three pipeline stages in order:
 
 ```bash
-ai-agents-metrics history-ingest                   # reads ~/.codex by default
-ai-agents-metrics history-ingest --source claude   # reads ~/.claude/projects/
+ai-agents-metrics history-update                   # reads ~/.codex by default (runs all three stages)
+ai-agents-metrics history-update --source claude   # reads ~/.claude/projects/
+```
+
+Or run the three stages individually:
+
+```bash
+ai-agents-metrics history-ingest
 ai-agents-metrics history-normalize
 ai-agents-metrics history-derive
 ```
