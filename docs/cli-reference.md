@@ -17,13 +17,9 @@ Command names and flags use `task` (`start-task`, `--task-id`, `--task-type`, et
 ### Primary flow — history extraction (no prior setup required)
 
 ```bash
-# Ingest your agent session history into a local warehouse
-ai-agents-metrics history-ingest                   # Codex (~/.codex)
-ai-agents-metrics history-ingest --source claude   # Claude Code (~/.claude)
-
-# Build normalized and derived analysis layers
-ai-agents-metrics history-normalize
-ai-agents-metrics history-derive
+# Run the full history pipeline in one step
+ai-agents-metrics history-update                   # Codex (~/.codex)
+ai-agents-metrics history-update --source claude   # Claude Code (~/.claude)
 
 # Inspect: retry pressure, token cost, session timeline
 ai-agents-metrics show
@@ -312,6 +308,23 @@ Sequential pipeline for ingesting and analyzing raw agent session history. Run i
 Supports two agent sources via `--source`:
 - `codex` (default): reads from `~/.codex`
 - `claude`: reads from `~/.claude/projects/` (Claude Code full transcript + tokens)
+
+### `history-update`
+
+Run the full history pipeline in one step: ingest → normalize → derive. Use this for the initial setup or to refresh the warehouse after new agent sessions.
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--source` | `codex` | Agent source: `codex` or `claude` |
+| `--source-root` | `~/.codex` / `~/.claude` | Override agent history root |
+| `--warehouse-path` | `.ai-agents-metrics/warehouse.db` | SQLite warehouse path |
+| `--json` | — | Print a JSON object with `ingest`, `normalize`, and `derive` summaries |
+
+```bash
+ai-agents-metrics history-update
+ai-agents-metrics history-update --source claude
+ai-agents-metrics history-update --json
+```
 
 ### `history-ingest`
 
