@@ -165,6 +165,12 @@ Local validation reminders:
 - validate dependent updater flows sequentially, not in parallel
 - after any `pyproject.toml` change, `make verify` alone is not sufficient — `make build-check` (included in `verify`) validates that `pip install -e .` succeeds with the current setuptools; this catches PEP 639 violations and similar packaging metadata errors that tests cannot catch
 
+## Git and GitHub safety rules
+
+- **Never** use `--admin`, `--force`, `--no-verify`, or any other flag that bypasses branch protection, required reviews, or CI gates on a shared repository — not for routine work, not to unblock a release, not for any reason — without the user explicitly naming that flag in their instruction.
+- When a merge is blocked by branch policy (`base branch policy prohibits the merge`), **stop and report the block**. Do not retry with elevated flags. Ask the user what they want to do.
+- Review approval is a gate set by the user. It is not an obstacle to route around. "Do the release" does not authorize bypassing review requirements.
+
 ## Retros Rules
 
 - If the user asks to "сделай ретру" or otherwise requests a retrospective, also log it to a file in `docs/private/retros/`.

@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "deny": [
+      "Bash(gh pr merge*)",
+      "Bash(gh api *)"
+    ],
     "allow": [
       "Bash(git config --local *)",
       "Bash(git config *)",
@@ -72,7 +76,6 @@
       "Bash(PYTHONPATH=src python -m codex_metrics *)",
       "Bash(/opt/homebrew/bin/python3 -m venv .venv)",
       "Bash(gh repo *)",
-      "Bash(gh api *)",
       "Skill(code-review:code-review)",
       "Skill(code-review:code-review:*)",
       "Skill(pr-review-toolkit:review-pr)",
