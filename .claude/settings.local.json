@@ -146,7 +146,14 @@
       "Read(//usr/local/bin/**)",
       "Bash(.venv/bin/pylint *)",
       "Bash(./.venv/bin/pylint *)",
-      "Bash(PYTHONPATH=src .venv/bin/lint-imports)"
+      "Bash(PYTHONPATH=src .venv/bin/lint-imports)",
+      "Bash(cd * && git branch *)",
+      "Bash(cd * && git diff *)",
+      "Bash(cd * && git log *)",
+      "Bash(cd * && git show *)",
+      "Bash(cd * && git status *)",
+      "Bash(cd * && PYTHONPATH=src .venv/bin/lint-imports *)",
+      "Bash(git show * > /tmp/* && diff *)"
     ],
     "deny": [
       "Bash(chattr*)",
