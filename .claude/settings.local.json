@@ -128,7 +128,8 @@
       "Read(//private/tmp/**)",
       "Bash(ln -s ../../../docs/ai-agents-metrics-policy.md src/ai_agents_metrics/data/bootstrap_codex_metrics_policy.md)",
       "Bash(PYTHONPATH=oss/src python -m ai_agents_metrics show)",
-      "Bash(tar -tzf dist/ai_agents_metrics-*.tar.gz)"
+      "Bash(tar -tzf dist/ai_agents_metrics-*.tar.gz)",
+      "Bash(mkdir -p /tmp/qa-no-warehouse)"
     ]
   }
 }
