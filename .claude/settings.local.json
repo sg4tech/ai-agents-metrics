@@ -17,10 +17,8 @@
       "Bash(git status *)",
       "Bash(git tag:*)",
       "Bash(git worktree *)",
-
       "Bash(make *)",
       "Bash(PYTHONPATH=src make *)",
-
       "Bash(.venv/bin/ai-agents-metrics *)",
       "Bash(.venv/bin/bandit *)",
       "Bash(.venv/bin/mypy *)",
@@ -56,7 +54,6 @@
       "Bash(oss/.venv/bin/python -m ai_agents_metrics.cli *)",
       "Bash(oss/.venv/bin/python -m pytest *)",
       "Bash(/opt/homebrew/bin/python3 -m venv .venv)",
-
       "Bash(ai-agents-metrics *)",
       "Bash(ai-agents-metrics continue-task:*)",
       "Bash(ai-agents-metrics start-task:*)",
@@ -65,19 +62,17 @@
       "Bash(sqlite3 *)",
       "Bash(tar -tzf dist/ai_agents_metrics-*.tar.gz)",
       "Bash(unzip -p /tmp/*/*.whl '*/METADATA')",
-
       "Bash(gh repo *)",
       "Bash(gh run:*)",
       "Bash(gh pr create*)",
       "Bash(/usr/local/bin/gh *)",
       "Bash(/opt/homebrew/bin/gh *)",
-
       "Bash(pip index:*)",
       "Bash(pip install:*)",
       "Bash(pip3 install:*)",
       "Bash(python3 -c *)",
-
       "Bash(cat *)",
+      "Bash(cat * && echo * && head *)",
       "Bash(cp *)",
       "Bash(echo \"DONE EXIT=$?\")",
       "Bash(echo \"EXIT: $?\")",
@@ -98,7 +93,6 @@
       "Bash(curl -s \"https://docs.anthropic.com/en/docs/about-claude/models/overview\")",
       "Bash(curl -s \"https://www.anthropic.com/pricing\")",
       "Bash(ai-agents-metrics *)",
-
       "WebSearch",
       "WebFetch(domain:ainativedev.io)",
       "WebFetch(domain:bennycheung.github.io)",
@@ -124,24 +118,22 @@
       "WebFetch(domain:redreamality.com)",
       "WebFetch(domain:steviee.medium.com)",
       "WebFetch(domain:www.anthropic.com)",
-
       "mcp__mcp-registry__search_mcp_registry",
       "mcp__Claude_Preview__preview_start",
-
       "Skill(code-review:code-review)",
       "Skill(code-review:code-review:*)",
       "Skill(commit-commands:commit)",
       "Skill(commit-commands:commit:*)",
       "Skill(pr-review-toolkit:review-pr)",
       "Skill(pr-review-toolkit:review-pr:*)",
-
       "Read(//**)",
       "Read(//opt/homebrew/bin/**)",
       "Read(//private/tmp/**)",
       "Read(//private/tmp/qa-test-repo/**)",
       "Read(//tmp/**)",
       "Read(//usr/local/bin/**)",
-      "Read(//Users/viktor/.config/gh/**)"
+      "Read(//Users/viktor/.config/gh/**)",
+      "Bash(xargs -0 -I {} grep -o '\"command\":\"[^\"]*\\\\\\(&&\\\\|||;\\\\|$\\(\\)\\\\\\)[^\"]*\"' {})"
     ],
     "deny": [
       "Bash(chattr*)",
