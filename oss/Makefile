@@ -54,7 +54,7 @@ security:
 	./.venv/bin/python -m ai_agents_metrics security --repo-root . --rules-path config/security-rules.toml
 
 bandit: remind-task
-	./.venv/bin/bandit -r src scripts -q --skip B404,B607,B603,B105
+	./.venv/bin/bandit -r src scripts -q --skip B404,B607,B603
 
 verify-public-boundary:
 	./.venv/bin/python -m ai_agents_metrics verify-public-boundary --repo-root . --rules-path config/public-boundary-rules.toml
