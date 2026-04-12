@@ -116,6 +116,7 @@ When editing the CLI or metrics mutation flow:
 - do not manually patch generated outputs when the script can regenerate them
 - validate inputs strictly
 - fail loudly on invalid state instead of silently continuing
+- for SQL queries, use proper parameterized placeholders (`?`) for all dynamic values; never build SQL via f-strings or string concatenation with variables — use patterns like `WHERE (? IS NULL OR col = ?)` for optional filters instead of dynamically assembling WHERE clauses
 
 For repository-initializer or bootstrap-style commands:
 
