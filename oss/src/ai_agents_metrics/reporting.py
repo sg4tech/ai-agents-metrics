@@ -671,7 +671,8 @@ def print_summary(data: dict[str, Any], history_signals: HistorySignals | None =
         retry_pct = f"{history_signals.retry_rate:.0%}"
         print(f"  Project threads: {history_signals.project_threads}  (worktrees merged)")
         print(f"  Threads with retry pressure: {history_signals.retry_threads} / {history_signals.project_threads} ({retry_pct})")
-        print(f"  Per-goal alignment: {history_signals.ledger_goal_alignments} / {history_signals.ledger_goals_total} ledger goals matched to history window")
+        if not history_signals.is_all_projects:
+            print(f"  Per-goal alignment: {history_signals.ledger_goal_alignments} / {history_signals.ledger_goals_total} ledger goals matched to history window")
 
 
 def render_summary_json(data: dict[str, Any], history_signals: HistorySignals | None = None) -> str:
