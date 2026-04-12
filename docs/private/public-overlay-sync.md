@@ -84,9 +84,55 @@ Also runs automatically as part of `make public-overlay-push` and `make public-o
 | `metrics/`, local history artifacts | outside `oss/` | Never |
 | `AGENTS.md`, `docs/ai-agents-metrics-policy.md` | outside `oss/` | Manual review required |
 
+## Releasing (PyPI)
+
+Publishing to PyPI is fully automated via GitHub Actions (`publish.yml` on the public repo).
+The workflow triggers on any tag matching `v*` pushed to the public remote.
+
+**To release a new version:**
+
+1. Merge all changes to `main` on the public repo (via the sync → main PR flow above)
+2. Create and push the tag **to the public remote only**:
+   ```bash
+   git fetch public --tags
+   git push public v0.x.y
+   ```
+3. The publish workflow builds and uploads to PyPI automatically via Trusted Publishing — no token required locally
+
+**Tag convention:** tags live only on the `public` remote (`sg4tech/ai-agents-metrics`).
+Never create version tags on the private `origin` remote (`sg4tech/codex-metrics`).
+If a tag accidentally lands on `origin`, delete it:
+```bash
+git push origin :refs/tags/vX.Y.Z
+```
+
+**Version detection:** `setuptools-scm` reads tags from the local git history.
+If `make package` is run locally (not via CI), the tag must be fetched first:
+```bash
+git fetch public --tags
+make package
+```
+If the tag is not reachable from the current HEAD (subtree commit mismatch),
+pass the version explicitly: `SETUPTOOLS_SCM_PRETEND_VERSION=0.x.y make package`.
+In practice, prefer CI for all releases — local builds are for debugging only.
+
+## Known Limitations
+
+**`make public-overlay-pull` fails with a dirty working tree.**
+`git subtree pull` refuses to run if there are uncommitted changes.
+This is a known limitation of the subtree script.
+
+Workaround until fixed:
+```bash
+git stash && make public-overlay-pull && git stash pop
+```
+
+To avoid this: commit or stash all local changes before pulling.
+
 ## Do Not
 
 - Edit public repo files directly and then push without pulling back into `oss/`
   (causes divergence that requires manual conflict resolution on next pull)
 - Run `git subtree push` without running boundary verification first
 - Move `docs/retros/` or `metrics/` inside `oss/`
+- Create version tags on the private `origin` remote — tags belong on `public` only
