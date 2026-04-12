@@ -42,10 +42,10 @@ arch-check: check-init
 sync-bootstrap-policy:
 	cp docs/ai-agents-metrics-policy.md src/ai_agents_metrics/data/bootstrap_codex_metrics_policy.md
 
-build-check: sync-bootstrap-policy
+build-check:
 	./.venv/bin/pip install --no-deps -e . -q
 
-verify: check-init remind-task lint security bandit typecheck test build-check complexity arch-check
+verify: check-init remind-task sync-bootstrap-policy lint security bandit typecheck test build-check complexity arch-check
 
 security:
 	./.venv/bin/python -m ai_agents_metrics security --repo-root . --rules-path config/security-rules.toml
