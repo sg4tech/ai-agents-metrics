@@ -63,59 +63,44 @@ def _session_usage_table_name(conn: sqlite3.Connection) -> str:
 
 
 def _warehouse_scope_row(conn: sqlite3.Connection, *, cwd: str | None = None) -> HistoryCompareScopeRow:
-    where_clause = ""
-    params: tuple[Any, ...] = ()
-    if cwd is not None:
-        # Match both the exact project cwd and any Claude Code worktree paths rooted there.
-        # Worktrees live under <project>/.claude/worktrees/<name>, so a LIKE suffix catches them.
-        where_clause = "WHERE (cwd = ? OR cwd LIKE ?)"
-        params = (cwd, cwd + "/.claude/worktrees/%")
-    session_usage_table = _session_usage_table_name(conn)
+    _session_usage_table_name(conn)  # validate table exists
 
-    # nosec B608 — where_clause and session_usage_table are hardcoded SQL fragments, not user input;
-    # all dynamic values are bound via parameterized `params` tuples.
-    thread_count = int(conn.execute(f"SELECT count(*) FROM derived_goals {where_clause}", params).fetchone()[0])  # nosec B608
-    attempt_count = int(
-        conn.execute(f"SELECT coalesce(sum(attempt_count), 0) FROM derived_goals {where_clause}", params).fetchone()[0]  # nosec B608
-    )
-    retry_threads = int(
-        conn.execute(
-            f"SELECT count(*) FROM derived_goals {where_clause + (' AND ' if where_clause else ' WHERE ')} retry_count > 0",  # nosec B608
-            params,
-        ).fetchone()[0]
-    )
-    transcript_threads = int(
-        conn.execute(
-            f"SELECT count(*) FROM derived_goals {where_clause + (' AND ' if where_clause else ' WHERE ')} message_count > 0",  # nosec B608
-            params,
-        ).fetchone()[0]
-    )
-    usage_threads = int(
-        conn.execute(
-            f"SELECT count(DISTINCT thread_id) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause}) AND total_tokens IS NOT NULL",  # nosec B608
-            params,
-        ).fetchone()[0]
-    )
-    input_tokens = _sum_nullable_int(
-        conn,
-        f"SELECT sum(input_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",  # nosec B608
-        params,
-    )
-    cached_input_tokens = _sum_nullable_int(
-        conn,
-        f"SELECT sum(cached_input_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",  # nosec B608
-        params,
-    )
-    output_tokens = _sum_nullable_int(
-        conn,
-        f"SELECT sum(output_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",  # nosec B608
-        params,
-    )
-    total_tokens = _sum_nullable_int(
-        conn,
-        f"SELECT sum(total_tokens) FROM {session_usage_table} WHERE thread_id IN (SELECT thread_id FROM derived_goals {where_clause})",  # nosec B608
-        params,
-    )
+    # Use a universal WHERE that passes through all rows when cwd is None,
+    # and filters by exact cwd + worktree paths when cwd is provided.
+    if cwd is not None:
+        params: tuple[Any, ...] = (cwd, cwd, cwd + "/.claude/worktrees/%")
+    else:
+        params = (None, None, None)
+
+    thread_count = int(conn.execute(
+        "SELECT count(*) FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?)", params,
+    ).fetchone()[0])
+    attempt_count = int(conn.execute(
+        "SELECT coalesce(sum(attempt_count), 0) FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?)", params,
+    ).fetchone()[0])
+    retry_threads = int(conn.execute(
+        "SELECT count(*) FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?) AND retry_count > 0", params,
+    ).fetchone()[0])
+    transcript_threads = int(conn.execute(
+        "SELECT count(*) FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?) AND message_count > 0", params,
+    ).fetchone()[0])
+    usage_threads = int(conn.execute(
+        "SELECT count(DISTINCT thread_id) FROM derived_session_usage"
+        " WHERE thread_id IN (SELECT thread_id FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?))"
+        " AND total_tokens IS NOT NULL", params,
+    ).fetchone()[0])
+    input_tokens = _sum_nullable_int(conn,
+        "SELECT sum(input_tokens) FROM derived_session_usage"
+        " WHERE thread_id IN (SELECT thread_id FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?))", params)
+    cached_input_tokens = _sum_nullable_int(conn,
+        "SELECT sum(cached_input_tokens) FROM derived_session_usage"
+        " WHERE thread_id IN (SELECT thread_id FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?))", params)
+    output_tokens = _sum_nullable_int(conn,
+        "SELECT sum(output_tokens) FROM derived_session_usage"
+        " WHERE thread_id IN (SELECT thread_id FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?))", params)
+    total_tokens = _sum_nullable_int(conn,
+        "SELECT sum(total_tokens) FROM derived_session_usage"
+        " WHERE thread_id IN (SELECT thread_id FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?))", params)
     if _table_exists(conn, "derived_projects"):
         projects_columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_projects)").fetchall()}
         has_parent_col = "parent_project_cwd" in projects_columns
@@ -138,12 +123,9 @@ def _warehouse_scope_row(conn: sqlite3.Connection, *, cwd: str | None = None) ->
             project_count = int(conn.execute("SELECT count(*) FROM derived_projects").fetchone()[0])
     else:
         if cwd is not None:
-            project_count = int(
-                conn.execute(
-                    f"SELECT count(DISTINCT cwd) FROM derived_goals {where_clause}",  # nosec B608
-                    params,
-                ).fetchone()[0]
-            )
+            project_count = int(conn.execute(
+                "SELECT count(DISTINCT cwd) FROM derived_goals WHERE (? IS NULL OR cwd = ? OR cwd LIKE ?)", params,
+            ).fetchone()[0])
         else:
             project_count = int(
                 conn.execute(
@@ -193,7 +175,10 @@ def _load_project_rows(conn: sqlite3.Connection) -> list[HistoryCompareProjectRo
 
 def load_history_compare_warehouse_data(*, warehouse_path: Path, cwd: Path) -> HistoryCompareWarehouseData:
     if not warehouse_path.exists():
-        raise ValueError(f"Warehouse does not exist: {warehouse_path}")
+        raise ValueError(
+            f"Warehouse does not exist: {warehouse_path}. "
+            "Run 'ai-agents-metrics history-update' first."
+        )
 
     with sqlite3.connect(warehouse_path) as conn:
         conn.row_factory = sqlite3.Row

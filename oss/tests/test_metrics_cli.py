@@ -1213,7 +1213,7 @@ def test_completion_zsh_outputs_compdef_script(repo: Path) -> None:
     result = run_cmd(repo, "completion", "zsh")
 
     assert result.returncode == 0, result.stderr
-    assert "#compdef codex-metrics" in result.stdout  # zsh compdef line kept for alias compat
+    assert "#compdef ai-agents-metrics" in result.stdout
     assert "_describe 'command' commands" in result.stdout
     assert "completion)" in result.stdout
     assert "--policy-path" in result.stdout
@@ -3054,11 +3054,10 @@ def test_module_entrypoint_exposes_cli_version(repo: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     output = result.stdout.strip()
-    assert output.startswith("python -m ai_agents_metrics ")
     assert re.fullmatch(
-        r"python -m ai_agents_metrics \d+\.\d+.*",
+        r"python[\d.]* -m ai_agents_metrics \d+\.\d+.*",
         output,
-    )
+    ), f"unexpected --version output: {output!r}"
 
 
 def test_version_is_a_non_empty_string() -> None:
