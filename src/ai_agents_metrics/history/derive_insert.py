@@ -257,7 +257,7 @@ def _insert_goal_and_retry_chain(
     thread_usage_events: list[NormalizedUsageEventRow],
     timeline_items: list[dict[str, Any]],
 ) -> None:
-    attempt_count = len(sorted_sessions)
+    attempt_count = max(len(sorted_sessions), 1)
     retry_count = max(attempt_count - 1, 0)
     conn.execute(
         """
@@ -292,7 +292,7 @@ def _insert_goal_and_retry_chain(
         """
         INSERT INTO derived_retry_chains (
             thread_id, source_path, attempt_count, retry_count, has_retry_pressure,
-            first_attempt_session_path, last_attempt_session_path, raw_json
+            first_session_path, last_session_path, raw_json
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
