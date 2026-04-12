@@ -8,3 +8,4 @@ This directory stores point-in-time project and product audits that are meant to
 - [2026-03-29 External Product Audit](./2026-03-29-external-product-audit.md)
 - [2026-04-02 Local Codex History Project Review](./2026-04-02-local-codex-history-project-review.md)
 - [2026-04-03 Local Codex History Audit Follow-up](./2026-04-03-history-audit-follow-up.md)
+- [2026-04-12 QA First-Time User Audit (PyPI 0.1.2)](./2026-04-12-qa-first-time-user-audit.md)
