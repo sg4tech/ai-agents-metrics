@@ -35,6 +35,8 @@ dist/
 # Local observability state
 .codex-metrics/
 metrics/.codex-metrics/
+.ai-agents-metrics/
+metrics/.ai-agents-metrics/
 
 # Local Claude workspace state
 .claude/*
