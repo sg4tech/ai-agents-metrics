@@ -46,3 +46,4 @@ metrics/.ai-agents-metrics/
 
 # Legacy mutable metrics file (replaced by metrics/events.ndjson event log)
 metrics/codex_metrics.json
+/input/
