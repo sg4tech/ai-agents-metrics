@@ -166,7 +166,8 @@
       "Bash(cd * && PYTHONPATH=* .venv/bin/*)",
       "Bash(git show * > /tmp/* && diff *)",
       "Skill(update-config)",
-      "Skill(update-config:*)"
+      "Skill(update-config:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [
       "Bash(chattr*)",
