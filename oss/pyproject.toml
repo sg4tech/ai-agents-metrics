@@ -151,10 +151,6 @@ layers = [
 ]
 
 [tool.pylint.main]
-# cli.py, commands.py, history/ingest.py are known oversized files tracked as
-# architectural debt (ARCH). They are excluded here so the check guards new code
-# without blocking the build until those files are split.
-ignore = ["cli.py", "commands.py", "ingest.py"]
 
 [tool.pylint."messages control"]
 disable = "all"
