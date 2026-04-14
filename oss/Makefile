@@ -40,17 +40,16 @@ complexity: check-init
 	@echo "=== Maintainability index (rank C — hard to maintain) ==="
 	@.venv/bin/radon mi src/ -n C -s || true
 
-# Hard gate: fail if any function exceeds CC 40.
+# Hard gate: fail if any function reaches rank F (CC > 40).
 # Advisory warnings for rank C+ are emitted by the 'complexity' target above.
 complexity-check: check-init
-	@echo "=== CC hard gate: no function may exceed CC 40 ==="
-	@.venv/bin/radon cc src/ --json | .venv/bin/python3 -c "\
-import sys, json; \
-data = json.load(sys.stdin); \
-bad = [(path, item['name'], item['complexity']) for path, items in data.items() for item in items if item['complexity'] > 40]; \
-[print(f'{p}: {n} (CC={c})') for p, n, c in bad]; \
-sys.exit(1) if bad else None" \
-	|| { echo "ERROR: CC > 40 found. Decompose before merging."; exit 1; }
+	@echo "=== CC hard gate: no function may reach rank F (CC > 40) ==="
+	@result=$$(.venv/bin/radon cc src/ -n F -s); \
+	if [ -n "$$result" ]; then \
+		echo "$$result"; \
+		echo "ERROR: rank F (CC > 40) found. Decompose before merging."; \
+		exit 1; \
+	fi
 	@echo "CC hard gate OK."
 
 ifndef PRIVATE_OVERRIDE
