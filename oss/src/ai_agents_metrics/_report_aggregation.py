@@ -63,9 +63,9 @@ def _aggregate_warehouse_tokens(
     Uses *pricing* to compute cost values when pricing is available.
     """
     bucket_set = set(buckets)
-    c3_inp: dict[str, float] = {b: 0.0 for b in buckets}
-    c3_cac: dict[str, float] = {b: 0.0 for b in buckets}
-    c3_out: dict[str, float] = {b: 0.0 for b in buckets}
+    c3_inp: dict[str, float] = dict.fromkeys(buckets, 0.0)
+    c3_cac: dict[str, float] = dict.fromkeys(buckets, 0.0)
+    c3_out: dict[str, float] = dict.fromkeys(buckets, 0.0)
 
     for ts, model, inp, cac, out in rows:
         dt = _parse_date(ts)

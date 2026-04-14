@@ -1,4 +1,4 @@
-.PHONY: init check-init remind-task lint typecheck test verify build-check security bandit complexity arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull sync-bootstrap-policy
+.PHONY: init check-init remind-task lint typecheck test verify build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull sync-bootstrap-policy
 
 PYTHON3 ?= python3
 
@@ -40,6 +40,25 @@ complexity: check-init
 	@echo "=== Maintainability index (rank C — hard to maintain) ==="
 	@.venv/bin/radon mi src/ -n C -s || true
 
+# Clean-zone modules (fully decomposed): hard-fail if any function regresses to rank C (CC > 10).
+# To expand the clean zone, add the module path and ensure all its functions are rank B or below.
+CC_CLEAN_ZONE = \
+	src/ai_agents_metrics/_report_aggregation.py \
+	src/ai_agents_metrics/history/derive.py \
+	src/ai_agents_metrics/history/derive_build.py \
+	src/ai_agents_metrics/history/derive_insert.py \
+	src/ai_agents_metrics/history/derive_schema.py
+
+complexity-check: check-init
+	@echo "=== CC hard gate: clean-zone modules must stay at rank B or below ==="
+	@result=$$(.venv/bin/radon cc $(CC_CLEAN_ZONE) -n C -s); \
+	if [ -n "$$result" ]; then \
+		echo "$$result"; \
+		echo "ERROR: rank C (CC > 10) found in clean-zone module. Decompose before merging."; \
+		exit 1; \
+	fi
+	@echo "Clean zone OK."
+
 ifndef PRIVATE_OVERRIDE
 arch-check: check-init
 	PYTHONPATH=src .venv/bin/lint-imports
@@ -56,7 +75,7 @@ pylint-check: check-init
 	@echo "=== Pylint tier 2: complexity warnings (advisory) ==="
 	@.venv/bin/pylint src/ --disable=all --enable=R0912,R0913,R0914,R0915,R0902,W0401,C0411 --ignore=$(PYLINT_IGNORE) || true
 
-verify: check-init remind-task sync-bootstrap-policy lint security bandit typecheck test build-check complexity arch-check pylint-check
+verify: check-init remind-task sync-bootstrap-policy lint security bandit typecheck test build-check complexity complexity-check arch-check pylint-check
 
 security:
 	./.venv/bin/python -m ai_agents_metrics security --repo-root . --rules-path config/security-rules.toml
