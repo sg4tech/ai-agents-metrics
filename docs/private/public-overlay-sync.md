@@ -6,13 +6,13 @@ Operational guide for syncing between the private repository and the public `oss
 
 ```
 codex-metrics/          ← private repo (this repo)
-  oss/                  ← git subtree mirror of codex-metrics-public
+  oss/                  ← git subtree mirror of ai-agents-metrics
   docs/retros/          ← private, never synced
   docs/audits/          ← private, never synced
   metrics/              ← private, never synced
 ```
 
-The public repository lives on GitHub (`sg4tech/codex-metrics-public`).
+The public repository lives on GitHub (`sg4tech/ai-agents-metrics`).
 The `public` git remote in this repo points directly to it — no local mirror.
 
 `oss/` is the only sync surface. Everything outside it stays private.
@@ -33,8 +33,8 @@ Push private changes from `oss/` into the public repository.
 make public-overlay-push
 ```
 
-This runs boundary verification first, then pushes to the `sync` branch on the public remote.
-Fails loudly if the boundary check detects private content.
+This runs boundary verification first, pulls from `public/main` to incorporate any upstream changes, then pushes to the `sync` branch on the public remote.
+Fails loudly if the boundary check detects private content or if the pull introduces conflicts (resolve manually, then re-run).
 
 After the push, open a PR from `sync` → `main` on GitHub manually, wait for CI, and merge.
 
