@@ -1,6 +1,6 @@
 # ARCH-014: Extract usage resolution functions out of cli.py
 
-**Status:** open  
+**Status:** done  
 **Priority:** medium  
 **Complexity:** medium
 

@@ -1,8 +1,9 @@
 ---
 id: H-034
 title: A model_pricing.json may be required before cost-per-task estimates become reliable
-status: planned
+status: validated
 created: 2026-04-09
+validated: 2026-04-16
 ---
 
 ## Hypothesis
@@ -51,6 +52,10 @@ Token counts alone are insufficient for cost analysis. To compute actual USD cos
 }
 ```
 
+## Outcome (2026-04-16)
+
+Validated. `model_pricing.json` is bundled in `src/ai_agents_metrics/data/` and a workspace-root override path is supported. `load_pricing` and cost resolution functions live in `cli.py`. The hypothesis was already implemented before the status was updated.
+
 ## Confidence
 
-Medium — storage pattern and schema are settled; main remaining risk is keeping the bundled file current.
+High — implemented and working.
