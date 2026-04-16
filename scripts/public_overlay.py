@@ -176,7 +176,7 @@ def main(argv: list[str] | None = None) -> int:
             _run(shlex.split(pull_command), cwd=private_repo_root)
             _run(shlex.split(push_command), cwd=private_repo_root)
         else:
-            print(f"# pull first to avoid merge conflicts on the PR")
+            print("# pull first to avoid merge conflicts on the PR")
             print(pull_command)
             print(push_command)
         return 0
