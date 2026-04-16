@@ -120,6 +120,7 @@ When editing the CLI or metrics mutation flow:
 - validate inputs strictly
 - fail loudly on invalid state instead of silently continuing
 - for SQL queries, use proper parameterized placeholders (`?`) for all dynamic values; never build SQL via f-strings or string concatenation with variables — use patterns like `WHERE (? IS NULL OR col = ?)` for optional filters instead of dynamically assembling WHERE clauses
+- always use strict typing: prefer concrete types (`NormalizedUsageEventRow`, `GoalRecord`) over `dict[str, Any]` or `Any`; do not suppress type errors with `# type: ignore` — fix the underlying type mismatch instead; in tests, construct properly typed stubs rather than untyped dicts
 
 For repository-initializer or bootstrap-style commands:
 
