@@ -172,8 +172,30 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     existing_goal_columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_goals)").fetchall()}
     if "main_attempt_count" not in existing_goal_columns:
         conn.execute("ALTER TABLE derived_goals ADD COLUMN main_attempt_count INTEGER")
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS derived_practice_events (
+            practice_event_id TEXT PRIMARY KEY,
+            session_path TEXT NOT NULL,
+            thread_id TEXT,
+            source_path TEXT NOT NULL,
+            event_index INTEGER NOT NULL,
+            timestamp TEXT,
+            tool_use_id TEXT,
+            source_kind TEXT NOT NULL,
+            practice_name TEXT NOT NULL,
+            practice_family TEXT NOT NULL,
+            classifier_version TEXT NOT NULL,
+            classified_at TEXT NOT NULL,
+            raw_json TEXT NOT NULL
+        )
+        """
+    )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_session_kinds_thread_id ON derived_session_kinds(thread_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_session_kinds_kind ON derived_session_kinds(kind)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_thread_id ON derived_practice_events(thread_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_family ON derived_practice_events(practice_family)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_session_path ON derived_practice_events(session_path)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_goals_cwd ON derived_goals(cwd)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_attempts_thread_id ON derived_attempts(thread_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_timeline_thread_id ON derived_timeline_events(thread_id)")
@@ -209,3 +231,7 @@ def _clear_derived_tables(conn: sqlite3.Connection) -> None:
 
 def _clear_derived_session_kinds(conn: sqlite3.Connection) -> None:
     conn.execute("DELETE FROM derived_session_kinds")
+
+
+def _clear_derived_practice_events(conn: sqlite3.Connection) -> None:
+    conn.execute("DELETE FROM derived_practice_events")

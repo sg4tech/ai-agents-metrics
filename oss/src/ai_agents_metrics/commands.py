@@ -677,6 +677,11 @@ def handle_classify_codex_history(args: Namespace, cli_module: CommandRuntime) -
         print(f"Main sessions: {summary.main_sessions}")
         print(f"Subagent sessions: {summary.subagent_sessions}")
         print(f"Unknown sessions: {summary.unknown_sessions}")
+        if summary.practice_event_classifier_version:
+            print(f"Practice events: {summary.practice_events_total}")
+            if summary.practice_events_by_family:
+                families = ", ".join(f"{family}={count}" for family, count in summary.practice_events_by_family)
+                print(f"Practice events by family: {families}")
     return 0
 
 
@@ -754,6 +759,8 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
             f"    {classify_summary.main_sessions} main, {classify_summary.subagent_sessions} subagent, "
             f"{classify_summary.unknown_sessions} unknown"
         )
+        if classify_summary.practice_event_classifier_version:
+            print(f"    {classify_summary.practice_events_total} practice events")
         print("==> history-derive")
     with cli_module.metrics_mutation_lock(warehouse_path):
         derive_summary = cli_module.derive_codex_history(warehouse_path)
