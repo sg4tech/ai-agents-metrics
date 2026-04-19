@@ -92,6 +92,13 @@ This layer is new as of 2026-04-19. Previously, per-item interpretation was mixe
 
 **Test of the invariant:** running the same classifier version over the same normalized input produces identical rows (idempotent). Two different versions produce two co-existing sets of rows for the same items.
 
+**Session-level vs message-level classification are separate tables.** Verified on the Claude Code warehouse (2026-04-19, see `docs/private/product-hypotheses/H-040.md`):
+
+- **Session-level** (one row per `.jsonl` file): `kind ∈ {main, subagent, unknown}`. Detectable deterministically from the file path — main sessions are UUID-named, subagent sessions are `agent-*.jsonl` or `subagents/agent-acompact-*.jsonl`. Parent-child links are extractable from `Agent` tool_use events in the parent with sub-second timestamp accuracy. No regex, no LLM, no heuristics needed.
+- **Message-level** (one row per normalized message): `kind ∈ {human_authored, skill_template, context_inject, continuation_prompt, interruption_marker, unknown}`. Detected by matching `Skill` tool_use events in the parent assistant payload, plus a small set of stable regex patterns for context/continuation markers. Skill invocations DO NOT spawn a new file — they inject templates into the parent session's `role='user'` slot.
+
+The two layers must not be collapsed into one table: they describe different kinds of items (files vs messages), they use different signals (filename vs content), and they have different confidence profiles (filename is 100% deterministic; message content needs regex and may need LLM fallback). The classifier-version axis is also independent — a new skill added to the tool does not change session classification.
+
 ---
 
 ## Layer 4 — Aggregate `derived_*`
