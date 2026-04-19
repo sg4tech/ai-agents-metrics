@@ -11,6 +11,7 @@
 - [decisions.md](decisions.md) — why key architectural choices were made
 - [testing-guide.md](testing-guide.md) — how to test each layer
 - [data-schema.md](data-schema.md) — what the stored data looks like
+- [warehouse-layering.md](warehouse-layering.md) — rules for what each warehouse layer (`raw_*` / `normalized_*` / `derived_*`) is allowed to contain
 
 ---
 
