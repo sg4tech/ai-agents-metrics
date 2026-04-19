@@ -114,7 +114,7 @@ This document is a human-readable summary — keep it in sync when changing vali
 
 These invariants apply to the `derived_projects` aggregate table populated by `history-derive`.
 
-- `input_tokens_covered_sessions + output_tokens_covered_sessions + total_tokens_covered_sessions` are each non-negative integers; they never exceed `attempt_count` for the project.
-- `input_tokens_covered_sessions = 0` ↔ `input_tokens IS NULL` in the same row (a project either has token sums or has none).
+- `input_tokens_covered_sessions`, `output_tokens_covered_sessions`, and `total_tokens_covered_sessions` are each non-negative integers; they never exceed `attempt_count` for the project.
+- `input_tokens_covered_sessions = 0` → `input_tokens IS NULL`. The reverse does not hold: `input_tokens IS NULL` may coexist with `covered_sessions > 0` in the edge case where every covered session contributed exactly zero tokens (the DB layer collapses `0` to `NULL` via `stats["input_tokens"] or None`). The same holds for output and total.
 - A session contributes to `*_covered_sessions` only when `_sum_known_int` returns a non-NULL value for that field; a session with zero usage events always contributes 0 to the count.
 - Do not divide `input_tokens` / `output_tokens` / `total_tokens` by `attempt_count` to derive per-session averages; use the corresponding `*_covered_sessions` column as the denominator.
