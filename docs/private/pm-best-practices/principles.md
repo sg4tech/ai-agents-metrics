@@ -19,7 +19,7 @@ Taste-level material. Not frameworks — judgments that distinguish a great PM f
 
 Tensions without settled answers. A thoughtful PM holds the tradeoff, rather than picking a side dogmatically.
 
-- **Cagan (empowered teams) vs Chesky (founder mode).** How autonomous should product teams be? Cagan: empower. Chesky (2024): founder must stay deep in the details. Both have evidence; the right answer is context-dependent.
+- **Cagan (empowered teams) vs Chesky (founder mode).** How autonomous should product teams be? Chesky (2024): founder must stay deep in the details. Cagan's response (2025): the tension is misframed — empowered teams don't need *less* leadership, they need *better* leadership. A founder who stays deep in the details while coaching the team on product sense is not contradicting empowerment; they are the precondition for it. The failure mode Chesky was reacting to is feature teams masquerading as product teams, not empowerment per se. Both have evidence; the right answer is context-dependent, but the framing has sharpened.
 - **Agile/Scrum vs Shape Up.** How much structure vs how much air for shaping? Scrum optimizes predictable throughput; Shape Up optimizes deep problem-solving.
 - **Quantitative vs qualitative discovery.** Torres/Moesta vs Amplitude-school. Rarely a real conflict; often a capacity/skill limitation of the team.
 - **PLG vs sales-led.** Not a binary. Most durable B2B products run both: PLG for SMB and discovery, sales for enterprise expansion.

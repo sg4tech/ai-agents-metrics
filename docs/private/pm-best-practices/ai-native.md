@@ -30,6 +30,7 @@ Patterns for products where the core behavior is produced by a model, not determ
 
 - **Eval-driven development.** Every hypothesis about model behavior becomes an eval. Evals are versioned, run on CI-like cadence, and block shipping when they regress. If there is no eval for a claim, the claim is not operational.
 - **Golden datasets.** Hand-curated sets of representative inputs with known desired outputs. Expensive to build. The single most valuable asset in an AI product — and the one most teams under-invest in.
+- **Error analysis first.** Before building an eval pipeline, read actual model outputs — 20–50 real examples, not cherry-picked. Hamel Husain and Shreya Shankar (authors of the most widely adopted eval curriculum, training 2000+ engineers and PMs at OpenAI/Anthropic/etc.) are emphatic: _"Error analysis is the step most people skip, and it's also the most important."_ Without it, eval categories and rubrics are designed for imaginary failure modes. Look at the data before designing the measurement system.
 - **Eval categories** (ordered from cheapest/fastest to most rigorous):
   1. **Assertion-based** — regex, JSON-schema validation, format checks. Free. Catches gross failures only.
   2. **Reference-based** — exact match, BLEU, ROUGE, embedding similarity against a gold answer. Cheap. Works only when there is a defensible reference.

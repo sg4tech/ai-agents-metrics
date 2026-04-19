@@ -8,21 +8,37 @@ Reference library of external product management best practices. This is **not**
 - **Names, not summaries.** Each file lists the canonical authors/works and the core frameworks they introduced. Read the source if the framework becomes load-bearing for a decision — this library does not substitute for the originals.
 - **Project-specific application** lives elsewhere: `oss/docs/product-framing.md`, `docs/private/product-hypotheses.md`, `docs/private/product-hypotheses/H-xxx.md`.
 
+## When to open which file
+
+| Situation | Start here |
+|---|---|
+| "Should we build this at all?" | [discovery.md](discovery.md) → [validation-and-shipping.md](validation-and-shipping.md) |
+| "What is our strategy / positioning?" | [strategy.md](strategy.md) |
+| "What metric should we track?" | [metrics.md](metrics.md) |
+| "Is this product working? Do users value it?" | [metrics.md](metrics.md) → PMF convergence section |
+| "How do we get our first users / build reputation?" | [developer-tools-distribution.md](developer-tools-distribution.md) |
+| "Should we keep investing or stop?" | [systems-thinking.md](systems-thinking.md) → ToC / constraint check |
+| "We're building an AI feature / classifier" | [ai-native.md](ai-native.md) → error analysis first |
+| "How should we ship this cycle?" | [validation-and-shipping.md](validation-and-shipping.md) → Shape Up |
+| "Something feels off about PM taste / culture" | [principles.md](principles.md) |
+| "We need to grow / find a growth model" | [growth-and-pricing.md](growth-and-pricing.md) |
+
 ## Contents
 
 ### Domain files
 
 | File | Domain |
 |---|---|
-| [discovery.md](discovery.md) | Understanding what to build — JTBD, interviews, opportunity solution trees |
+| [discovery.md](discovery.md) | Understanding what to build — JTBD, interviews, OST, win-loss analysis |
 | [strategy.md](strategy.md) | Where to play, how to win — Rumelt, Martin, Helmer, positioning |
-| [metrics.md](metrics.md) | Measuring and learning — NSM, PMF, HEART, Lean Analytics |
+| [metrics.md](metrics.md) | Measuring and learning — NSM, multiple north stars, PMF convergence, HEART |
 | [validation-and-shipping.md](validation-and-shipping.md) | Lean Startup, Shape Up, Amazon Working Backwards |
 | [growth-and-pricing.md](growth-and-pricing.md) | Growth loops, 4 fits, PLG, willingness-to-pay |
 | [craft.md](craft.md) | Team, career, writing, operating cadence |
-| [ai-native.md](ai-native.md) | Eval-driven development, token economics, agents vs workflows, deployment patterns |
+| [ai-native.md](ai-native.md) | Eval-driven development, error analysis, token economics, agents vs workflows |
 | [systems-thinking.md](systems-thinking.md) | Meadows, Goldratt (ToC), Deming, Taleb |
 | [principles.md](principles.md) | Great-vs-good traits, field tensions, anti-patterns |
+| [developer-tools-distribution.md](developer-tools-distribution.md) | OSS devtools GTM — Willison model, analysis-post format, awesome-lists, rep-first |
 
 ### Reference files
 
