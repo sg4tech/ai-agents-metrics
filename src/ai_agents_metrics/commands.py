@@ -1137,7 +1137,11 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     import sqlite3
     from datetime import datetime, timezone
 
-    from ai_agents_metrics.html_report import aggregate_report_data, render_html_report
+    from ai_agents_metrics.html_report import (
+        aggregate_report_data,
+        check_warehouse_state,
+        render_html_report,
+    )
 
     metrics_path = Path(args.metrics_path)
     output_path = Path(args.output)
@@ -1150,14 +1154,19 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     warehouse_retry: dict[str, dict[str, int]] | None = None
     warehouse_tokens: list[tuple[str, str | None, int, int, int]] | None = None
     warehouse_practice: list[tuple[str, str, int]] | None = None
+    cwd = str(Path.cwd())
     _warehouse_arg = getattr(args, "warehouse_path", "") or ""
     warehouse_path = Path(_warehouse_arg) if _warehouse_arg else None
     if warehouse_path is None or not warehouse_path.is_file():
         # Fall back to the default warehouse location beside the metrics file.
         warehouse_path = default_raw_warehouse_path(metrics_path)
-    if warehouse_path.is_file():
+    warehouse_state = check_warehouse_state(warehouse_path, cwd)
+    # Only query warehouse when it will actually yield usable rows. An empty
+    # empty_for_cwd path would otherwise produce "warehouse-source" charts
+    # with all-zero values, conflicting with the ledger-fallback badge and
+    # callout shown to the user.
+    if warehouse_state.get("status") == "ok" and warehouse_path.is_file():
         try:
-            cwd = str(Path.cwd())
             with sqlite3.connect(warehouse_path) as conn:
                 retry_rows = conn.execute(
                     "SELECT last_seen_at, retry_count FROM derived_goals "
@@ -1226,6 +1235,7 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
         warehouse_tokens=warehouse_tokens,
         pricing=pricing,
         warehouse_practice=warehouse_practice,
+        warehouse_state=warehouse_state,
     )
     generated_at = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     html = render_html_report(chart_data, generated_at)
@@ -1236,8 +1246,10 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     token_src = "warehouse" if warehouse_tokens is not None else "ledger"
     practice_n = sum(c for _, _, c in warehouse_practice) if warehouse_practice else 0
     practice_src = f"warehouse ({practice_n} events)" if warehouse_practice else "none"
+    wh_status = warehouse_state.get("status", "ok")
     print(
         f"Rendered HTML report: {output_path} "
-        f"(retry: {retry_src}, tokens: {token_src}, practice: {practice_src})"
+        f"(retry: {retry_src}, tokens: {token_src}, practice: {practice_src}, "
+        f"warehouse: {wh_status})"
     )
     return 0

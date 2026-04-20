@@ -139,6 +139,28 @@ _HTML_TEMPLATE = """\
   }
   .src-badge.ledger { background: #f1f5f9; color: #64748b; }
   .src-badge.history { background: #f0fdf4; color: #15803d; }
+
+  /* warehouse-state callout */
+  .callout {
+    margin: 0 0 18px;
+    padding: 10px 14px;
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #78350f;
+    line-height: 1.5;
+  }
+  .callout strong { font-weight: 600; }
+  .callout code {
+    background: #fde68a;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 600;
+    color: #78350f;
+  }
+  .callout:empty { display: none; }
 </style>
 </head>
 <body>
@@ -168,6 +190,7 @@ _HTML_TEMPLATE = """\
 </div>
 
 <div id="sh-history" class="section-header"></div>
+<div class="callout" id="warehouse-callout"></div>
 <div class="grid">
 
   <div class="card">
@@ -418,11 +441,15 @@ function drawStackedBar(id, labels, series, colors, useSmartMax, labelPrefix, to
 
 // ── chart 2: combo bar + line ────────────────────────────────────────────────
 
-function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, linePct) {
+function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, linePct, suppressNoRetriesMessage) {
   const { ctx, w, h } = setupCanvas(id);
   const allVals = [...barValues, ...lineValues.filter(v => v !== null)];
   if (!labels.length || allVals.every(v => !v)) { drawEmpty(ctx, w, h); return; }
-  const noRetries = barValues.every(v => !v);
+  // Only surface the "No retries" green message when it reflects a real signal
+  // (warehouse source + all bars empty). Suppress under any warehouse fallback
+  // state to avoid a false positive on the ledger path where attempt_count
+  // increments only when the user manually calls continue-task.
+  const noRetries = !suppressNoRetriesMessage && barValues.every(v => !v);
 
   const ML = 48, MR = 48, MT = 12, MB = 68;
   const cw = w - ML - MR, ch = h - MT - MB;
@@ -678,10 +705,14 @@ function renderSectionHeaders() {
   const historyEl = document.getElementById('sh-history');
   if (historyEl) {
     const range = dateRange(d.history_date_from, d.history_date_to);
+    // Badge reflects the actual source of chart 2 & 3. If either fell back to
+    // ledger, the section is not truly warehouse-sourced and must say so.
+    const bothWarehouse = d.chart2_source === 'warehouse' && d.chart3_source === 'warehouse';
+    const badge = bothWarehouse
+      ? '<span class="src-badge history">warehouse</span>'
+      : '<span class="src-badge ledger">ledger</span>';
     historyEl.innerHTML =
-      '<h3>Session History</h3>' +
-      '<span class="src-badge history">warehouse</span>' +
-      '<p>' + range + '</p>';
+      '<h3>Session History</h3>' + badge + '<p>' + range + '</p>';
   }
 
   const practiceEl = document.getElementById('sh-practice');
@@ -781,6 +812,31 @@ function renderChart5() {
   drawStackedBar('c5', labels, series, C5_COLORS, false, '', [true, true, true]);
 }
 
+function renderWarehouseCallout() {
+  const el = document.getElementById('warehouse-callout');
+  if (!el) return;
+  const state = DATA.warehouse_state || { status: 'ok' };
+  const messages = {
+    missing_file: {
+      title: 'No history warehouse yet.',
+      body: 'Session History and Practice Events are missing until you extract agent history.',
+    },
+    schema_outdated: {
+      title: 'Warehouse schema is outdated.',
+      body: 'Re-deriving the history pipeline will refresh tables and surface missing charts.',
+    },
+    empty_for_cwd: {
+      title: 'Warehouse has no data for this project yet.',
+      body: 'Session History and Practice Events fall back to ledger-only signals (partial).',
+    },
+  };
+  const m = messages[state.status];
+  if (!m) { el.innerHTML = ''; return; }
+  el.innerHTML =
+    '<strong>\u26a0 ' + m.title + '</strong> ' + m.body +
+    ' &nbsp;Run: <code>ai-agents-metrics history-update</code>';
+}
+
 function renderChart2Meta() {
   const warehouse = DATA.chart2_source === 'warehouse';
   const sub = document.getElementById('c2-subtitle');
@@ -805,11 +861,13 @@ function render() {
   }
   renderSummary();
   renderSectionHeaders();
+  renderWarehouseCallout();
   renderChart2Meta();
   renderChart3Meta();
   renderC1Legend();
   drawStackedBar('c1', d.buckets, [d.chart1_product, d.chart1_meta, d.chart1_retro], ['#22c55e', '#94a3b8', '#f59e0b'], false, '', seriesToggles.c1);
-  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', d.chart2_source === 'warehouse');
+  const whStatus = (d.warehouse_state && d.warehouse_state.status) || 'ok';
+  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', d.chart2_source === 'warehouse', whStatus !== 'ok');
   const c3Prefix = d.chart3_mode === 'cost' ? '$' : '';
   const c3Values = (d.chart3_series || []).map(s => s.values);
   const c3Colors = (d.chart3_series || []).map(s => s.color);
