@@ -243,12 +243,25 @@ def _update_project_stats(
     stats_entry: dict[str, Any],
     sums: _SessionTokenSums,
 ) -> None:
-    """Accumulate session token counts into the project-level stats dict."""
-    stats_entry["input_tokens"] += sums.inp or 0
-    stats_entry["cache_creation_input_tokens"] += sums.cac_create or 0
-    stats_entry["cached_input_tokens"] += sums.cac or 0
-    stats_entry["output_tokens"] += sums.out or 0
-    stats_entry["total_tokens"] += sums.total or 0
+    """Accumulate session token counts into the project-level stats dict.
+
+    Only sessions with at least one known (non-None) value contribute to each sum.
+    The corresponding *_covered_sessions counter is incremented so callers can
+    distinguish "zero tokens" from "no data" at the project level.
+    """
+    if sums.inp is not None:
+        stats_entry["input_tokens"] += sums.inp
+        stats_entry["input_tokens_covered_sessions"] += 1
+    if sums.cac_create is not None:
+        stats_entry["cache_creation_input_tokens"] += sums.cac_create
+    if sums.cac is not None:
+        stats_entry["cached_input_tokens"] += sums.cac
+    if sums.out is not None:
+        stats_entry["output_tokens"] += sums.out
+        stats_entry["output_tokens_covered_sessions"] += 1
+    if sums.total is not None:
+        stats_entry["total_tokens"] += sums.total
+        stats_entry["total_tokens_covered_sessions"] += 1
 
 
 def _insert_attempt_row(
@@ -373,18 +386,29 @@ def _insert_goal_and_retry_chain(
     sorted_sessions: list[NormalizedSessionRow],
     thread_usage_events: list[NormalizedUsageEventRow],
     timeline_items: list[dict[str, Any]],
+    session_kinds: dict[str, str] | None = None,
 ) -> None:
     attempt_count = max(len(sorted_sessions), 1)
     retry_count = max(attempt_count - 1, 0)
     goal_model = _dominant_model(thread_usage_events) or thread_row["model"]
+    # main_attempt_count: number of sessions classified as 'main' per H-040.
+    # Distinguishes user retries from subagent spawns — see docs/findings/F-001.
+    # None when classify stage has not run (e.g. pre-H-040 warehouses).
+    main_attempt_count: int | None
+    if session_kinds is None:
+        main_attempt_count = None
+    else:
+        main_attempt_count = sum(
+            1 for row in sorted_sessions if session_kinds.get(row["session_path"]) == "main"
+        )
     conn.execute(
         """
         INSERT INTO derived_goals (
             thread_id, source_path, cwd, model_provider, model, title, archived,
-            session_count, attempt_count, retry_count, message_count,
-            usage_event_count, log_count, timeline_event_count, first_seen_at,
-            last_seen_at, raw_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            session_count, attempt_count, retry_count, main_attempt_count,
+            message_count, usage_event_count, log_count, timeline_event_count,
+            first_seen_at, last_seen_at, raw_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             thread_id,
@@ -397,6 +421,7 @@ def _insert_goal_and_retry_chain(
             thread_row["session_count"],
             attempt_count,
             retry_count,
+            main_attempt_count,
             thread_row["message_count"],
             len(thread_usage_events),
             thread_row["log_count"],
@@ -450,8 +475,9 @@ def _insert_projects(conn: sqlite3.Connection, project_stats: dict[str, dict[str
                 project_cwd, parent_project_cwd, thread_count, attempt_count, retry_thread_count,
                 message_count, usage_event_count, log_count, timeline_event_count, input_tokens,
                 cache_creation_input_tokens, cached_input_tokens, output_tokens,
-                total_tokens, first_seen_at, last_seen_at, raw_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                total_tokens, input_tokens_covered_sessions, output_tokens_covered_sessions,
+                total_tokens_covered_sessions, first_seen_at, last_seen_at, raw_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 project_cwd,
@@ -468,6 +494,9 @@ def _insert_projects(conn: sqlite3.Connection, project_stats: dict[str, dict[str
                 stats["cached_input_tokens"] or None,
                 stats["output_tokens"] or None,
                 stats["total_tokens"] or None,
+                stats["input_tokens_covered_sessions"],
+                stats["output_tokens_covered_sessions"],
+                stats["total_tokens_covered_sessions"],
                 stats["first_seen_at"],
                 stats["last_seen_at"],
                 json.dumps(
@@ -481,11 +510,14 @@ def _insert_projects(conn: sqlite3.Connection, project_stats: dict[str, dict[str
                         "usage_event_count": stats["usage_event_count"],
                         "log_count": stats["log_count"],
                         "timeline_event_count": stats["timeline_event_count"],
-                        "input_tokens": stats["input_tokens"],
-                        "cache_creation_input_tokens": stats["cache_creation_input_tokens"],
-                        "cached_input_tokens": stats["cached_input_tokens"],
-                        "output_tokens": stats["output_tokens"],
-                        "total_tokens": stats["total_tokens"],
+                        "input_tokens": stats["input_tokens"] or None,
+                        "cache_creation_input_tokens": stats["cache_creation_input_tokens"] or None,
+                        "cached_input_tokens": stats["cached_input_tokens"] or None,
+                        "output_tokens": stats["output_tokens"] or None,
+                        "total_tokens": stats["total_tokens"] or None,
+                        "input_tokens_covered_sessions": stats["input_tokens_covered_sessions"],
+                        "output_tokens_covered_sessions": stats["output_tokens_covered_sessions"],
+                        "total_tokens_covered_sessions": stats["total_tokens_covered_sessions"],
                         "first_seen_at": stats["first_seen_at"],
                         "last_seen_at": stats["last_seen_at"],
                     },

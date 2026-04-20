@@ -23,6 +23,7 @@ from ai_agents_metrics.event_store import append_event
 from ai_agents_metrics.history.audit import (
     AuditReport,
 )
+from ai_agents_metrics.history.classify import ClassifySummary
 from ai_agents_metrics.history.compare import (
     HistoryCompareReport,
     HistorySignals,
@@ -90,6 +91,7 @@ class CommandRuntime(Protocol):
     def resolve_workflow_resolution(self, data: dict[str, Any], cwd: Path, event: WorkflowEvent) -> Any: ...
     def ingest_codex_history(self, source_root: Path, warehouse_path: Path, source: str = ...) -> Any: ...
     def normalize_codex_history(self, warehouse_path: Path) -> Any: ...
+    def classify_codex_history(self, warehouse_path: Path) -> Any: ...
     def derive_codex_history(self, warehouse_path: Path) -> Any: ...
     def verify_public_boundary(self, *, repo_root: Path, rules_path: Path) -> Any: ...
     def audit_cost_coverage(
@@ -124,6 +126,7 @@ class CommandRuntime(Protocol):
     def metrics_mutation_lock(self, path: Path) -> Any: ...
     def render_ingest_summary_json(self, summary: IngestSummary) -> str: ...
     def render_normalize_summary_json(self, summary: NormalizeSummary) -> str: ...
+    def render_classify_summary_json(self, summary: ClassifySummary) -> str: ...
     def render_derive_summary_json(self, summary: DeriveSummary) -> str: ...
     def derive_retro_timeline(
         self,
@@ -661,6 +664,27 @@ def handle_normalize_codex_history(args: Namespace, cli_module: CommandRuntime) 
     return 0
 
 
+def handle_classify_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    with cli_module.metrics_mutation_lock(warehouse_path):
+        summary = cli_module.classify_codex_history(warehouse_path)
+    if getattr(args, "json", False):
+        print(cli_module.render_classify_summary_json(summary))
+    else:
+        print(f"Classified session kinds in {summary.warehouse_path}")
+        print(f"Classifier version: {summary.classifier_version}")
+        print(f"Sessions total: {summary.sessions_total}")
+        print(f"Main sessions: {summary.main_sessions}")
+        print(f"Subagent sessions: {summary.subagent_sessions}")
+        print(f"Unknown sessions: {summary.unknown_sessions}")
+        if summary.practice_event_classifier_version:
+            print(f"Practice events: {summary.practice_events_total}")
+            if summary.practice_events_by_family:
+                families = ", ".join(f"{family}={count}" for family, count in summary.practice_events_by_family)
+                print(f"Practice events by family: {families}")
+    return 0
+
+
 def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
@@ -676,6 +700,7 @@ def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
         print(f"Retry chains: {summary.retry_chains}")
         print(f"Message facts: {summary.message_facts}")
         print(f"Session usage: {summary.session_usage}")
+        print(f"Token coverage: {summary.token_covered_sessions}/{summary.session_usage} sessions")
     return 0
 
 
@@ -727,6 +752,16 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
         normalize_summary = cli_module.normalize_codex_history(warehouse_path)
     if not json_output:
         print(f"    {normalize_summary.threads} threads, {normalize_summary.messages} messages")
+        print("==> history-classify")
+    with cli_module.metrics_mutation_lock(warehouse_path):
+        classify_summary = cli_module.classify_codex_history(warehouse_path)
+    if not json_output:
+        print(
+            f"    {classify_summary.main_sessions} main, {classify_summary.subagent_sessions} subagent, "
+            f"{classify_summary.unknown_sessions} unknown"
+        )
+        if classify_summary.practice_event_classifier_version:
+            print(f"    {classify_summary.practice_events_total} practice events")
         print("==> history-derive")
     with cli_module.metrics_mutation_lock(warehouse_path):
         derive_summary = cli_module.derive_codex_history(warehouse_path)
@@ -739,6 +774,7 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
                 {
                     "ingest": ingest_summaries,
                     "normalize": _json.loads(cli_module.render_normalize_summary_json(normalize_summary)),
+                    "classify": _json.loads(cli_module.render_classify_summary_json(classify_summary)),
                     "derive": _json.loads(cli_module.render_derive_summary_json(derive_summary)),
                 }
             )

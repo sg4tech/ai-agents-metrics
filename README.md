@@ -50,11 +50,33 @@ It is not a benchmark, an eval framework, or a model comparison tool. It is a lo
 
 ---
 
+## Findings from real data
+
+Running this pipeline against a single developer's 6-month history (3.85B tokens, 160 threads, 334 sessions) surfaced several mechanisms that affect anyone analyzing Claude Code or Codex history — not just this dataset. Each finding is reproducible from raw history files:
+
+| # | Finding | Headline |
+|---|---------|----------|
+| [F-001](docs/findings/F-001-claude-retries-are-subagents.md) | 100% of Claude "retries" are subagent spawns, not user retries | `0 / 160` threads have `main_attempt_count > 1` |
+| [F-002](docs/findings/F-002-claude-user-role-is-not-human.md) | Claude's `role='user'` is mostly not human-typed | 86.7% of `role='user'` events are `tool_result` or template |
+| [F-003](docs/findings/F-003-practice-split-is-size-confounded.md) | Naive practice-effectiveness split is size-confounded | 20× naive gap collapses to ~2.5× after size-matching; ~half is subagent overhead |
+| [F-004](docs/findings/F-004-rework-signal-exists-but-n-too-small.md) | Cross-thread file-rework signal is detectable but N=66 too small for effectiveness claims | 61% of implementation threads have a rework follow-up within 30 days |
+| [F-005](docs/findings/F-005-practice-distribution.md) | Discovery and commit-automation dominate real AI-coding practice usage | 29% of threads use any practice; discovery=39% of events, code_review=14% |
+| [F-006](docs/findings/F-006-retros-describe-meta-tooling.md) | AI-agent retros overwhelmingly describe meta-tooling failures, not code failures | 58% of 59 retros land in 4 meta-tooling themes (packaging, lifecycle, policy, data) |
+| [F-007](docs/findings/F-007-practice-within-thread-compression.md) | Within-thread, messages near a practice event use half the tokens of messages far from any practice | median 2.05× gap, 95% CI [1.23×, 2.47×], p=0.000456; Agent events (2.01× agg) ≫ Skill events (1.20× agg) as predicted by compression mechanism |
+| [F-008](docs/findings/F-008-per-skill-compression-ranking.md) | Per-skill decomposition: subagent-style practices compress 2.5-3.25×, commit skills don't compress (point estimate <1.0×) | `Explore` 2.63× CI [1.71, 3.51] with 13/13 sign test; `code-reviewer` 3.25×; `code-review:code-review` 2.55×; vs `commit` 0.72×, `commit-push-pr` 0.76× |
+
+Full index: [docs/findings/README.md](docs/findings/README.md).
+
+These are N=1 findings about the data, not universal claims. The mechanisms (subagent-aliased retries, `role='user'` pollution, size-confounded splits) are properties of the underlying tools — they will show up on anyone's history.
+
+---
+
 ## Capabilities
 
 | Capability | Status |
 |---|---|
 | History ingestion from Claude Code and Codex transcripts | Available |
+| Structural session-kind classification (main vs subagent) | Available |
 | Retry pressure derived from session history | Available |
 | Cost and token tracking from history | Available |
 | Automatic cost sync from Claude Code telemetry | Available |
@@ -110,11 +132,12 @@ By model:
 
 History signals (warehouse):
   Project threads:           87  (worktrees merged)
-  Threads with retry pressure: 28 / 87 (32%)
-  Per-goal alignment:        16 / 17 ledger goals matched to history window
+  Threads with main_attempt > 1: 0 / 87 (structural retries)
+  Subagent spawns:             156 sessions (Agent tool_use)
+  Per-goal alignment:          16 / 17 ledger goals matched to history window
 ```
 
-The `History signals` section is derived directly from session history files — no manual tracking required. A 32% retry rate means roughly 1 in 3 tasks required more than one session to complete.
+The `History signals` section is derived directly from session history files — no manual tracking required. The pipeline runs a deterministic filename-based classifier that separates *main attempts* (user-driven retries) from *subagent spawns* (internal delegation). A naive file-per-attempt count would conflate the two — see [F-001](docs/findings/F-001-claude-retries-are-subagents.md).
 
 ---
 

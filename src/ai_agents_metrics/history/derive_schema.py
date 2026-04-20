@@ -150,12 +150,55 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             cached_input_tokens INTEGER,
             output_tokens INTEGER,
             total_tokens INTEGER,
+            input_tokens_covered_sessions INTEGER NOT NULL DEFAULT 0,
+            output_tokens_covered_sessions INTEGER NOT NULL DEFAULT 0,
+            total_tokens_covered_sessions INTEGER NOT NULL DEFAULT 0,
             first_seen_at TEXT,
             last_seen_at TEXT,
             raw_json TEXT NOT NULL
         )
         """
     )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS derived_session_kinds (
+            session_path TEXT PRIMARY KEY,
+            thread_id TEXT,
+            source_path TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            classifier_version TEXT NOT NULL,
+            classified_at TEXT NOT NULL,
+            raw_json TEXT NOT NULL
+        )
+        """
+    )
+    existing_goal_columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_goals)").fetchall()}
+    if "main_attempt_count" not in existing_goal_columns:
+        conn.execute("ALTER TABLE derived_goals ADD COLUMN main_attempt_count INTEGER")
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS derived_practice_events (
+            practice_event_id TEXT PRIMARY KEY,
+            session_path TEXT NOT NULL,
+            thread_id TEXT,
+            source_path TEXT NOT NULL,
+            event_index INTEGER NOT NULL,
+            timestamp TEXT,
+            tool_use_id TEXT,
+            source_kind TEXT NOT NULL,
+            practice_name TEXT NOT NULL,
+            practice_family TEXT NOT NULL,
+            classifier_version TEXT NOT NULL,
+            classified_at TEXT NOT NULL,
+            raw_json TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_session_kinds_thread_id ON derived_session_kinds(thread_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_session_kinds_kind ON derived_session_kinds(kind)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_thread_id ON derived_practice_events(thread_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_family ON derived_practice_events(practice_family)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_practice_events_session_path ON derived_practice_events(session_path)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_goals_cwd ON derived_goals(cwd)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_attempts_thread_id ON derived_attempts(thread_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_timeline_thread_id ON derived_timeline_events(thread_id)")
@@ -173,6 +216,9 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     existing_projects = {row[1] for row in conn.execute("PRAGMA table_info(derived_projects)").fetchall()}
     if "parent_project_cwd" not in existing_projects:
         conn.execute("ALTER TABLE derived_projects ADD COLUMN parent_project_cwd TEXT")
+    for _col in ("input_tokens_covered_sessions", "output_tokens_covered_sessions", "total_tokens_covered_sessions"):
+        if _col not in existing_projects:
+            conn.execute(f"ALTER TABLE derived_projects ADD COLUMN {_col} INTEGER NOT NULL DEFAULT 0")
     for table in ("derived_session_usage", "derived_attempts"):
         existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
         if "model" not in existing:
@@ -187,3 +233,11 @@ def _clear_derived_tables(conn: sqlite3.Connection) -> None:
     conn.execute("DELETE FROM derived_retry_chains")
     conn.execute("DELETE FROM derived_session_usage")
     conn.execute("DELETE FROM derived_projects")
+
+
+def _clear_derived_session_kinds(conn: sqlite3.Connection) -> None:
+    conn.execute("DELETE FROM derived_session_kinds")
+
+
+def _clear_derived_practice_events(conn: sqlite3.Connection) -> None:
+    conn.execute("DELETE FROM derived_practice_events")

@@ -11,6 +11,7 @@
 
 **Related docs:**
 - [architecture.md](architecture.md) — where the history pipeline fits in the overall system
+- [warehouse-layering.md](warehouse-layering.md) — rules that govern what each `raw_*` / `normalized_*` / `derived_*` layer is allowed to contain
 - [data-schema.md](data-schema.md) — the GoalRecord / AttemptEntryRecord model this pipeline feeds into
 - [data-invariants.md](data-invariants.md) — business rules for reconstructed records
 
