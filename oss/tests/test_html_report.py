@@ -559,7 +559,7 @@ def test_render_html_returns_string_with_key_markers():
     data = _empty_data()
     html = render_html_report(data, "2026-01-15 12:00 UTC")
     assert "<!DOCTYPE html>" in html
-    assert "Codex Metrics" in html
+    assert "AI Agents Metrics" in html
     assert "2026-01-15 12:00 UTC" in html
     assert "DATA" in html
 

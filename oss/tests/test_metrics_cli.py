@@ -452,7 +452,7 @@ def test_init_creates_files(repo: Path) -> None:
     render_result = render_report(repo)
     assert render_result.returncode == 0, render_result.stderr
     report = report_path.read_text(encoding="utf-8")
-    assert "Codex Metrics" in report
+    assert "AI Agents Metrics" in report
     assert "_No goals recorded yet._" in report
 
 
@@ -2598,7 +2598,7 @@ def test_show_command(repo: Path) -> None:
     assert run_cmd(repo, "init").returncode == 0
     result = run_cmd(repo, "show")
     assert result.returncode == 0
-    assert "Codex Metrics Summary" in result.stdout
+    assert "AI Agents Metrics Summary" in result.stdout
     assert "Product quality:" in result.stdout
     assert "Reviewed result fit: 0/0 closed product goals" in result.stdout
     assert "Agent recommendations:" in result.stdout

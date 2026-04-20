@@ -208,7 +208,7 @@ Local validation reminders:
 - After a meaningful task is completed successfully and the retrospective is logged, create a git commit for the finished checkpoint.
 - Do not create a commit just because lint passed or only a partial technical check succeeded; commit only after the actual task outcome is complete and stabilized.
 <!-- ai-agents-metrics:start -->
-## Codex Metrics
+## AI Agents Metrics
 
 ### Read first
 
