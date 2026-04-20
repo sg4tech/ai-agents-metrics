@@ -1,7 +1,11 @@
 """Tests for html_report: aggregation logic and render smoke checks."""
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from ai_agents_metrics._report_aggregation import (
     _aggregate_warehouse_retry,
@@ -9,7 +13,7 @@ from ai_agents_metrics._report_aggregation import (
     aggregate_report_data,
 )
 from ai_agents_metrics._report_buckets import _bucket_key, _make_buckets, _monday_of, _parse_date
-from ai_agents_metrics.html_report import render_html_report
+from ai_agents_metrics.html_report import check_warehouse_state, render_html_report
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -600,7 +604,6 @@ def test_embedded_js_is_valid_syntax(tmp_path):
     import shutil
     import subprocess
 
-    import pytest
 
     node = shutil.which("node")
     if node is None:
@@ -724,3 +727,120 @@ def test_chart5_present_in_empty_data_path():
     assert c5["labels"] == ["Explore"]
     assert c5["total_events"] == 2
     assert c5["source"] == "warehouse"
+
+
+# ── warehouse-state detection ────────────────────────────────────────────────
+
+
+def _build_warehouse(path: Path, *, include_practice_table: bool = True,
+                    goals_cwd: str | None = None) -> None:
+    """Create a minimal warehouse fixture for state-check tests."""
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "CREATE TABLE derived_goals ("
+            "thread_id TEXT, cwd TEXT, last_seen_at TEXT, retry_count INTEGER, model TEXT"
+            ")"
+        )
+        if include_practice_table:
+            conn.execute(
+                "CREATE TABLE derived_practice_events ("
+                "thread_id TEXT, practice_name TEXT, source_kind TEXT"
+                ")"
+            )
+        if goals_cwd is not None:
+            conn.execute(
+                "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?)",
+                ("t1", goals_cwd, "2026-04-20T00:00:00Z", 0, "claude-sonnet-4-6"),
+            )
+        conn.commit()
+
+
+def test_warehouse_state_missing_file(tmp_path: Path):
+    state = check_warehouse_state(tmp_path / "nonexistent.db", "/home/me/proj")
+    assert state == {"status": "missing_file"}
+
+
+def test_warehouse_state_schema_outdated_missing_practice_table(tmp_path: Path):
+    db = tmp_path / "wh.db"
+    _build_warehouse(db, include_practice_table=False, goals_cwd="/home/me/proj")
+    assert check_warehouse_state(db, "/home/me/proj") == {"status": "schema_outdated"}
+
+
+def test_warehouse_state_schema_outdated_no_goals_table(tmp_path: Path):
+    db = tmp_path / "wh.db"
+    with sqlite3.connect(db) as conn:
+        conn.execute("CREATE TABLE foo (x INTEGER)")
+    assert check_warehouse_state(db, "/home/me/proj") == {"status": "schema_outdated"}
+
+
+def test_warehouse_state_empty_for_cwd(tmp_path: Path):
+    db = tmp_path / "wh.db"
+    _build_warehouse(db, goals_cwd="/Users/other/mac-project")
+    assert check_warehouse_state(db, "/home/me/proj") == {"status": "empty_for_cwd"}
+
+
+def test_warehouse_state_ok(tmp_path: Path):
+    db = tmp_path / "wh.db"
+    _build_warehouse(db, goals_cwd="/home/me/proj")
+    assert check_warehouse_state(db, "/home/me/proj") == {"status": "ok"}
+
+
+def test_warehouse_state_sql_error_treated_as_outdated(tmp_path: Path):
+    # Non-sqlite bytes — sqlite3.connect will open fine but any query will raise.
+    db = tmp_path / "wh.db"
+    db.write_bytes(b"this is not a sqlite database file")
+    assert check_warehouse_state(db, "/home/me/proj") == {"status": "schema_outdated"}
+
+
+def test_aggregate_report_data_includes_warehouse_state():
+    result = aggregate_report_data(
+        [_goal()],
+        days=None,
+        warehouse_state={"status": "empty_for_cwd"},
+    )
+    assert result["warehouse_state"] == {"status": "empty_for_cwd"}
+
+
+def test_aggregate_report_data_defaults_warehouse_state_to_ok():
+    # Not passing warehouse_state should default to status=ok (back-compat with
+    # earlier call sites).
+    result = aggregate_report_data([_goal()], days=None)
+    assert result["warehouse_state"] == {"status": "ok"}
+
+
+def test_aggregate_report_data_warehouse_state_on_empty_path():
+    # Empty-data path (no closed goals) also carries warehouse_state through.
+    result = aggregate_report_data(
+        [],
+        days=None,
+        warehouse_state={"status": "missing_file"},
+    )
+    assert result["warehouse_state"] == {"status": "missing_file"}
+
+
+def test_render_html_includes_warehouse_callout_wiring():
+    # Smoke: the rendered HTML should embed the warehouse_state into DATA so
+    # the client-side renderWarehouseCallout() can surface it.
+    data = aggregate_report_data(
+        [_goal(cost_usd=1.0, input_tokens=10, cached_input_tokens=0, output_tokens=5)],
+        days=None,
+        warehouse_state={"status": "empty_for_cwd"},
+    )
+    html = render_html_report(data, "2026-04-20 12:00 UTC")
+    assert "renderWarehouseCallout" in html
+    assert '"warehouse_state":' in html
+    assert "empty_for_cwd" in html
+    assert 'id="warehouse-callout"' in html
+
+
+def test_pricing_file_has_claude_opus_4_7():
+    """Guard against regression: opus-4-7 was silently dropped from chart 3
+    when absent from the pricing file (P0-4, 2026-04-20). Keep it here."""
+    from ai_agents_metrics.usage_resolution import PRICING_JSON_PATH, load_pricing
+    pricing = load_pricing(PRICING_JSON_PATH)
+    assert "claude-opus-4-7" in pricing
+    entry = pricing["claude-opus-4-7"]
+    # Sanity — all four price fields present and non-null.
+    for field in ("input_per_million_usd", "cached_input_per_million_usd",
+                  "cache_creation_per_million_usd", "output_per_million_usd"):
+        assert entry.get(field) is not None, f"missing {field}"
