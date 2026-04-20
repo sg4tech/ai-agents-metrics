@@ -38,6 +38,9 @@ _EMPTY_PROJECT_STATS: dict[str, Any] = {
     "timeline_event_count": 0, "input_tokens": 0,
     "cache_creation_input_tokens": 0, "cached_input_tokens": 0,
     "output_tokens": 0, "total_tokens": 0,
+    "input_tokens_covered_sessions": 0,
+    "output_tokens_covered_sessions": 0,
+    "total_tokens_covered_sessions": 0,
     "first_seen_at": None, "last_seen_at": None,
 }
 
@@ -78,6 +81,22 @@ def _sort_sessions(thread_sessions: list[Any]) -> list[Any]:
     )
 
 
+def _fetch_session_kinds(conn: sqlite3.Connection) -> dict[str, str] | None:
+    """Return {session_path: kind} from derived_session_kinds, or None if unclassified.
+
+    None is returned both when the table is missing (pre-H-040 warehouse schema) and
+    when it exists but is empty (classify stage has not run for this warehouse yet).
+    Downstream code treats None as "main_attempt_count unknown" rather than zero.
+    """
+    try:
+        rows = conn.execute("SELECT session_path, kind FROM derived_session_kinds").fetchall()
+    except sqlite3.OperationalError:
+        return None
+    if not rows:
+        return None
+    return {row["session_path"]: row["kind"] for row in rows}
+
+
 @dataclass(frozen=True)
 class DeriveSummary:
     warehouse_path: Path
@@ -88,6 +107,7 @@ class DeriveSummary:
     retry_chains: int
     message_facts: int
     session_usage: int
+    token_covered_sessions: int
 
 
 def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
@@ -122,6 +142,8 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
                 "Warehouse schema is incompatible with this version of codex-metrics; "
                 "run history-normalize first"
             ) from exc
+
+        session_kinds = _fetch_session_kinds(conn)
 
         (
             sessions_by_thread,
@@ -169,7 +191,13 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
                 _ensure_project_stats(project_stats, project_cwd) if project_cwd is not None else None,
             )
             _insert_goal_and_retry_chain(
-                conn, thread_id, thread_row, sorted_sessions, thread_usage_events, timeline_items
+                conn,
+                thread_id,
+                thread_row,
+                sorted_sessions,
+                thread_usage_events,
+                timeline_items,
+                session_kinds=session_kinds,
             )
             goals += 1
             attempts += len(sorted_sessions)
@@ -177,6 +205,10 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
 
         projects = _insert_projects(conn, project_stats)
         conn.commit()
+
+    token_covered_sessions = sum(
+        s["total_tokens_covered_sessions"] for s in project_stats.values()
+    )
 
     return DeriveSummary(
         warehouse_path=warehouse_path,
@@ -187,6 +219,7 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
         retry_chains=retry_chains,
         message_facts=message_facts,
         session_usage=session_usage,
+        token_covered_sessions=token_covered_sessions,
     )
 
 
@@ -200,4 +233,5 @@ def render_derive_summary_json(summary: DeriveSummary) -> str:
         "retry_chains": summary.retry_chains,
         "message_facts": summary.message_facts,
         "session_usage": summary.session_usage,
+        "token_covered_sessions": summary.token_covered_sessions,
     })
