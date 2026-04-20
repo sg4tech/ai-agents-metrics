@@ -4,6 +4,19 @@ All notable changes to `ai-agents-metrics` will be recorded here.
 
 ## Unreleased
 
+## 0.2.1 (2026-04-20)
+
+### Added
+
+- `render-html` Chart 5: "Practice Events by Name" — top 15 practice names from `derived_practice_events` stacked by kind (Agent / Skill / Other). Hidden automatically on warehouses without practice events. Summary line shows long-tail count when more than 15 distinct names exist
+
+### Changed
+
+- `history-update` on an empty machine (no `~/.claude`, no `~/.codex`) now prints actionable guidance: the default paths it checked, three concrete next steps (`--claude-root`, `--codex-state-path`, `--source`), instead of the terse "nothing to normalize" stub that left fresh users unsure whether the tool was broken or misconfigured
+- Top-level `ai-agents-metrics --help` now shows only the 9 primary-flow commands in the main listing. Pipeline stages, audit/debug, manual-tracking adjuncts, and maintenance commands (17 total) are listed by name in four grouped sections in the epilog — still fully callable via `<cmd> --help`
+- `usage:` header shortened from a 26-name `{...}` blob to `<command>` via an `add_subparsers` metavar
+- README trimmed from 385 to 69 lines. Command-how-tos moved to [CLI reference](docs/cli-reference.md); release procedure moved to CONTRIBUTING.md. Landing page now leads with the findings callout (F-001, F-007, F-008) and a rendered report screenshot
+
 ## 0.2.0 (2026-04-20)
 
 ### Added
