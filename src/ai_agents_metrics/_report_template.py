@@ -1,4 +1,4 @@
-"""Self-contained HTML template for the Codex Metrics report.
+"""Self-contained HTML template for the AI Agents Metrics report.
 
 The template is a single string with four substitution placeholders:
 - ``{DATA_JSON}``        — serialised report data dict (JSON)
@@ -16,7 +16,7 @@ _HTML_TEMPLATE = """\
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Codex Metrics Report</title>
+<title>AI Agents Metrics Report</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -165,7 +165,7 @@ _HTML_TEMPLATE = """\
 </head>
 <body>
 <header>
-  <h1>Codex Metrics</h1>
+  <h1>AI Agents Metrics</h1>
   <p>Generated {GENERATED_AT} &nbsp;·&nbsp; {GRANULARITY_LABEL}</p>
 </header>
 
