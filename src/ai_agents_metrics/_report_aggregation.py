@@ -6,7 +6,7 @@ into the flat ``dict`` consumed by :func:`render_html_report`.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ._report_buckets import _bucket_key, _make_buckets, _parse_date
@@ -241,8 +241,8 @@ def _aggregate_warehouse_retry(
     bucket and *line* is retry_rate % (0-100) per bucket, or ``None`` when
     there are no threads in that bucket.
     """
-    bucket_threads: dict[str, int] = {b: 0 for b in buckets}
-    bucket_retries: dict[str, int] = {b: 0 for b in buckets}
+    bucket_threads: dict[str, int] = dict.fromkeys(buckets, 0)
+    bucket_retries: dict[str, int] = dict.fromkeys(buckets, 0)
     bucket_set = set(buckets)
 
     for date_str, vals in warehouse_retry.items():
@@ -308,8 +308,8 @@ def _apply_date_cutoff(
     warehouse_tokens: list[tuple[str, str | None, int, int, int]] | None,
 ) -> tuple[list[dict[str, Any]], list[tuple[str, str | None, int, int, int]] | None]:
     """Drop goals and warehouse token rows older than *days* days."""
-    cutoff = datetime.now(tz=timezone.utc) - timedelta(days=days)
-    epoch = datetime.min.replace(tzinfo=timezone.utc)
+    cutoff = datetime.now(tz=UTC) - timedelta(days=days)
+    epoch = datetime.min.replace(tzinfo=UTC)
     filtered_closed = [
         g for g in closed if (_parse_date(g["finished_at"]) or epoch) >= cutoff
     ]
@@ -341,7 +341,7 @@ def _collect_chart_dates(
     return dates
 
 
-def _determine_granularity(dates: list[datetime]) -> "_AggregationAxis":
+def _determine_granularity(dates: list[datetime]) -> _AggregationAxis:
     """Pick daily vs weekly granularity and build the bucket list."""
     earliest, latest = min(dates), max(dates)
     gran = "day" if (latest - earliest).days <= 30 else "week"

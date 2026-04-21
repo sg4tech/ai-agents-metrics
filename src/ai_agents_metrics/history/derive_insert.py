@@ -3,20 +3,23 @@ from __future__ import annotations
 
 import hashlib
 import json
-import sqlite3
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.history.derive_build import (
     _message_date_from_timestamp,
     _normalize_timestamp,
 )
-from ai_agents_metrics.history.normalize import (
-    NormalizedMessageRow,
-    NormalizedSessionRow,
-    NormalizedThreadRow,
-    NormalizedUsageEventRow,
-)
+
+if TYPE_CHECKING:
+    import sqlite3
+
+    from ai_agents_metrics.history.normalize import (
+        NormalizedMessageRow,
+        NormalizedSessionRow,
+        NormalizedThreadRow,
+        NormalizedUsageEventRow,
+    )
 
 
 def _sum_known_int(values: list[int | None]) -> int | None:
@@ -27,7 +30,7 @@ def _sum_known_int(values: list[int | None]) -> int | None:
 
 
 def _derived_attempt_id(thread_id: str, session_path: str) -> str:
-    return hashlib.sha256(f"{thread_id}:{session_path}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{thread_id}:{session_path}".encode()).hexdigest()
 
 
 def _session_usage_id(session_path: str) -> str:

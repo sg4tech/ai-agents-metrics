@@ -1,16 +1,19 @@
 """SQLite event store and debug log for CLI-invocation observability."""
 from __future__ import annotations
 
+import contextlib
 import json
 import sqlite3
 import uuid
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain import now_utc_iso
 from ai_agents_metrics.redaction import redact_text, redact_value
 from ai_agents_metrics.storage import ensure_parent_dir
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 OBSERVABILITY_DIRNAME = ".ai-agents-metrics"
 _OBSERVABILITY_DIRNAME_LEGACY = ".codex-metrics"
@@ -234,10 +237,8 @@ def _record_event_best_effort(
             context=context,
             payload=fallback_payload,
         )
-        try:
+        with contextlib.suppress(Exception):  # nosec B110  # pylint: disable=broad-exception-caught
             _append_debug_line(paths.debug_log_path, fallback_line)
-        except Exception:  # nosec B110  # pylint: disable=broad-exception-caught
-            pass
 
 
 def record_cli_invocation_observation(
@@ -299,29 +300,29 @@ def _changed_fields(previous_task: dict[str, Any] | None, current_task: dict[str
             if current_task.get(field) is not None
         )
 
-    changed_fields: list[str] = []
-    for field in (
-        "title",
-        "goal_type",
-        "status",
-        "attempts",
-        "started_at",
-        "finished_at",
-        "cost_usd",
-        "input_tokens",
-        "cached_input_tokens",
-        "output_tokens",
-        "tokens_total",
-        "failure_reason",
-        "notes",
-        "agent_name",
-        "result_fit",
-        "model",
-        "supersedes_goal_id",
-    ):
-        if previous_task.get(field) != current_task.get(field):
-            changed_fields.append(field)
-    return changed_fields
+    return [
+        field
+        for field in (
+            "title",
+            "goal_type",
+            "status",
+            "attempts",
+            "started_at",
+            "finished_at",
+            "cost_usd",
+            "input_tokens",
+            "cached_input_tokens",
+            "output_tokens",
+            "tokens_total",
+            "failure_reason",
+            "notes",
+            "agent_name",
+            "result_fit",
+            "model",
+            "supersedes_goal_id",
+        )
+        if previous_task.get(field) != current_task.get(field)
+    ]
 
 
 def _classify_goal_event(previous_task: dict[str, Any] | None, current_task: dict[str, Any]) -> str:

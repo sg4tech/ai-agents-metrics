@@ -58,15 +58,15 @@ def render_bash_completion(parser: argparse.ArgumentParser) -> str:
     lines = [
         "_ai_agents_metrics_completion() {",
         "  local cur cmd",
-        "  cur=\"${COMP_WORDS[COMP_CWORD]}\"",
-        "  cmd=\"${COMP_WORDS[1]}\"",
+        '  cur="${COMP_WORDS[COMP_CWORD]}"',
+        '  cmd="${COMP_WORDS[1]}"',
         "",
         "  if [[ ${COMP_CWORD} -eq 1 ]]; then",
         f"    COMPREPLY=( $(compgen -W '{' '.join(command_names)}' -- \"$cur\") )",
         "    return",
         "  fi",
         "",
-        "  case \"$cmd\" in",
+        '  case "$cmd" in',
     ]
 
     for command_name, options in command_options.items():
@@ -113,7 +113,7 @@ def render_zsh_completion(parser: argparse.ArgumentParser) -> str:
     lines = [
         "#compdef ai-agents-metrics",
         "",
-        "local curcontext=\"$curcontext\" state line",
+        'local curcontext="$curcontext" state line',
         "typeset -A opt_args",
         "",
         "local -a commands",
@@ -135,7 +135,7 @@ def render_zsh_completion(parser: argparse.ArgumentParser) -> str:
             "    _describe 'command' commands",
             "    ;;",
             "  args)",
-            "    case \"$words[2]\" in",
+            '    case "$words[2]" in',
         ]
     )
 
@@ -151,8 +151,7 @@ def render_zsh_completion(parser: argparse.ArgumentParser) -> str:
                 f"          '1:shell:({' '.join(completion_shells)})' \\\n"
             )
         lines.append("        _arguments \\")
-        for option_line in option_lines[:-1]:
-            lines.append(option_line.rstrip())
+        lines.extend(option_line.rstrip() for option_line in option_lines[:-1])
         if option_lines:
             lines.append(option_lines[-1].rstrip(" \\\n"))
         lines.extend(

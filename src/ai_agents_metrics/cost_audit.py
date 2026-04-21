@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ai_agents_metrics.domain import GoalRecord, goal_from_dict
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 def _ts_str(value: datetime | None) -> str | None:

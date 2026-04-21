@@ -4,7 +4,7 @@ import importlib.util
 import json
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -409,7 +409,7 @@ def test_next_goal_id_ignores_malformed_and_other_day_ids() -> None:
             {"goal_id": "2026-03-28-999"},
             {"goal_id": None},
         ],
-        now=datetime(2026, 3, 29, 12, 0, tzinfo=timezone.utc),
+        now=datetime(2026, 3, 29, 12, 0, tzinfo=UTC),
     )
 
     assert goal_id == "2026-03-29-002"

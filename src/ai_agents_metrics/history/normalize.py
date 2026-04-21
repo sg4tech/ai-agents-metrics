@@ -5,9 +5,11 @@ import hashlib
 import json
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, TypedDict
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, TypedDict
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class NormalizedThreadRow(TypedDict):
@@ -100,21 +102,21 @@ class NormalizeSummary:
 def _iso_from_unix_seconds(value: int | None) -> str | None:
     if value is None:
         return None
-    return datetime.fromtimestamp(value, tz=timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.fromtimestamp(value, tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _normalize_timestamp(value: str | None) -> str | None:
     if value is None:
         return None
     cleaned = value.strip()
-    return cleaned if cleaned else None
+    return cleaned or None
 
 
 def _normalize_project_cwd(value: Any) -> str | None:
     if not isinstance(value, str):
         return None
     cleaned = value.strip()
-    return cleaned if cleaned else None
+    return cleaned or None
 
 
 def _pick_earliest_timestamp(current: str | None, candidate: str | None) -> str | None:
@@ -124,7 +126,7 @@ def _pick_earliest_timestamp(current: str | None, candidate: str | None) -> str 
         return candidate_value
     if candidate_value is None:
         return current_value
-    return candidate_value if candidate_value < current_value else current_value
+    return min(current_value, candidate_value)
 
 
 def _pick_latest_timestamp(current: str | None, candidate: str | None) -> str | None:
@@ -134,7 +136,7 @@ def _pick_latest_timestamp(current: str | None, candidate: str | None) -> str | 
         return candidate_value
     if candidate_value is None:
         return current_value
-    return candidate_value if candidate_value > current_value else current_value
+    return max(current_value, candidate_value)
 
 
 def _ensure_schema(conn: sqlite3.Connection) -> None:
@@ -350,7 +352,7 @@ def _usage_event_from_row(row: sqlite3.Row) -> dict[str, Any] | None:
     last_token_usage = info.get("last_token_usage")
     if not isinstance(last_token_usage, dict):
         return None
-    event_payload = {
+    return {
         "event_id": row["event_id"],
         "thread_id": row["thread_id"],
         "session_path": row["session_path"],
@@ -366,7 +368,6 @@ def _usage_event_from_row(row: sqlite3.Row) -> dict[str, Any] | None:
         "model": payload_body.get("info", {}).get("model"),
         "raw_json": row["raw_json"],
     }
-    return event_payload
 
 
 def _usage_event_from_token_row(row: sqlite3.Row) -> dict[str, Any] | None:
@@ -566,7 +567,7 @@ def _insert_normalized_usage_events(
             stats = _ensure_project_stats(project_stats, project_cwd)
             stats["usage_event_count"] += 1
         usage_event_id = hashlib.sha256(
-            f"{event_row['event_id']}:{event_row['session_path']}:{event_index}".encode("utf-8")
+            f"{event_row['event_id']}:{event_row['session_path']}:{event_index}".encode()
         ).hexdigest()
         conn.execute(
             """

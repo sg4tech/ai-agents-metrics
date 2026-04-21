@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain import GoalRecord, goal_from_dict
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 AUDIT_CATEGORY_ORDER = (
     "likely_miss",

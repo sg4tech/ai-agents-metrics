@@ -61,9 +61,7 @@ def _is_meaningful_worktree_path(path_text: str) -> bool:
         return False
     if parts[0] in MEANINGFUL_WORKTREE_DIRS:
         return True
-    if len(parts) == 1 and parts[0] in MEANINGFUL_WORKTREE_FILES:
-        return True
-    return False
+    return bool(len(parts) == 1 and parts[0] in MEANINGFUL_WORKTREE_FILES)
 
 
 def detect_started_work(cwd: Path) -> StartedWorkReport:

@@ -4,8 +4,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain import build_effective_goals, goal_from_dict
 from ai_agents_metrics.history.compare_store import (
@@ -14,6 +13,9 @@ from ai_agents_metrics.history.compare_store import (
     HistoryCompareWarehouseData,
     load_history_compare_warehouse_data,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -396,13 +398,13 @@ def render_history_compare_report(report: HistoryCompareReport) -> str:
     if not report.warehouse_projects:
         lines.append("- no project-level rollup rows available")
     else:
-        for project in report.warehouse_projects:
-            lines.append(
-                f"- {project.project_cwd}: threads={project.threads}, attempts={project.attempts}, "
-                f"retry_threads={project.retry_threads}, messages={project.message_count}, "
-                f"usage_events={project.usage_event_count}, logs={project.log_count}, "
-                f"timeline_events={project.timeline_event_count}, total_tokens={project.total_tokens}"
-            )
+        lines.extend(
+            f"- {project.project_cwd}: threads={project.threads}, attempts={project.attempts}, "
+            f"retry_threads={project.retry_threads}, messages={project.message_count}, "
+            f"usage_events={project.usage_event_count}, logs={project.log_count}, "
+            f"timeline_events={project.timeline_event_count}, total_tokens={project.total_tokens}"
+            for project in report.warehouse_projects
+        )
     lines.extend([
         "",
         "[findings]",
@@ -410,8 +412,7 @@ def render_history_compare_report(report: HistoryCompareReport) -> str:
     if not report.findings:
         lines.append("- no major aggregate mismatches detected")
     else:
-        for finding in report.findings:
-            lines.append(f"- {finding.category}: {finding.message}")
+        lines.extend(f"- {finding.category}: {finding.message}" for finding in report.findings)
     return "\n".join(lines)
 
 

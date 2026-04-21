@@ -298,7 +298,7 @@ def build_operator_review(summary: dict[str, Any]) -> list[str]:
 
 
 def build_quality_review(summary: ProductQualitySummary) -> list[str]:
-    filtered = [
+    return [
         recommendation.diagnosis
         for recommendation in build_agent_recommendations(
             {
@@ -318,7 +318,6 @@ def build_quality_review(summary: ProductQualitySummary) -> list[str]:
         )
         if recommendation.category in {"product_sample", "quality_review_coverage", "quality_miss", "quality_partial_fit", "retry_pressure"}
     ]
-    return filtered
 
 
 def _format_recommendation(recommendation: AgentRecommendation) -> str:

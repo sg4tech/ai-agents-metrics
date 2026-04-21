@@ -3,13 +3,15 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from ai_agents_metrics.usage_resolution import (
     resolve_claude_usage_window,
     resolve_codex_usage_window,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -105,7 +107,7 @@ def detect_usage_backend_name(
     if row is None:
         return None
 
-    provider = row["model_provider"] if "model_provider" in row.keys() else None
+    provider = row["model_provider"] if "model_provider" in row.keys() else None  # noqa: SIM118 sqlite3.Row lacks .get()
     if provider in {"anthropic", "claude"}:
         return "claude"
     if provider in {"openai", "codex"}:

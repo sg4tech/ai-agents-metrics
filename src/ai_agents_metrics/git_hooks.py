@@ -6,8 +6,11 @@ import re
 import subprocess
 import sys
 import tomllib
-from collections.abc import Iterable, Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Sequence
 
 ZERO_OID = "0" * 40
 

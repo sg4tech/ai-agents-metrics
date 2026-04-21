@@ -1,15 +1,15 @@
 """Usage-window resolvers: Codex SQLite/SSE logs and Claude JSONL telemetry."""
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime
 from decimal import Decimal
 from importlib import resources
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain import (
     now_utc_datetime,
@@ -17,6 +17,9 @@ from ai_agents_metrics.domain import (
     parse_iso_datetime_flexible,
     round_usd,
 )
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 # ---------------------------------------------------------------------------
 # Regex patterns for Codex SSE log parsing
@@ -123,7 +126,7 @@ def compute_event_cost_usd(event: dict[str, Any], pricing: dict[str, dict[str, f
         raise ValueError(f"Model {event['model']} does not support cached input pricing")
 
     input_cost = Decimal(str(model_pricing["input_per_million_usd"])) * Decimal(event["input_tokens"]) / Decimal(1_000_000)
-    cached_input_cost = Decimal("0")
+    cached_input_cost = Decimal(0)
     if cached_rate is not None:
         cached_input_cost = Decimal(str(cached_rate)) * Decimal(event["cached_input_tokens"]) / Decimal(1_000_000)
     output_cost = Decimal(str(model_pricing["output_per_million_usd"])) * Decimal(event["output_tokens"]) / Decimal(1_000_000)
@@ -201,14 +204,14 @@ def _compute_claude_event_cost_usd(
 
     input_cost = Decimal(str(model_pricing["input_per_million_usd"])) * Decimal(input_tokens) / Decimal(1_000_000)
 
-    cache_creation_cost = Decimal("0")
+    cache_creation_cost = Decimal(0)
     cache_creation_rate = model_pricing.get("cache_creation_per_million_usd")
     if cache_creation_tokens > 0:
         if cache_creation_rate is None:
             raise ValueError(f"Model {model} does not have cache_creation pricing; cannot price {cache_creation_tokens} cache_creation tokens")
         cache_creation_cost = Decimal(str(cache_creation_rate)) * Decimal(cache_creation_tokens) / Decimal(1_000_000)
 
-    cache_read_cost = Decimal("0")
+    cache_read_cost = Decimal(0)
     cache_read_rate = model_pricing["cached_input_per_million_usd"]
     if cache_read_tokens > 0 and cache_read_rate is not None:
         cache_read_cost = Decimal(str(cache_read_rate)) * Decimal(cache_read_tokens) / Decimal(1_000_000)
@@ -285,7 +288,8 @@ def _accumulate_claude_event(
     acc.total_tokens += input_toks + cache_creation_toks + cache_read_toks + output_toks
 
     if model is not None:
-        try:
+        # Unknown model — skip cost, still count tokens.
+        with contextlib.suppress(ValueError):
             acc.total_cost = round_usd(
                 acc.total_cost
                 + _compute_claude_event_cost_usd(
@@ -297,9 +301,6 @@ def _accumulate_claude_event(
                     pricing=pricing,
                 )
             )
-        except ValueError:
-            # Unknown model — skip cost, still count tokens.
-            pass
 
 
 def _accumulate_claude_file(

@@ -7,7 +7,10 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class FileImmutabilityBackend:
@@ -61,7 +64,7 @@ class FileImmutabilityBackend:
                 with contextlib.suppress(subprocess.CalledProcessError, OSError):
                     subprocess.run([*unlock_command, tmp_path], capture_output=True, check=False)
             with contextlib.suppress(OSError):
-                os.unlink(tmp_path)
+                Path(tmp_path).unlink()
 
     def run_command(self, command: list[str], path: Path) -> None:
         subprocess.run([*command, str(path)], check=True, capture_output=True, text=True)
