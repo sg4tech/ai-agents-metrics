@@ -417,48 +417,29 @@ _HIDDEN_FROM_TOPLEVEL_HELP: frozenset[str] = frozenset({
 })
 
 
-# argparse setup is inherently verbose — 26 subparsers each owning their own
-# flags. Splitting into per-command helpers would trade one long function for
-# 26 tiny ones with no reuse; a future task could cluster them once the CLI
-# surface stabilises (see ARCH-021 follow-up note on splitting cli.py).
-def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-locals,too-many-statements
-    parser = argparse.ArgumentParser(
-        prog=_detect_module_prog(),
-        description="Analyze your AI agent work history, track spending, and optimize your workflow. Point it at your history files and see retry pressure, token cost, and session timeline — no manual setup required.",
-        epilog=(
-            "Additional commands (run `<command> --help` for details):\n"
-            "  Manual tracking:   update, ensure-active-task, sync-usage, sync-codex-usage\n"
-            "  History pipeline:  history-ingest, history-normalize, history-classify,\n"
-            "                     history-derive\n"
-            "  Audit / debug:     history-audit, history-compare, audit-cost-coverage,\n"
-            "                     derive-retro-timeline\n"
-            "  Maintenance:       init, merge-tasks, render-report,\n"
-            "                     verify-public-boundary, security\n"
-            "\n"
-            "Examples:\n"
-            "  %(prog)s history-update\n"
-            "  %(prog)s show\n"
-            "  %(prog)s render-html --output /tmp/report.html\n"
-            "  %(prog)s bootstrap --target-dir /path/to/repo --dry-run\n"
-            "  %(prog)s start-task --title \"Add CSV import\" --task-type product\n"
-            "  %(prog)s continue-task --task-id 2026-03-29-001 --notes \"Retry after validation failure\"\n"
-            "  %(prog)s finish-task --task-id 2026-03-29-001 --status success --notes \"Validated\"\n"
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"%(prog)s {__version__}",
-    )
-    subparsers = parser.add_subparsers(
-        dest="command",
-        required=True,
-        # A short placeholder keeps the `usage:` header readable — argparse
-        # would otherwise dump all 26 choice names in a single unwrapped blob.
-        metavar="<command>",
-    )
+def _add_goal_usage_flags(parser: argparse.ArgumentParser) -> None:
+    """Shared model/token/pricing/path flags for start/continue/finish/update."""
+    parser.add_argument("--cost-usd-add", type=float, help="Add explicit USD cost")
+    parser.add_argument("--tokens-add", type=int, help="Add explicit token count")
+    parser.add_argument("--model", help="Pricing model name for token-based cost calculation")
+    parser.add_argument("--input-tokens", type=int, help="Input tokens for model-based pricing")
+    parser.add_argument("--cached-input-tokens", type=int, help="Cached input tokens for model-based pricing")
+    parser.add_argument("--output-tokens", type=int, help="Output tokens for model-based pricing")
+    parser.add_argument("--pricing-path", default=None)
+    parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
+    parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
+    parser.add_argument("--codex-thread-id")
+    parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
+
+def _add_report_output_flags(parser: argparse.ArgumentParser) -> None:
+    """Shared metrics-path / report-path / --write-report trio."""
+    parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
+    parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+
+
+def _add_init_and_bootstrap_parsers(subparsers: Any) -> None:
     init_parser = subparsers.add_parser(
         "init",
         help="Create the metrics JSON source of truth",
@@ -467,9 +448,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
             "Use --write-report when you also want a markdown export."
         ),
     )
-    init_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    init_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    init_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_report_output_flags(init_parser)
     init_parser.add_argument("--force", action="store_true", help="Overwrite existing metrics files")
 
     bootstrap_parser = subparsers.add_parser(
@@ -482,9 +461,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         ),
     )
     bootstrap_parser.add_argument("--target-dir", default=".", help="Repository root to initialize")
-    bootstrap_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    bootstrap_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    bootstrap_parser.add_argument("--write-report", action="store_true", help="Also create or update the optional markdown report")
+    _add_report_output_flags(bootstrap_parser)
     bootstrap_parser.add_argument("--policy-path", default="docs/ai-agents-metrics-policy.md")
     bootstrap_parser.add_argument("--command-path", default="tools/ai-agents-metrics")
     bootstrap_parser.add_argument("--agents-path", "--instructions-path", dest="agents_path", default="AGENTS.md")
@@ -519,6 +496,8 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     )
     completion_parser.add_argument("shell", choices=("bash", "zsh"))
 
+
+def _add_task_workflow_parsers(subparsers: Any) -> None:
     start_parser = subparsers.add_parser(
         "start-task",
         help="Create a new goal and record the first implementation pass",
@@ -534,20 +513,8 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     start_linked_group.add_argument("--supersedes-task-id", help="Create a replacement goal for a previous closed goal")
     start_parser.add_argument("--notes", help="Optional note recorded on the goal and latest attempt entry")
     start_parser.add_argument("--started-at", help="Explicit ISO8601 start timestamp")
-    start_parser.add_argument("--cost-usd-add", type=float, help="Add explicit USD cost")
-    start_parser.add_argument("--tokens-add", type=int, help="Add explicit token count")
-    start_parser.add_argument("--model", help="Pricing model name for token-based cost calculation")
-    start_parser.add_argument("--input-tokens", type=int, help="Input tokens for model-based pricing")
-    start_parser.add_argument("--cached-input-tokens", type=int, help="Cached input tokens for model-based pricing")
-    start_parser.add_argument("--output-tokens", type=int, help="Output tokens for model-based pricing")
-    start_parser.add_argument("--pricing-path", default=None)
-    start_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
-    start_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
-    start_parser.add_argument("--codex-thread-id")
-    start_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
-    start_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    start_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    start_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_goal_usage_flags(start_parser)
+    _add_report_output_flags(start_parser)
 
     continue_parser = subparsers.add_parser(
         "continue-task",
@@ -565,20 +532,8 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         help="Primary failure reason for the new unsuccessful pass",
     )
     continue_parser.add_argument("--started-at", help="Explicit ISO8601 timestamp for the new pass")
-    continue_parser.add_argument("--cost-usd-add", type=float, help="Add explicit USD cost")
-    continue_parser.add_argument("--tokens-add", type=int, help="Add explicit token count")
-    continue_parser.add_argument("--model", help="Pricing model name for token-based cost calculation")
-    continue_parser.add_argument("--input-tokens", type=int, help="Input tokens for model-based pricing")
-    continue_parser.add_argument("--cached-input-tokens", type=int, help="Cached input tokens for model-based pricing")
-    continue_parser.add_argument("--output-tokens", type=int, help="Output tokens for model-based pricing")
-    continue_parser.add_argument("--pricing-path", default=None)
-    continue_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
-    continue_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
-    continue_parser.add_argument("--codex-thread-id")
-    continue_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
-    continue_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    continue_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    continue_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_goal_usage_flags(continue_parser)
+    _add_report_output_flags(continue_parser)
 
     finish_parser = subparsers.add_parser(
         "finish-task",
@@ -602,20 +557,8 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     )
     finish_parser.add_argument("--notes", help="Optional note recorded on the goal and latest attempt entry")
     finish_parser.add_argument("--finished-at", help="Explicit ISO8601 finish timestamp")
-    finish_parser.add_argument("--cost-usd-add", type=float, help="Add explicit USD cost")
-    finish_parser.add_argument("--tokens-add", type=int, help="Add explicit token count")
-    finish_parser.add_argument("--model", help="Pricing model name for token-based cost calculation")
-    finish_parser.add_argument("--input-tokens", type=int, help="Input tokens for model-based pricing")
-    finish_parser.add_argument("--cached-input-tokens", type=int, help="Cached input tokens for model-based pricing")
-    finish_parser.add_argument("--output-tokens", type=int, help="Output tokens for model-based pricing")
-    finish_parser.add_argument("--pricing-path", default=None)
-    finish_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
-    finish_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
-    finish_parser.add_argument("--codex-thread-id")
-    finish_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
-    finish_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    finish_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    finish_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_goal_usage_flags(finish_parser)
+    _add_report_output_flags(finish_parser)
 
     update_parser = subparsers.add_parser(
         "update",
@@ -649,19 +592,9 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     update_parser.add_argument("--status", choices=sorted(ALLOWED_STATUSES), help="Goal status")
     update_parser.add_argument("--attempts-delta", type=int, help="Increment attempts by this amount")
     update_parser.add_argument("--attempts", type=int, help="Set absolute attempts count")
-    update_parser.add_argument("--cost-usd-add", type=float, help="Add explicit USD cost")
     update_parser.add_argument("--cost-usd", type=float, help="Set explicit USD cost")
-    update_parser.add_argument("--tokens-add", type=int, help="Add explicit token count")
     update_parser.add_argument("--tokens", type=int, help="Set explicit token count")
-    update_parser.add_argument("--model", help="Pricing model name for token-based cost calculation")
-    update_parser.add_argument("--input-tokens", type=int, help="Input tokens for model-based pricing")
-    update_parser.add_argument("--cached-input-tokens", type=int, help="Cached input tokens for model-based pricing")
-    update_parser.add_argument("--output-tokens", type=int, help="Output tokens for model-based pricing")
-    update_parser.add_argument("--pricing-path", default=None)
-    update_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
-    update_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
-    update_parser.add_argument("--codex-thread-id")
-    update_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
+    _add_goal_usage_flags(update_parser)
     update_parser.add_argument("--failure-reason", choices=sorted(ALLOWED_FAILURE_REASONS), help="Primary failure reason for a failed goal")
     update_parser.add_argument(
         "--result-fit",
@@ -671,23 +604,19 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     update_parser.add_argument("--notes", help="Optional note recorded on the goal and latest attempt entry")
     update_parser.add_argument("--started-at", help="Explicit ISO8601 start timestamp")
     update_parser.add_argument("--finished-at", help="Explicit ISO8601 finish timestamp")
-    update_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    update_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    update_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_report_output_flags(update_parser)
 
-    show_parser = subparsers.add_parser(
-        "show",
-        help="Print current summary and operator review",
-        description="Print the current summary, cost coverage, and operator review.",
-    )
-    show_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    show_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="Path to the history warehouse SQLite file (default: auto-detected from metrics path)",
-    )
-    show_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
+    subparsers.add_parser(
+        "ensure-active-task",
+        help="Recover or verify active task bookkeeping from local git changes",
+        description=(
+            "Inspect the current git working tree for meaningful repository work and ensure that active task "
+            "bookkeeping exists. If work has started without an active goal, create a recovery draft."
+        ),
+    ).add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
 
+
+def _add_history_parsers(subparsers: Any) -> None:
     audit_parser = subparsers.add_parser(
         "history-audit",
         help="Flag suspicious history patterns for manual review",
@@ -710,6 +639,12 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     compare_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
     compare_parser.add_argument("--cwd", default=str(Path.cwd()))
 
+    _source_choice_help = (
+        "Agent source to ingest (default: all):\n"
+        "  codex   — reads ~/.codex only\n"
+        "  claude  — reads ~/.claude only\n"
+        "  all     — reads both ~/.codex and ~/.claude"
+    )
     ingest_parser = subparsers.add_parser(
         "history-ingest",
         help="Ingest local agent history into a raw SQLite warehouse",
@@ -720,27 +655,13 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    ingest_parser.add_argument(
-        "--source",
-        choices=["codex", "claude", "all"],
-        default=None,
-        help=(
-            "Agent source to ingest (default: all):\n"
-            "  codex   — reads ~/.codex only\n"
-            "  claude  — reads ~/.claude only\n"
-            "  all     — reads both ~/.codex and ~/.claude"
-        ),
-    )
+    ingest_parser.add_argument("--source", choices=["codex", "claude", "all"], default=None, help=_source_choice_help)
     ingest_parser.add_argument(
         "--source-root",
         default=None,
         help="Override the agent history root directory (implies --source codex unless --source is set; incompatible with --source all)",
     )
-    ingest_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="SQLite warehouse path for raw imported data",
-    )
+    ingest_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path for raw imported data")
 
     normalize_parser = subparsers.add_parser(
         "history-normalize",
@@ -750,11 +671,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
             "for downstream analysis."
         ),
     )
-    normalize_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="SQLite warehouse path that already contains raw imported data",
-    )
+    normalize_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path that already contains raw imported data")
 
     classify_parser = subparsers.add_parser(
         "history-classify",
@@ -766,17 +683,8 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
             "to avoid subagent-aliased retry counts (see oss/docs/findings/F-001)."
         ),
     )
-    classify_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="SQLite warehouse path that already contains normalized agent history",
-    )
-    classify_parser.add_argument(
-        "--json",
-        action="store_true",
-        default=False,
-        help="Output summary as JSON",
-    )
+    classify_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path that already contains normalized agent history")
+    classify_parser.add_argument("--json", action="store_true", default=False, help="Output summary as JSON")
 
     derive_parser = subparsers.add_parser(
         "history-derive",
@@ -786,11 +694,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
             "analysis marts for goals, attempts, timelines, retry chains, and session usage."
         ),
     )
-    derive_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="SQLite warehouse path that already contains normalized agent history",
-    )
+    derive_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path that already contains normalized agent history")
 
     history_update_parser = subparsers.add_parser(
         "history-update",
@@ -802,33 +706,14 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
-    history_update_parser.add_argument(
-        "--source",
-        choices=["codex", "claude", "all"],
-        default=None,
-        help=(
-            "Agent source to ingest (default: all):\n"
-            "  codex   — reads ~/.codex only\n"
-            "  claude  — reads ~/.claude only\n"
-            "  all     — reads both ~/.codex and ~/.claude"
-        ),
-    )
+    history_update_parser.add_argument("--source", choices=["codex", "claude", "all"], default=None, help=_source_choice_help)
     history_update_parser.add_argument(
         "--source-root",
         default=None,
         help="Override the agent history root directory (implies --source codex unless --source is set; incompatible with --source all)",
     )
-    history_update_parser.add_argument(
-        "--warehouse-path",
-        default=str(RAW_WAREHOUSE_PATH),
-        help="SQLite warehouse path",
-    )
-    history_update_parser.add_argument(
-        "--json",
-        action="store_true",
-        default=False,
-        help="Output all three stage summaries as a single JSON object",
-    )
+    history_update_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path")
+    history_update_parser.add_argument("--json", action="store_true", default=False, help="Output all three stage summaries as a single JSON object")
 
     retro_timeline_parser = subparsers.add_parser(
         "derive-retro-timeline",
@@ -846,9 +731,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     cost_audit_parser = subparsers.add_parser(
         "audit-cost-coverage",
         help="Explain why product goals are missing cost coverage",
-        description=(
-            "Inspect closed product goals and explain why cost coverage is missing, partial, or recoverable."
-        ),
+        description="Inspect closed product goals and explain why cost coverage is missing, partial, or recoverable.",
     )
     cost_audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     cost_audit_parser.add_argument("--pricing-path", default=None)
@@ -856,6 +739,21 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     cost_audit_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
     cost_audit_parser.add_argument("--codex-thread-id")
     cost_audit_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
+
+
+def _add_sync_and_render_parsers(subparsers: Any) -> None:
+    show_parser = subparsers.add_parser(
+        "show",
+        help="Print current summary and operator review",
+        description="Print the current summary, cost coverage, and operator review.",
+    )
+    show_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
+    show_parser.add_argument(
+        "--warehouse-path",
+        default=str(RAW_WAREHOUSE_PATH),
+        help="Path to the history warehouse SQLite file (default: auto-detected from metrics path)",
+    )
+    show_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
 
     public_boundary_parser = subparsers.add_parser(
         "verify-public-boundary",
@@ -879,42 +777,18 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     security_parser.add_argument("--repo-root", default=".")
     security_parser.add_argument("--rules-path", default=str(SECURITY_RULES_PATH))
 
-    subparsers.add_parser(
-        "ensure-active-task",
-        help="Recover or verify active task bookkeeping from local git changes",
-        description=(
-            "Inspect the current git working tree for meaningful repository work and ensure that active task "
-            "bookkeeping exists. If work has started without an active goal, create a recovery draft."
-        ),
-    ).add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-
-    sync_parser = subparsers.add_parser(
-        "sync-usage",
-        help="Backfill usage and cost from local agent logs",
-        description="Backfill known cost and token totals from local agent telemetry.",
-    )
-    sync_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    sync_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    sync_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
-    sync_parser.add_argument("--pricing-path", default=None)
-    sync_parser.add_argument("--usage-state-path", "--codex-state-path", dest="usage_state_path", default=str(CODEX_STATE_PATH))
-    sync_parser.add_argument("--usage-logs-path", "--codex-logs-path", dest="usage_logs_path", default=str(CODEX_LOGS_PATH))
-    sync_parser.add_argument("--usage-thread-id", "--codex-thread-id", dest="usage_thread_id")
-    sync_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
-
-    sync_legacy_parser = subparsers.add_parser(
-        "sync-codex-usage",
-        help="Deprecated alias for sync-usage",
-        description="Backfill known cost and token totals from local agent telemetry.",
-    )
-    sync_legacy_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    sync_legacy_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    sync_legacy_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
-    sync_legacy_parser.add_argument("--pricing-path", default=None)
-    sync_legacy_parser.add_argument("--usage-state-path", "--codex-state-path", dest="usage_state_path", default=str(CODEX_STATE_PATH))
-    sync_legacy_parser.add_argument("--usage-logs-path", "--codex-logs-path", dest="usage_logs_path", default=str(CODEX_LOGS_PATH))
-    sync_legacy_parser.add_argument("--usage-thread-id", "--codex-thread-id", dest="usage_thread_id")
-    sync_legacy_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
+    for name in ("sync-usage", "sync-codex-usage"):
+        sp = subparsers.add_parser(
+            name,
+            help="Backfill usage and cost from local agent logs" if name == "sync-usage" else "Deprecated alias for sync-usage",
+            description="Backfill known cost and token totals from local agent telemetry.",
+        )
+        _add_report_output_flags(sp)
+        sp.add_argument("--pricing-path", default=None)
+        sp.add_argument("--usage-state-path", "--codex-state-path", dest="usage_state_path", default=str(CODEX_STATE_PATH))
+        sp.add_argument("--usage-logs-path", "--codex-logs-path", dest="usage_logs_path", default=str(CODEX_LOGS_PATH))
+        sp.add_argument("--usage-thread-id", "--codex-thread-id", dest="usage_thread_id")
+        sp.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
     merge_parser = subparsers.add_parser(
         "merge-tasks",
@@ -923,9 +797,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     )
     merge_parser.add_argument("--keep-task-id", required=True, help="Goal that should remain after the merge")
     merge_parser.add_argument("--drop-task-id", required=True, help="Goal that should be merged into the kept goal")
-    merge_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    merge_parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    merge_parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
+    _add_report_output_flags(merge_parser)
 
     render_report_parser = subparsers.add_parser(
         "render-report",
@@ -946,20 +818,10 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         default=str(REPORT_HTML_PATH),
         help="Output path for the HTML file (default: reports/report.html)",
     )
-    render_html_parser.add_argument(
-        "--days",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Limit the time window to the last N days",
-    )
+    render_html_parser.add_argument("--days", type=int, default=None, metavar="N", help="Limit the time window to the last N days")
     # Default is empty so handle_render_html falls back to the
     # metrics-path-adjacent default warehouse (derived per call in commands.py).
-    render_html_parser.add_argument(
-        "--warehouse-path",
-        default="",
-        help="SQLite warehouse path (default: derived from --metrics-path)",
-    )
+    render_html_parser.add_argument("--warehouse-path", default="", help="SQLite warehouse path (default: derived from --metrics-path)")
     render_html_parser.add_argument(
         "--cwd",
         default="",
@@ -972,19 +834,61 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         ),
     )
 
-    # Hide advanced / pipeline-internal commands from the top-level `--help`
-    # listing without unregistering them. The commands remain callable and
-    # `<cmd> --help` still renders their per-command help. The epilog lists
-    # them by name so users know they exist. This mutates a private argparse
-    # attribute (stable across Py 3.9–3.13) because argparse has no public API
-    # to mark a subparser as hidden after creation.
+
+def _hide_advanced_commands_from_help(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
+    """Drop advanced / pipeline-internal commands from the top-level `--help` listing.
+
+    The commands remain callable and `<cmd> --help` still renders their
+    per-command help. The epilog lists them by name so users know they exist.
+    This mutates a private argparse attribute (stable across Py 3.9–3.13)
+    because argparse has no public API to mark a subparser as hidden after
+    creation.
+    """
     # pylint: disable=protected-access
     subparsers._choices_actions = [  # noqa: SLF001
         act for act in subparsers._choices_actions
         if act.dest not in _HIDDEN_FROM_TOPLEVEL_HELP
     ]
-    # pylint: enable=protected-access
 
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=_detect_module_prog(),
+        description="Analyze your AI agent work history, track spending, and optimize your workflow. Point it at your history files and see retry pressure, token cost, and session timeline — no manual setup required.",
+        epilog=(
+            "Additional commands (run `<command> --help` for details):\n"
+            "  Manual tracking:   update, ensure-active-task, sync-usage, sync-codex-usage\n"
+            "  History pipeline:  history-ingest, history-normalize, history-classify,\n"
+            "                     history-derive\n"
+            "  Audit / debug:     history-audit, history-compare, audit-cost-coverage,\n"
+            "                     derive-retro-timeline\n"
+            "  Maintenance:       init, merge-tasks, render-report,\n"
+            "                     verify-public-boundary, security\n"
+            "\n"
+            "Examples:\n"
+            "  %(prog)s history-update\n"
+            "  %(prog)s show\n"
+            "  %(prog)s render-html --output /tmp/report.html\n"
+            "  %(prog)s bootstrap --target-dir /path/to/repo --dry-run\n"
+            "  %(prog)s start-task --title \"Add CSV import\" --task-type product\n"
+            "  %(prog)s continue-task --task-id 2026-03-29-001 --notes \"Retry after validation failure\"\n"
+            "  %(prog)s finish-task --task-id 2026-03-29-001 --status success --notes \"Validated\"\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+        # A short placeholder keeps the `usage:` header readable — argparse
+        # would otherwise dump all 26 choice names in a single unwrapped blob.
+        metavar="<command>",
+    )
+    _add_init_and_bootstrap_parsers(subparsers)
+    _add_task_workflow_parsers(subparsers)
+    _add_history_parsers(subparsers)
+    _add_sync_and_render_parsers(subparsers)
+    _hide_advanced_commands_from_help(subparsers)
     return parser
 
 

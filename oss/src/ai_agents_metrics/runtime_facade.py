@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any
 
 from ai_agents_metrics.bootstrap import (
     BootstrapCallbacks,
@@ -21,6 +21,8 @@ from ai_agents_metrics.cost_audit import (
 )
 from ai_agents_metrics.domain import (
     GoalRecord,
+    GoalUsageResolution,
+    ManualGoalUpdates,
     apply_goal_updates,
     build_merged_notes,
     choose_earliest_timestamp,
@@ -390,27 +392,9 @@ def bootstrap_project(
     return result.messages
 
 
-class GoalUsageResolution(NamedTuple):
-    """Named return type for :func:`resolve_goal_usage_updates`.
-
-    Subclassing ``NamedTuple`` preserves the existing positional tuple contract
-    (e.g. ``*_, detected = resolve_goal_usage_updates(...)``) while giving
-    internal callers attribute access so mypy flags field-order mistakes.
-    """
-
-    usage_cost_usd: float | None
-    usage_total_tokens: int | None
-    usage_input_tokens: int | None
-    usage_cached_input_tokens: int | None
-    usage_output_tokens: int | None
-    usage_model: str | None
-    auto_cost_usd: float | None
-    auto_total_tokens: int | None
-    auto_input_tokens: int | None
-    auto_cached_input_tokens: int | None
-    auto_output_tokens: int | None
-    auto_model: str | None
-    detected_agent_name: str | None
+# GoalUsageResolution is re-exported from ai_agents_metrics.domain so that
+# apply_goal_updates (domain layer) can accept it without triggering the
+# import-linter `Domain layer must not import from orchestration` rule.
 
 
 # Wide kwargs surface reflects the CLI update contract (manual / usage-driven
@@ -624,39 +608,26 @@ def upsert_task(  # pylint: disable=too-many-arguments,too-many-locals
         claude_root=claude_root,
     )
     apply_goal_updates(
-        entries=entries,
-        task=task,
-        title=title,
-        task_type=task_type,
-        status=status,
-        attempts_delta=attempts_delta,
-        attempts_abs=attempts_abs,
-        cost_usd_add=cost_usd_add,
-        cost_usd_set=cost_usd_set,
-        input_tokens_add=None,
-        cached_input_tokens_add=None,
-        output_tokens_add=None,
-        tokens_add=tokens_add,
-        tokens_set=tokens_set,
-        usage_cost_usd=resolution.usage_cost_usd,
-        usage_input_tokens=resolution.usage_input_tokens,
-        usage_cached_input_tokens=resolution.usage_cached_input_tokens,
-        usage_output_tokens=resolution.usage_output_tokens,
-        usage_total_tokens=resolution.usage_total_tokens,
-        auto_cost_usd=resolution.auto_cost_usd,
-        auto_input_tokens=resolution.auto_input_tokens,
-        auto_cached_input_tokens=resolution.auto_cached_input_tokens,
-        auto_output_tokens=resolution.auto_output_tokens,
-        auto_total_tokens=resolution.auto_total_tokens,
-        model=model,
-        usage_model=resolution.usage_model,
-        auto_model=resolution.auto_model,
-        failure_reason=failure_reason,
-        notes=notes,
-        agent_name=resolution.detected_agent_name,
-        started_at=started_at,
-        finished_at=finished_at,
-        result_fit=result_fit,
+        entries,
+        task,
+        ManualGoalUpdates(
+            title=title,
+            task_type=task_type,
+            status=status,
+            attempts_delta=attempts_delta,
+            attempts_abs=attempts_abs,
+            cost_usd_add=cost_usd_add,
+            cost_usd_set=cost_usd_set,
+            tokens_add=tokens_add,
+            tokens_set=tokens_set,
+            failure_reason=failure_reason,
+            result_fit=result_fit,
+            notes=notes,
+            started_at=started_at,
+            finished_at=finished_at,
+            model=model,
+        ),
+        resolution,
     )
     finalize_goal_update(task)
     task_dict = goal_to_dict(task)
