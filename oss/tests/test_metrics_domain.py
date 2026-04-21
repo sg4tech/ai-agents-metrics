@@ -906,6 +906,30 @@ def test_resolve_pricing_path_falls_back_to_bundled(tmp_path: Path) -> None:
     assert result.exists()
 
 
+def test_resolve_effective_pricing_path_prefers_explicit_path(tmp_path: Path) -> None:
+    explicit = tmp_path / "explicit-pricing.json"
+    result = MODULE.resolve_effective_pricing_path(cwd=tmp_path, pricing_path=explicit)
+    assert result == explicit
+
+
+def test_resolve_effective_pricing_path_falls_back_to_workspace_resolution(tmp_path: Path) -> None:
+    override = tmp_path / "model_pricing.json"
+    override.write_text("{}", encoding="utf-8")
+    result = MODULE.resolve_effective_pricing_path(cwd=tmp_path)
+    assert result == override
+
+
+def test_load_effective_pricing_uses_explicit_path(tmp_path: Path) -> None:
+    explicit = tmp_path / "explicit-pricing.json"
+    explicit.write_text(
+        json.dumps({"models": {"my-model": {"input_per_million_usd": 1.0, "cached_input_per_million_usd": 0.1, "output_per_million_usd": 5.0}}}),
+        encoding="utf-8",
+    )
+
+    pricing = MODULE.load_effective_pricing(cwd=tmp_path, pricing_path=explicit)
+    assert pricing["my-model"]["input_per_million_usd"] == 1.0
+
+
 def test_resolve_codex_usage_window_returns_none_without_matching_thread(
     tmp_path: Path,
 ) -> None:

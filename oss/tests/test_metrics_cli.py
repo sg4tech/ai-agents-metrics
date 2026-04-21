@@ -1255,6 +1255,71 @@ def test_render_html_exposes_cwd_override_flag(repo: Path) -> None:
     assert "--cwd" in result.stdout
 
 
+def test_render_html_uses_workspace_pricing_override_path(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+
+    sentinel_pricing_path = repo / "model_pricing.json"
+    sentinel_pricing_path.write_text("{}", encoding="utf-8")
+    output_path = repo / "reports" / "report.html"
+    captured: dict[str, Path] = {}
+
+    def fake_load_effective_pricing(*, cwd: Path, pricing_path: Path | None = None) -> dict[str, dict[str, float | None]]:
+        captured["cwd"] = cwd
+        captured["path"] = pricing_path
+        assert pricing_path is None
+        return {}
+
+    monkeypatch.setattr(codex_metrics_cli, "load_effective_pricing", fake_load_effective_pricing)
+
+    result = run_cmd(repo, "render-html", "--output", str(output_path))
+
+    assert result.returncode == 0, result.stderr
+    assert captured["cwd"] == repo
+    assert captured["path"] is None
+
+
+def test_update_uses_centralized_effective_pricing_path(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    assert run_cmd(repo, "init", "--force").returncode == 0
+
+    sentinel_pricing_path = repo / "explicit-pricing.json"
+    sentinel_pricing_path.write_text(
+        json.dumps({"models": {"gpt-5": {"input_per_million_usd": 1.25, "cached_input_per_million_usd": 0.125, "output_per_million_usd": 10.0}}}),
+        encoding="utf-8",
+    )
+    captured: dict[str, Path | None] = {}
+
+    def fake_resolve_effective_pricing_path(*, cwd: Path, pricing_path: Path | None = None) -> Path:
+        captured["cwd"] = cwd
+        captured["path"] = pricing_path
+        assert pricing_path == sentinel_pricing_path
+        return sentinel_pricing_path
+
+    monkeypatch.setattr(codex_metrics_cli, "resolve_effective_pricing_path", fake_resolve_effective_pricing_path)
+
+    result = run_cmd(
+        repo,
+        "update",
+        "--task-id",
+        "centralized-pricing-task",
+        "--title",
+        "Centralized pricing task",
+        "--task-type",
+        "product",
+        "--status",
+        "success",
+        "--model",
+        "gpt-5",
+        "--input-tokens",
+        "1000",
+        "--pricing-path",
+        str(sentinel_pricing_path),
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert captured["cwd"] == repo
+    assert captured["path"] == sentinel_pricing_path
+
+
 def test_top_level_help_hides_advanced_commands_from_subparser_list(repo: Path) -> None:
     """First-time users should see a short primary-flow listing, not 26 commands.
 
