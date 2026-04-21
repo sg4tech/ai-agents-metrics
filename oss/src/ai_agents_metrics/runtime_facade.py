@@ -5,7 +5,13 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any, NamedTuple
 
-from ai_agents_metrics.bootstrap import bootstrap_project as run_bootstrap_project
+from ai_agents_metrics.bootstrap import (
+    BootstrapCallbacks,
+    BootstrapPaths,
+)
+from ai_agents_metrics.bootstrap import (
+    bootstrap_project as run_bootstrap_project,
+)
 from ai_agents_metrics.cost_audit import (
     CostAuditContext,
     CostAuditReport,
@@ -370,18 +376,22 @@ def bootstrap_project(
     force: bool = False,
     dry_run: bool = False,
 ) -> list[str]:
+    del target_dir
     result = run_bootstrap_project(
-        target_dir=target_dir,
-        metrics_path=metrics_path,
-        report_path=report_path,
-        policy_path=policy_path,
-        command_path=command_path,
-        agents_path=agents_path,
+        paths=BootstrapPaths(
+            metrics_path=metrics_path,
+            report_path=report_path,
+            policy_path=policy_path,
+            command_path=command_path,
+            agents_path=agents_path,
+        ),
         force=force,
         dry_run=dry_run,
-        load_metrics=load_metrics,
-        default_metrics=default_metrics,
-        save_report=save_report,
+        callbacks=BootstrapCallbacks(
+            load_metrics=load_metrics,
+            default_metrics=default_metrics,
+            save_report=save_report,
+        ),
     )
     return result.messages
 

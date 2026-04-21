@@ -153,15 +153,22 @@ def _iter_tool_use_blocks(node: object) -> Iterator[dict[str, Any]]:
             yield from _iter_tool_use_blocks(item)
 
 
+@dataclass(frozen=True)
+class PracticeSourceRow:
+    """Source-row identity for a raw_session_events tool_use payload."""
+
+    event_id: str
+    session_path: str
+    thread_id: str | None
+    source_path: str
+    event_index: int
+    timestamp: str | None
+    raw_json: str
+
+
 def _extract_practice_rows(
+    source_row: PracticeSourceRow,
     *,
-    event_id: str,
-    session_path: str,
-    thread_id: str | None,
-    source_path: str,
-    event_index: int,
-    timestamp: str | None,
-    raw_json: str,
     classifier_version: str,
     classified_at: str,
 ) -> list[tuple]:
@@ -172,7 +179,7 @@ def _extract_practice_rows(
     tool_use blocks may legitimately be absent).
     """
     try:
-        payload = json.loads(raw_json)
+        payload = json.loads(source_row.raw_json)
     except (TypeError, ValueError):
         return []
     rows: list[tuple] = []
@@ -191,15 +198,15 @@ def _extract_practice_rows(
         family = _classify_practice_family(source_kind, practice_name)
         tool_use_id = block.get("id")
         # Deterministic PK: (event_id, tool_use_ordinal) — stable across reruns.
-        practice_event_id = f"{event_id}:{tool_use_ordinal}"
+        practice_event_id = f"{source_row.event_id}:{tool_use_ordinal}"
         raw_row = json.dumps(
             {
                 "practice_event_id": practice_event_id,
-                "session_path": session_path,
-                "thread_id": thread_id,
-                "source_path": source_path,
-                "event_index": event_index,
-                "timestamp": timestamp,
+                "session_path": source_row.session_path,
+                "thread_id": source_row.thread_id,
+                "source_path": source_row.source_path,
+                "event_index": source_row.event_index,
+                "timestamp": source_row.timestamp,
                 "tool_use_id": tool_use_id,
                 "source_kind": source_kind,
                 "practice_name": practice_name,
@@ -212,11 +219,11 @@ def _extract_practice_rows(
         rows.append(
             (
                 practice_event_id,
-                session_path,
-                thread_id,
-                source_path,
-                event_index,
-                timestamp,
+                source_row.session_path,
+                source_row.thread_id,
+                source_row.source_path,
+                source_row.event_index,
+                source_row.timestamp,
                 tool_use_id,
                 source_kind,
                 practice_name,
@@ -264,13 +271,15 @@ def _classify_practice_events(
     )
     for row in cur:
         practice_rows = _extract_practice_rows(
-            event_id=row["event_id"],
-            session_path=row["session_path"],
-            thread_id=row["thread_id"],
-            source_path=row["source_path"],
-            event_index=row["event_index"],
-            timestamp=row["timestamp"],
-            raw_json=row["raw_json"],
+            PracticeSourceRow(
+                event_id=row["event_id"],
+                session_path=row["session_path"],
+                thread_id=row["thread_id"],
+                source_path=row["source_path"],
+                event_index=row["event_index"],
+                timestamp=row["timestamp"],
+                raw_json=row["raw_json"],
+            ),
             classifier_version=PRACTICE_EVENT_CLASSIFIER_VERSION,
             classified_at=classified_at,
         )
