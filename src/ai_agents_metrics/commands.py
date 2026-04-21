@@ -45,6 +45,7 @@ from ai_agents_metrics.retro_timeline import (
     RetroTimelineReport,
 )
 from ai_agents_metrics.storage import metrics_mutation_lock
+from ai_agents_metrics.usage_backends import UsageBackend
 from ai_agents_metrics.workflow_fsm import (
     WorkflowEvent,
 )
@@ -72,7 +73,7 @@ class CommandRuntime(Protocol):
         usage_state_path: Path,
         usage_logs_path: Path,
         usage_thread_id: str | None,
-        usage_backend: str | None = None,
+        usage_backend: UsageBackend | None = None,
         claude_root: Path = ...,
     ) -> int: ...
     def sync_codex_usage(
