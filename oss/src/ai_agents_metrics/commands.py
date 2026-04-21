@@ -10,9 +10,9 @@ import stat
 import sys
 from argparse import Namespace
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ai_agents_metrics.cost_audit import (
     CostAuditReport,
@@ -26,17 +26,7 @@ from ai_agents_metrics.domain import (
     sync_goal_attempt_entries,
 )
 from ai_agents_metrics.event_store import append_event
-from ai_agents_metrics.history.audit import (
-    AuditReport,
-)
-from ai_agents_metrics.history.classify import ClassifySummary
-from ai_agents_metrics.history.compare import (
-    HistoryCompareReport,
-    HistorySignals,
-)
-from ai_agents_metrics.history.derive import DeriveSummary
 from ai_agents_metrics.history.ingest import IngestSummary, default_raw_warehouse_path
-from ai_agents_metrics.history.normalize import NormalizeSummary
 from ai_agents_metrics.html_report import (
     aggregate_report_data,
     check_warehouse_state,
@@ -52,14 +42,26 @@ from ai_agents_metrics.public_boundary import (
     render_public_boundary_report_json,
 )
 from ai_agents_metrics.reporting import print_summary
-from ai_agents_metrics.retro_timeline import (
-    RetroTimelineReport,
-)
 from ai_agents_metrics.storage import metrics_mutation_lock
-from ai_agents_metrics.usage_backends import UsageBackend
 from ai_agents_metrics.workflow_fsm import (
     WorkflowEvent,
 )
+
+if TYPE_CHECKING:
+    from ai_agents_metrics.history.audit import (
+        AuditReport,
+    )
+    from ai_agents_metrics.history.classify import ClassifySummary
+    from ai_agents_metrics.history.compare import (
+        HistoryCompareReport,
+        HistorySignals,
+    )
+    from ai_agents_metrics.history.derive import DeriveSummary
+    from ai_agents_metrics.history.normalize import NormalizeSummary
+    from ai_agents_metrics.retro_timeline import (
+        RetroTimelineReport,
+    )
+    from ai_agents_metrics.usage_backends import UsageBackend
 
 
 # CommandRuntime aggregates the entire runtime surface that handle_* command
@@ -215,7 +217,7 @@ def _command_to_event_type(command: str | None) -> str:
 
 def _resolve_invocation_path() -> Path:
     argv0 = Path(sys.argv[0])
-    if argv0.is_absolute() or argv0.parent != Path("."):
+    if argv0.is_absolute() or argv0.parent != Path():
         return argv0.resolve()
 
     discovered = shutil.which(sys.argv[0])
@@ -257,10 +259,7 @@ def _shell_profile_path() -> Path | None:
 
 
 def _ensure_profile_has_path_line(profile_path: Path, export_line: str) -> bool:
-    if profile_path.exists():
-        existing_text = profile_path.read_text(encoding="utf-8")
-    else:
-        existing_text = ""
+    existing_text = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
     if export_line in existing_text:
         return False
 
@@ -306,7 +305,7 @@ def _write_python_launcher(target_path: Path, *, python_executable: Path, source
 def _write_source_module_launcher(target_path: Path, *, python_executable: Path, source_root: Path) -> None:
     launcher = (
         "#!/bin/sh\n"
-        "if [ -n \"$PYTHONPATH\" ]; then\n"
+        'if [ -n "$PYTHONPATH" ]; then\n'
         f"  export PYTHONPATH='{source_root}':\"$PYTHONPATH\"\n"
         "else\n"
         f"  export PYTHONPATH='{source_root}'\n"
@@ -329,7 +328,7 @@ def _render_source_module_launcher(*, python_executable: Path, source_root: Path
     return (
         "#!/bin/sh\n"
         f"cd '{repo_root}' || exit 1\n"
-        "if [ -n \"$PYTHONPATH\" ]; then\n"
+        'if [ -n "$PYTHONPATH" ]; then\n'
         f"  export PYTHONPATH='{source_root}':\"$PYTHONPATH\"\n"
         "else\n"
         f"  export PYTHONPATH='{source_root}'\n"
@@ -496,7 +495,7 @@ def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
     _warehouse_raw = getattr(args, "warehouse_path", "")
     # Guard against the empty-string case: Path("").expanduser() resolves to Path(".")
     # which always exists and causes an unintended SQLite connect attempt.
-    warehouse_path = Path(_warehouse_raw).expanduser() if _warehouse_raw else Path("")
+    warehouse_path = Path(_warehouse_raw).expanduser() if _warehouse_raw else Path()
     data = cli_module.load_metrics(metrics_path)
     cli_module.recompute_summary(data)
     history_signals = cli_module.read_history_signals(warehouse_path, Path.cwd(), data)
@@ -975,7 +974,7 @@ def handle_merge_tasks(args: Namespace, cli_module: CommandRuntime) -> int:
             goal=task,
             entries=kept_entries,
             dropped_goal_id=args.drop_task_id,
-            goals=relinked_goals if relinked_goals else None,
+            goals=relinked_goals or None,
         )
         recompute_summary(data)
         record_goal_merge_observation(
@@ -1271,7 +1270,7 @@ def _resolve_render_html_cwd_and_warehouse(args: Namespace, metrics_path: Path) 
     beside the metrics file.
     """
     cwd_arg = getattr(args, "cwd", "") or ""
-    cwd = cwd_arg if cwd_arg else str(Path.cwd())
+    cwd = cwd_arg or str(Path.cwd())
     warehouse_arg = getattr(args, "warehouse_path", "") or ""
     warehouse_path = Path(warehouse_arg) if warehouse_arg else None
     if warehouse_path is None or not warehouse_path.is_file():
@@ -1306,7 +1305,7 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
         warehouse_state=warehouse_state,
     )
     html = render_html_report(
-        chart_data, datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        chart_data, datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

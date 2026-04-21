@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
-from typing import NamedTuple, TypeVar
+from typing import TYPE_CHECKING, NamedTuple, TypeVar
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 ALLOWED_STATUSES = {"in_progress", "success", "fail"}
 ALLOWED_TASK_TYPES = {"product", "retro", "meta"}

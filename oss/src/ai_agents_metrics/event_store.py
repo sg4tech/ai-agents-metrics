@@ -14,10 +14,12 @@ Replay is last-write-wins per goal_id / entry_id, processed in file order.
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain.time_utils import now_utc_iso
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 EVENT_TYPES: frozenset[str] = frozenset(
     {

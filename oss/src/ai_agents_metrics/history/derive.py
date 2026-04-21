@@ -4,8 +4,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.history.derive_build import (
     _build_index_maps,
@@ -32,13 +31,17 @@ from ai_agents_metrics.history.derive_schema import (
     _clear_derived_tables,
     _ensure_schema,
 )
-from ai_agents_metrics.history.normalize import (
-    NormalizedLogRow,
-    NormalizedMessageRow,
-    NormalizedSessionRow,
-    NormalizedThreadRow,
-    NormalizedUsageEventRow,
-)
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from ai_agents_metrics.history.normalize import (
+        NormalizedLogRow,
+        NormalizedMessageRow,
+        NormalizedSessionRow,
+        NormalizedThreadRow,
+        NormalizedUsageEventRow,
+    )
 
 _EMPTY_PROJECT_STATS: dict[str, Any] = {
     "thread_count": 0, "attempt_count": 0, "retry_thread_count": 0,

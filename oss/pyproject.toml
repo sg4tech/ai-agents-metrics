@@ -63,8 +63,21 @@ line-length = 100
 
 [tool.ruff.lint]
 select = [
-  "F",
-  "I",
+  "B",     # flake8-bugbear
+  "C4",    # comprehensions
+  "ERA",   # eradicate commented-out code
+  "F",     # pyflakes
+  "FURB",  # refurb modernizations
+  "I",     # isort
+  "PERF",  # perflint
+  "PGH",   # pygrep-hooks
+  "PTH",   # flake8-use-pathlib
+  "Q",     # quotes
+  "RET",   # return simplifications
+  "RSE",   # raise statements
+  "SIM",   # simplifications
+  "TC",    # type-checking block hygiene
+  "UP",    # pyupgrade
 ]
 
 [tool.mypy]

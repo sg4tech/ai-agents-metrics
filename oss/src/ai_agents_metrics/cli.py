@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -396,7 +395,7 @@ def upsert_task(  # pylint: disable=too-many-arguments,too-many-locals
 def _detect_module_prog() -> str | None:
     """Return a human-readable prog name when invoked as ``python -m ai_agents_metrics``."""
     argv0 = sys.argv[0] if sys.argv else ""
-    if os.path.basename(argv0) == "__main__.py":
+    if Path(argv0).name == "__main__.py":
         py = f"python{sys.version_info.major}.{sys.version_info.minor}"
         return f"{py} -m ai_agents_metrics"
     return None
@@ -571,10 +570,10 @@ def _add_task_workflow_parsers(subparsers: Any) -> None:
         ),
         epilog=(
             "Examples:\n"
-            "  %(prog)s --title \"Improve CLI help\" --task-type product --attempts-delta 1\n"
-            "  %(prog)s --task-id 2026-03-29-010 --status success --notes \"Validated\"\n"
-            "  %(prog)s --task-id 2026-03-29-011 --title \"Retry CLI help\" --task-type product --supersedes-task-id 2026-03-29-010 --status success\n"
-            "  %(prog)s --title \"Write retro\" --task-type retro --attempts-delta 1 --status success\n"
+            '  %(prog)s --title "Improve CLI help" --task-type product --attempts-delta 1\n'
+            '  %(prog)s --task-id 2026-03-29-010 --status success --notes "Validated"\n'
+            '  %(prog)s --task-id 2026-03-29-011 --title "Retry CLI help" --task-type product --supersedes-task-id 2026-03-29-010 --status success\n'
+            '  %(prog)s --title "Write retro" --task-type retro --attempts-delta 1 --status success\n'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -871,9 +870,9 @@ def build_parser() -> argparse.ArgumentParser:
             "  %(prog)s show\n"
             "  %(prog)s render-html --output /tmp/report.html\n"
             "  %(prog)s bootstrap --target-dir /path/to/repo --dry-run\n"
-            "  %(prog)s start-task --title \"Add CSV import\" --task-type product\n"
-            "  %(prog)s continue-task --task-id 2026-03-29-001 --notes \"Retry after validation failure\"\n"
-            "  %(prog)s finish-task --task-id 2026-03-29-001 --status success --notes \"Validated\"\n"
+            '  %(prog)s start-task --title "Add CSV import" --task-type product\n'
+            '  %(prog)s continue-task --task-id 2026-03-29-001 --notes "Retry after validation failure"\n'
+            '  %(prog)s finish-task --task-id 2026-03-29-001 --status success --notes "Validated"\n'
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

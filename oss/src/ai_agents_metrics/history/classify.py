@@ -18,19 +18,20 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import sqlite3
-from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.history.derive_schema import (
     _clear_derived_practice_events,
     _clear_derived_session_kinds,
     _ensure_schema,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 SESSION_KIND_MAIN = "main"
 SESSION_KIND_SUBAGENT = "subagent"
@@ -117,7 +118,7 @@ def _classify_session_kind(session_path: str) -> str:
     """
     if not session_path:
         return SESSION_KIND_UNKNOWN
-    base = os.path.basename(session_path)
+    base = Path(session_path).name
     if base.startswith("agent-"):
         return SESSION_KIND_SUBAGENT
     normalized = session_path.replace("\\", "/")
@@ -318,7 +319,7 @@ def classify_codex_history(*, warehouse_path: Path) -> ClassifySummary:
     subagent_count = 0
     unknown_count = 0
 
-    classified_at = datetime.now(timezone.utc).isoformat()
+    classified_at = datetime.now(UTC).isoformat()
 
     with sqlite3.connect(warehouse_path) as conn:
         conn.row_factory = sqlite3.Row

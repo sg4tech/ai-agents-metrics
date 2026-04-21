@@ -6,11 +6,13 @@ import hashlib
 import json
 import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain import now_utc_iso
 from ai_agents_metrics.storage import ensure_parent_dir
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 RAW_WAREHOUSE_DIRNAME = ".ai-agents-metrics"
 _RAW_WAREHOUSE_DIRNAME_LEGACY = ".codex-metrics"
@@ -62,7 +64,7 @@ def _json_text(value: Any) -> str:
 
 def _optional_row_value(row: sqlite3.Row | dict[str, Any], key: str, default: Any = None) -> Any:
     if isinstance(row, sqlite3.Row):
-        return row[key] if key in row.keys() else default
+        return row[key] if key in row.keys() else default  # noqa: SIM118 sqlite3.Row lacks .get()
     return row.get(key, default)
 
 
@@ -398,7 +400,7 @@ def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
                         _json_text(payload),
                     ),
                 )
-            event_id = hashlib.sha256(f"{source_path}:{event_index}:{line}".encode("utf-8")).hexdigest()
+            event_id = hashlib.sha256(f"{source_path}:{event_index}:{line}".encode()).hexdigest()
             conn.execute(
                 """
                 INSERT INTO raw_session_events (
@@ -478,7 +480,7 @@ def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
                 if isinstance(role, str):
                     for message_index, text in enumerate(texts):
                         message_id = hashlib.sha256(
-                            f"{source_path}:{event_index}:{message_index}:{role}:{text}".encode("utf-8")
+                            f"{source_path}:{event_index}:{message_index}:{role}:{text}".encode()
                         ).hexdigest()
                         conn.execute(
                             """
@@ -592,10 +594,8 @@ def _iter_claude_source_files(claude_root: Path, cwd_filter: str | None = None) 
     for project_dir in sorted(d for d in projects_dir.iterdir() if d.is_dir()):
         if encoded_filter is not None and project_dir.name != encoded_filter:
             continue
-        for path in sorted(project_dir.glob("*.jsonl")):
-            files.append((path, "claude_session"))
-        for path in sorted(project_dir.rglob("subagents/agent-*.jsonl")):
-            files.append((path, "claude_session"))
+        files.extend((path, "claude_session") for path in sorted(project_dir.glob("*.jsonl")))
+        files.extend((path, "claude_session") for path in sorted(project_dir.rglob("subagents/agent-*.jsonl")))
     return files
 
 
@@ -778,7 +778,7 @@ def _insert_claude_message_rows(
     texts = _extract_claude_message_text(content)
     for message_index, text in enumerate(texts):
         message_id = hashlib.sha256(
-            f"{source_path}:{event_index}:{message_index}:{event_type}:{text}".encode("utf-8")
+            f"{source_path}:{event_index}:{message_index}:{event_type}:{text}".encode()
         ).hexdigest()
         conn.execute(
             """
@@ -809,7 +809,7 @@ def _ingest_claude_session_event(
     role = event_type if event_type in ("user", "assistant") else None
 
     event_id = hashlib.sha256(
-        f"{source_path}:{event_index}:{raw_line}".encode("utf-8")
+        f"{source_path}:{event_index}:{raw_line}".encode()
     ).hexdigest()
 
     conn.execute(

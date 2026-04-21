@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from decimal import ROUND_HALF_UP, Decimal
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.domain.ids import next_entry_id
 from ai_agents_metrics.domain.models import (
@@ -44,6 +43,9 @@ from ai_agents_metrics.domain.validation import (
     validate_status,
     validate_task_type,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def round_usd(value: Decimal | float) -> float:

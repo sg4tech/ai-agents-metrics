@@ -102,14 +102,14 @@ def _goal_timestamp(goal: EffectiveGoalRecord) -> str | None:
 
 
 def _parse_timestamp(value: str) -> datetime:
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return datetime.fromisoformat(value)
 
 
 def _normalize_timestamp(value: str | None) -> str | None:
     if value is None:
         return None
     cleaned = value.strip()
-    return cleaned if cleaned else None
+    return cleaned or None
 
 
 def _compact_text(value: str | None, *, limit: int = 120) -> str | None:

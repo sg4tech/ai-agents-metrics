@@ -332,7 +332,7 @@ def resolve_usage_costs(
         raise ValueError(f"Model {model} does not support cached input pricing")
 
     input_cost = Decimal(str(model_pricing["input_per_million_usd"])) * Decimal(input_tokens_value) / Decimal(1_000_000)
-    cached_input_cost = Decimal("0")
+    cached_input_cost = Decimal(0)
     if cached_rate is not None:
         cached_input_cost = Decimal(str(cached_rate)) * Decimal(cached_input_tokens_value) / Decimal(1_000_000)
     output_cost = Decimal(str(model_pricing["output_per_million_usd"])) * Decimal(output_tokens_value) / Decimal(1_000_000)
@@ -501,9 +501,8 @@ def resolve_goal_usage_updates(  # pylint: disable=too-many-arguments,too-many-l
                 auto_output_tokens = window.output_tokens
                 auto_model = window.model_name
 
-        if auto_cost_usd is not None or auto_total_tokens is not None:
-            if task.agent_name is None:
-                detected_agent_name = window.backend_name
+        if (auto_cost_usd is not None or auto_total_tokens is not None) and task.agent_name is None:
+            detected_agent_name = window.backend_name
 
     return GoalUsageResolution(
         usage_cost_usd=usage_cost_usd,
