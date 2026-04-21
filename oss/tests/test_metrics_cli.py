@@ -128,6 +128,28 @@ def run_module_cmd(
     )
 
 
+def test_main_routes_commands_through_runtime_facade(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ai_agents_metrics import commands, runtime_facade
+
+    captured_runtime: object | None = None
+
+    def fake_handle_show(args: object, cli_module: object) -> int:
+        nonlocal captured_runtime
+        captured_runtime = cli_module
+        return 0
+
+    monkeypatch.setattr(codex_metrics_cli, "_record_cli_invocation", lambda _args: None)
+    monkeypatch.setattr(commands, "handle_show", fake_handle_show)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "argv", ["ai-agents-metrics", "show"])
+
+    assert codex_metrics_cli.main() == 0
+    assert captured_runtime is runtime_facade
+
+
 def render_report(repo: Path) -> subprocess.CompletedProcess[str]:
     return run_cmd(repo, "render-report")
 
@@ -430,9 +452,10 @@ def repo(tmp_path: Path) -> Path:
     script_target = tmp_path / "scripts" / "metrics_cli.py"
     script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
 
-    # Full src copy only needed when subprocess must import the package from tmp.
-    if os.environ.get("CODEX_SUBPROCESS_COVERAGE") == "1":
-        shutil.copytree(ABS_SRC, tmp_path / "src", dirs_exist_ok=True)
+    # Keep subprocess-based CLI tests hermetic: the script shim should always
+    # import the package from the temp repo, not rely on an ambient editable
+    # install or global PYTHONPATH.
+    shutil.copytree(ABS_SRC, tmp_path / "src", dirs_exist_ok=True)
 
     subprocess.run(["git", "init"], cwd=tmp_path, text=True, capture_output=True, check=True)
     subprocess.run(["git", "config", "user.email", "codex@example.com"], cwd=tmp_path, text=True, capture_output=True, check=True)
@@ -1256,6 +1279,8 @@ def test_render_html_exposes_cwd_override_flag(repo: Path) -> None:
 
 
 def test_render_html_uses_workspace_pricing_override_path(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ai_agents_metrics import runtime_facade
+
     assert run_cmd(repo, "init", "--force").returncode == 0
 
     sentinel_pricing_path = repo / "model_pricing.json"
@@ -1269,7 +1294,7 @@ def test_render_html_uses_workspace_pricing_override_path(repo: Path, monkeypatc
         assert pricing_path is None
         return {}
 
-    monkeypatch.setattr(codex_metrics_cli, "load_effective_pricing", fake_load_effective_pricing)
+    monkeypatch.setattr(runtime_facade, "load_effective_pricing", fake_load_effective_pricing)
 
     result = run_cmd(repo, "render-html", "--output", str(output_path))
 
@@ -1279,6 +1304,8 @@ def test_render_html_uses_workspace_pricing_override_path(repo: Path, monkeypatc
 
 
 def test_update_uses_centralized_effective_pricing_path(repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from ai_agents_metrics import runtime_facade
+
     assert run_cmd(repo, "init", "--force").returncode == 0
 
     sentinel_pricing_path = repo / "explicit-pricing.json"
@@ -1294,7 +1321,7 @@ def test_update_uses_centralized_effective_pricing_path(repo: Path, monkeypatch:
         assert pricing_path == sentinel_pricing_path
         return sentinel_pricing_path
 
-    monkeypatch.setattr(codex_metrics_cli, "resolve_effective_pricing_path", fake_resolve_effective_pricing_path)
+    monkeypatch.setattr(runtime_facade, "resolve_effective_pricing_path", fake_resolve_effective_pricing_path)
 
     result = run_cmd(
         repo,
