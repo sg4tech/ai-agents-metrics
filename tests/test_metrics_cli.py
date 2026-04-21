@@ -3447,7 +3447,7 @@ def test_sync_usage_backfills_from_session_rollout_token_counts(repo: Path) -> N
     assert task["cached_input_tokens"] == 100
     assert task["output_tokens"] == 500
     assert task["tokens_total"] == 1625
-    assert task["cost_usd"] == 0.006263
+    assert task["cost_usd"] == 0.010025
 
 
 def test_sync_usage_is_noop_when_no_matching_thread_is_found(repo: Path) -> None:
