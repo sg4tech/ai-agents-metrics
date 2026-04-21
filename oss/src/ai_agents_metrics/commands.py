@@ -1,12 +1,18 @@
+"""CLI command handlers (one ``handle_*`` per subcommand)."""
+# pylint: disable=too-many-lines  # commands.py bundles all CLI command implementations; split into per-command modules is a tracked future task
 from __future__ import annotations
 
+import json
 import os
 import shutil
+import sqlite3
 import stat
 import sys
 from argparse import Namespace
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ai_agents_metrics.cost_audit import (
     CostAuditReport,
@@ -20,17 +26,12 @@ from ai_agents_metrics.domain import (
     sync_goal_attempt_entries,
 )
 from ai_agents_metrics.event_store import append_event
-from ai_agents_metrics.history.audit import (
-    AuditReport,
-)
-from ai_agents_metrics.history.classify import ClassifySummary
-from ai_agents_metrics.history.compare import (
-    HistoryCompareReport,
-    HistorySignals,
-)
-from ai_agents_metrics.history.derive import DeriveSummary
 from ai_agents_metrics.history.ingest import IngestSummary, default_raw_warehouse_path
-from ai_agents_metrics.history.normalize import NormalizeSummary
+from ai_agents_metrics.html_report import (
+    aggregate_report_data,
+    check_warehouse_state,
+    render_html_report,
+)
 from ai_agents_metrics.observability import (
     record_goal_merge_observation,
     record_goal_mutation_observation,
@@ -41,17 +42,35 @@ from ai_agents_metrics.public_boundary import (
     render_public_boundary_report_json,
 )
 from ai_agents_metrics.reporting import print_summary
-from ai_agents_metrics.retro_timeline import (
-    RetroTimelineReport,
-)
 from ai_agents_metrics.storage import metrics_mutation_lock
 from ai_agents_metrics.workflow_fsm import (
     WorkflowEvent,
 )
 
+if TYPE_CHECKING:
+    from ai_agents_metrics.history.audit import (
+        AuditReport,
+    )
+    from ai_agents_metrics.history.classify import ClassifySummary
+    from ai_agents_metrics.history.compare import (
+        HistoryCompareReport,
+        HistorySignals,
+    )
+    from ai_agents_metrics.history.derive import DeriveSummary
+    from ai_agents_metrics.history.normalize import NormalizeSummary
+    from ai_agents_metrics.retro_timeline import (
+        RetroTimelineReport,
+    )
+    from ai_agents_metrics.usage_backends import UsageBackend
 
-class CommandRuntime(Protocol):
+
+# CommandRuntime aggregates the entire runtime surface that handle_* command
+# functions depend on. 40 methods reflect the breadth of operations the CLI
+# dispatches, not an architectural issue. Splitting would fragment the single
+# type hint each handler uses, without reducing coupling.
+class CommandRuntime(Protocol):  # pylint: disable=too-many-public-methods
     def init_files(self, metrics_path: Path, report_path: Path | None, force: bool = False) -> None: ...
+    # pylint: disable-next=too-many-arguments
     def bootstrap_project(
         self,
         *,
@@ -64,20 +83,23 @@ class CommandRuntime(Protocol):
         force: bool = False,
         dry_run: bool = False,
     ) -> list[str]: ...
+    # pylint: disable-next=too-many-arguments
     def sync_usage(
         self,
         data: dict[str, Any],
+        *,
         cwd: Path,
         pricing_path: Path,
         usage_state_path: Path,
         usage_logs_path: Path,
         usage_thread_id: str | None,
-        usage_backend: str | None = None,
+        usage_backend: UsageBackend | None = None,
         claude_root: Path = ...,
     ) -> int: ...
     def sync_codex_usage(
         self,
         data: dict[str, Any],
+        *,
         cwd: Path,
         pricing_path: Path,
         codex_state_path: Path,
@@ -140,8 +162,14 @@ class CommandRuntime(Protocol):
     def render_retro_timeline_report(self, report: RetroTimelineReport) -> str: ...
     def render_retro_timeline_report_json(self, report: RetroTimelineReport) -> str: ...
     def render_cost_audit_report_json(self, report: CostAuditReport) -> str: ...
+    def load_effective_pricing(self, *, cwd: Path, pricing_path: Path | None = None) -> dict[str, dict[str, float | None]]: ...
+    def resolve_effective_pricing_path(self, *, cwd: Path, pricing_path: Path | None = None) -> Path: ...
     def resolve_pricing_path(self, cwd: Path) -> Path: ...
     def merge_tasks(self, data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> dict[str, Any]: ...
+    # upsert_task mirrors apply_goal_updates' signature; both are tracked as
+    # candidates for a sub-dataclass refactor once update precedence rules
+    # stabilise.
+    # pylint: disable-next=too-many-arguments,too-many-locals
     def upsert_task(
         self,
         *,
@@ -189,7 +217,7 @@ def _command_to_event_type(command: str | None) -> str:
 
 def _resolve_invocation_path() -> Path:
     argv0 = Path(sys.argv[0])
-    if argv0.is_absolute() or argv0.parent != Path("."):
+    if argv0.is_absolute() or argv0.parent != Path():
         return argv0.resolve()
 
     discovered = shutil.which(sys.argv[0])
@@ -231,10 +259,7 @@ def _shell_profile_path() -> Path | None:
 
 
 def _ensure_profile_has_path_line(profile_path: Path, export_line: str) -> bool:
-    if profile_path.exists():
-        existing_text = profile_path.read_text(encoding="utf-8")
-    else:
-        existing_text = ""
+    existing_text = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
     if export_line in existing_text:
         return False
 
@@ -280,7 +305,7 @@ def _write_python_launcher(target_path: Path, *, python_executable: Path, source
 def _write_source_module_launcher(target_path: Path, *, python_executable: Path, source_root: Path) -> None:
     launcher = (
         "#!/bin/sh\n"
-        "if [ -n \"$PYTHONPATH\" ]; then\n"
+        'if [ -n "$PYTHONPATH" ]; then\n'
         f"  export PYTHONPATH='{source_root}':\"$PYTHONPATH\"\n"
         "else\n"
         f"  export PYTHONPATH='{source_root}'\n"
@@ -303,7 +328,7 @@ def _render_source_module_launcher(*, python_executable: Path, source_root: Path
     return (
         "#!/bin/sh\n"
         f"cd '{repo_root}' || exit 1\n"
-        "if [ -n \"$PYTHONPATH\" ]; then\n"
+        'if [ -n "$PYTHONPATH" ]; then\n'
         f"  export PYTHONPATH='{source_root}':\"$PYTHONPATH\"\n"
         "else\n"
         f"  export PYTHONPATH='{source_root}'\n"
@@ -470,7 +495,7 @@ def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
     _warehouse_raw = getattr(args, "warehouse_path", "")
     # Guard against the empty-string case: Path("").expanduser() resolves to Path(".")
     # which always exists and causes an unintended SQLite connect attempt.
-    warehouse_path = Path(_warehouse_raw).expanduser() if _warehouse_raw else Path("")
+    warehouse_path = Path(_warehouse_raw).expanduser() if _warehouse_raw else Path()
     data = cli_module.load_metrics(metrics_path)
     cli_module.recompute_summary(data)
     history_signals = cli_module.read_history_signals(warehouse_path, Path.cwd(), data)
@@ -588,9 +613,6 @@ def _run_ingest(
 
 
 def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
-    import json as _json
-    import sys
-
     source_root_arg: str | None = getattr(args, "source_root", None)
     source: str = getattr(args, "source", None) or ("codex" if source_root_arg is not None else "all")
     json_output: bool = getattr(args, "json", False)
@@ -603,7 +625,7 @@ def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
 
     if source == "all":
         if json_output:
-            print(_json.dumps({k: _json.loads(cli_module.render_ingest_summary_json(v)) for k, v in summaries.items()}))
+            print(json.dumps({k: json.loads(cli_module.render_ingest_summary_json(v)) for k, v in summaries.items()}))
         else:
             for src_name in skipped:
                 print(f"Skipping {src_name}: {Path.home() / ('.' + src_name)} not found")
@@ -734,21 +756,15 @@ def _print_empty_history_guidance(source: str) -> None:
     print("       ai-agents-metrics history-update --source codex")
 
 
-def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
-    """Run the full history pipeline: ingest → normalize → derive."""
-    import json as _json
-    import sys
-
-    source_root_arg: str | None = getattr(args, "source_root", None)
-    source: str = getattr(args, "source", None) or ("codex" if source_root_arg is not None else "all")
-    warehouse_path = Path(args.warehouse_path).expanduser()
-    json_output: bool = getattr(args, "json", False)
-
-    ingest_results, ingest_skipped, error = _run_ingest(source, source_root_arg, warehouse_path, cli_module)
-    if error:
-        print(f"Error: {error}", file=sys.stderr)
-        return 1
-
+def _summarise_ingest_results(
+    source: str,
+    ingest_results: dict[str, IngestSummary],
+    ingest_skipped: list[str],
+    *,
+    cli_module: CommandRuntime,
+    json_output: bool,
+) -> dict[str, object]:
+    """Print per-source ingest output (or collect JSON payloads) and return the JSON dict."""
     ingest_summaries: dict[str, object] = {}
     if source == "all":
         for src_name in ingest_skipped:
@@ -759,20 +775,38 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
                 print(f"==> history-ingest ({src_name})")
                 print(f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads")
             else:
-                ingest_summaries[src_name] = _json.loads(cli_module.render_ingest_summary_json(ingest_summary))
+                ingest_summaries[src_name] = json.loads(cli_module.render_ingest_summary_json(ingest_summary))
     else:
         ingest_summary = next(iter(ingest_results.values()))
         if not json_output:
             print("==> history-ingest")
             print(f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads")
         else:
-            ingest_summaries = {source: _json.loads(cli_module.render_ingest_summary_json(ingest_summary))}
+            ingest_summaries = {source: json.loads(cli_module.render_ingest_summary_json(ingest_summary))}
+    return ingest_summaries
+
+
+def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
+    """Run the full history pipeline: ingest → normalize → derive."""
+    source_root_arg: str | None = getattr(args, "source_root", None)
+    source: str = getattr(args, "source", None) or ("codex" if source_root_arg is not None else "all")
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    json_output: bool = getattr(args, "json", False)
+
+    ingest_results, ingest_skipped, error = _run_ingest(source, source_root_arg, warehouse_path, cli_module)
+    if error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+
+    ingest_summaries = _summarise_ingest_results(
+        source, ingest_results, ingest_skipped, cli_module=cli_module, json_output=json_output
+    )
 
     if not ingest_results and not warehouse_path.exists():
         if not json_output:
             _print_empty_history_guidance(source)
         else:
-            print(_json.dumps({"ingest": ingest_summaries, "normalize": None, "derive": None}))
+            print(json.dumps({"ingest": ingest_summaries, "normalize": None, "derive": None}))
         return 0
 
 
@@ -800,12 +834,12 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
         print(f"Done. Warehouse: {warehouse_path}")
     else:
         print(
-            _json.dumps(
+            json.dumps(
                 {
                     "ingest": ingest_summaries,
-                    "normalize": _json.loads(cli_module.render_normalize_summary_json(normalize_summary)),
-                    "classify": _json.loads(cli_module.render_classify_summary_json(classify_summary)),
-                    "derive": _json.loads(cli_module.render_derive_summary_json(derive_summary)),
+                    "normalize": json.loads(cli_module.render_normalize_summary_json(normalize_summary)),
+                    "classify": json.loads(cli_module.render_classify_summary_json(classify_summary)),
+                    "derive": json.loads(cli_module.render_derive_summary_json(derive_summary)),
                 }
             )
         )
@@ -835,7 +869,10 @@ def handle_derive_retro_timeline(args: Namespace, cli_module: CommandRuntime) ->
 
 def handle_audit_cost_coverage(args: Namespace, cli_module: CommandRuntime) -> int:
     metrics_path = Path(args.metrics_path)
-    pricing_path = Path(args.pricing_path) if args.pricing_path else cli_module.resolve_pricing_path(Path.cwd())
+    pricing_path = cli_module.resolve_effective_pricing_path(
+        cwd=Path.cwd(),
+        pricing_path=Path(args.pricing_path) if args.pricing_path else None,
+    )
     codex_state_path = Path(args.codex_state_path)
     codex_logs_path = Path(args.codex_logs_path)
     claude_root = Path(args.claude_root) if getattr(args, "claude_root", None) is not None else Path.home() / ".claude"
@@ -875,7 +912,10 @@ def handle_sync_codex_usage(args: Namespace, cli_module: CommandRuntime) -> int:
 def handle_sync_usage(args: Namespace, cli_module: CommandRuntime) -> int:
     metrics_path = Path(args.metrics_path)
     report_path = Path(args.report_path) if getattr(args, "write_report", False) else None
-    pricing_path = Path(args.pricing_path) if args.pricing_path else cli_module.resolve_pricing_path(Path.cwd())
+    pricing_path = cli_module.resolve_effective_pricing_path(
+        cwd=Path.cwd(),
+        pricing_path=Path(args.pricing_path) if args.pricing_path else None,
+    )
     usage_state_path = Path(args.usage_state_path)
     usage_logs_path = Path(args.usage_logs_path)
     claude_root = Path(args.claude_root) if getattr(args, "claude_root", None) is not None else Path.home() / ".claude"
@@ -934,7 +974,7 @@ def handle_merge_tasks(args: Namespace, cli_module: CommandRuntime) -> int:
             goal=task,
             entries=kept_entries,
             dropped_goal_id=args.drop_task_id,
-            goals=relinked_goals if relinked_goals else None,
+            goals=relinked_goals or None,
         )
         recompute_summary(data)
         record_goal_merge_observation(
@@ -956,7 +996,10 @@ def handle_merge_tasks(args: Namespace, cli_module: CommandRuntime) -> int:
 def handle_update(args: Namespace, cli_module: CommandRuntime) -> int:
     metrics_path = Path(args.metrics_path)
     report_path = Path(args.report_path) if getattr(args, "write_report", False) else None
-    pricing_path = Path(args.pricing_path) if args.pricing_path else cli_module.resolve_pricing_path(Path.cwd())
+    pricing_path = cli_module.resolve_effective_pricing_path(
+        cwd=Path.cwd(),
+        pricing_path=Path(args.pricing_path) if args.pricing_path else None,
+    )
     codex_state_path = Path(args.codex_state_path)
     codex_logs_path = Path(args.codex_logs_path)
     claude_root = Path(args.claude_root) if getattr(args, "claude_root", None) is not None else Path.home() / ".claude"
@@ -1133,134 +1176,165 @@ def handle_render_report(args: Namespace, cli_module: CommandRuntime) -> int:
     return 0
 
 
-def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
-    import sqlite3
-    from datetime import datetime, timezone
+@dataclass(frozen=True)
+class _WarehouseRenderRows:
+    retry: dict[str, dict[str, int]] | None = None
+    tokens: list[tuple[str, str | None, int, int, int]] | None = None
+    practice: list[tuple[str, str, int]] | None = None
 
-    from ai_agents_metrics.html_report import (
-        aggregate_report_data,
-        check_warehouse_state,
-        render_html_report,
+
+def _load_render_html_warehouse_rows(
+    warehouse_path: Path, cwd: str
+) -> _WarehouseRenderRows:
+    """Read retry/token/practice rows from the warehouse; return three-way Nones on error.
+
+    The queries pin to the given cwd so cross-repo rows don't bleed in. See
+    `handle_render_html` for the ledger-fallback rationale.
+    """
+    try:
+        with sqlite3.connect(warehouse_path) as conn:
+            # Use main_attempt_count (H-040 classifier) to distinguish real
+            # main-agent retries from subagent Task() spawns, which also
+            # produce separate session JSONL files and would otherwise
+            # inflate retry_count. COALESCE treats unclassified rows as
+            # single-attempt (conservative — no false retry signal).
+            retry_rows = conn.execute(
+                "SELECT last_seen_at, "
+                "  COALESCE(main_attempt_count, 1) as main_attempts "
+                "FROM derived_goals "
+                "WHERE cwd = ? AND last_seen_at IS NOT NULL",
+                (cwd,),
+            ).fetchall()
+            token_rows = conn.execute(
+                "SELECT dg.last_seen_at, "
+                "  COALESCE(dg.model, ("
+                "    SELECT json_extract(nue.raw_json, '$.message.model') "
+                "    FROM normalized_usage_events nue "
+                "    WHERE nue.thread_id = dg.thread_id "
+                "      AND json_extract(nue.raw_json, '$.message.model') IS NOT NULL "
+                "    LIMIT 1"
+                "  )) as model, "
+                "  COALESCE(SUM(dsu.input_tokens), 0), "
+                "  COALESCE(SUM(dsu.cached_input_tokens), 0), "
+                "  COALESCE(SUM(dsu.output_tokens), 0) "
+                "FROM derived_goals dg "
+                "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
+                "WHERE dg.cwd = ? AND dg.last_seen_at IS NOT NULL "
+                "GROUP BY dg.thread_id",
+                (cwd,),
+            ).fetchall()
+            # Practice-event distribution, scoped to the current cwd via
+            # the goals table so foreign repos' events don't bleed in.
+            practice_rows = conn.execute(
+                "SELECT pe.practice_name, pe.source_kind, COUNT(*) "
+                "FROM derived_practice_events pe "
+                "JOIN derived_goals dg ON dg.thread_id = pe.thread_id "
+                "WHERE dg.cwd = ? "
+                "GROUP BY pe.practice_name, pe.source_kind",
+                (cwd,),
+            ).fetchall()
+    except (sqlite3.Error, OSError):
+        return _WarehouseRenderRows()
+
+    by_day: dict[str, dict[str, int]] = {}
+    for last_seen_at, main_attempts in retry_rows:
+        day = last_seen_at[:10]
+        if day not in by_day:
+            by_day[day] = {"threads": 0, "retry_threads": 0}
+        by_day[day]["threads"] += 1
+        if main_attempts and main_attempts > 1:
+            by_day[day]["retry_threads"] += 1
+    return _WarehouseRenderRows(
+        retry=by_day,
+        tokens=list(token_rows),
+        practice=list(practice_rows),
     )
 
+
+def _safe_load_effective_pricing(
+    cli_module: CommandRuntime,
+) -> dict[str, dict[str, float | None]] | None:
+    try:
+        return cli_module.load_effective_pricing(cwd=Path.cwd())
+    except (OSError, ValueError):
+        return None
+
+
+def _resolve_render_html_cwd_and_warehouse(args: Namespace, metrics_path: Path) -> tuple[str, Path]:
+    """Return (cwd, warehouse_path) for an html-render invocation.
+
+    --cwd override supports cross-machine warehouses (e.g. an imported Mac
+    snapshot queried on Linux) where Path.cwd() would never match the stored
+    paths. Empty override falls back to the real process cwd. When the
+    supplied warehouse path is missing we fall back to the default location
+    beside the metrics file.
+    """
+    cwd_arg = getattr(args, "cwd", "") or ""
+    cwd = cwd_arg or str(Path.cwd())
+    warehouse_arg = getattr(args, "warehouse_path", "") or ""
+    warehouse_path = Path(warehouse_arg) if warehouse_arg else None
+    if warehouse_path is None or not warehouse_path.is_file():
+        warehouse_path = default_raw_warehouse_path(metrics_path)
+    return cwd, warehouse_path
+
+
+def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     metrics_path = Path(args.metrics_path)
     output_path = Path(args.output)
-    days: int | None = args.days
-
     data = load_metrics(metrics_path)
-    goals: list[dict] = data.get("goals", [])
 
-    # Load retry and token data from warehouse when available.
-    warehouse_retry: dict[str, dict[str, int]] | None = None
-    warehouse_tokens: list[tuple[str, str | None, int, int, int]] | None = None
-    warehouse_practice: list[tuple[str, str, int]] | None = None
-    # --cwd override supports cross-machine warehouses (e.g. an imported Mac
-    # snapshot queried on Linux) where Path.cwd() would never match the
-    # stored paths. Empty override falls back to the real process cwd.
-    _cwd_arg = getattr(args, "cwd", "") or ""
-    cwd = _cwd_arg if _cwd_arg else str(Path.cwd())
-    _warehouse_arg = getattr(args, "warehouse_path", "") or ""
-    warehouse_path = Path(_warehouse_arg) if _warehouse_arg else None
-    if warehouse_path is None or not warehouse_path.is_file():
-        # Fall back to the default warehouse location beside the metrics file.
-        warehouse_path = default_raw_warehouse_path(metrics_path)
+    cwd, warehouse_path = _resolve_render_html_cwd_and_warehouse(args, metrics_path)
     warehouse_state = check_warehouse_state(warehouse_path, cwd)
     # Only query warehouse when it will actually yield usable rows. An empty
     # empty_for_cwd path would otherwise produce "warehouse-source" charts
     # with all-zero values, conflicting with the ledger-fallback badge and
     # callout shown to the user.
-    if warehouse_state.get("status") == "ok" and warehouse_path.is_file():
-        try:
-            with sqlite3.connect(warehouse_path) as conn:
-                # Use main_attempt_count (H-040 classifier) to distinguish real
-                # main-agent retries from subagent Task() spawns, which also
-                # produce separate session JSONL files and would otherwise
-                # inflate retry_count. COALESCE treats unclassified rows as
-                # single-attempt (conservative — no false retry signal).
-                retry_rows = conn.execute(
-                    "SELECT last_seen_at, "
-                    "  COALESCE(main_attempt_count, 1) as main_attempts "
-                    "FROM derived_goals "
-                    "WHERE cwd = ? AND last_seen_at IS NOT NULL",
-                    (cwd,),
-                ).fetchall()
-                token_rows = conn.execute(
-                    "SELECT dg.last_seen_at, "
-                    "  COALESCE(dg.model, ("
-                    "    SELECT json_extract(nue.raw_json, '$.message.model') "
-                    "    FROM normalized_usage_events nue "
-                    "    WHERE nue.thread_id = dg.thread_id "
-                    "      AND json_extract(nue.raw_json, '$.message.model') IS NOT NULL "
-                    "    LIMIT 1"
-                    "  )) as model, "
-                    "  COALESCE(SUM(dsu.input_tokens), 0), "
-                    "  COALESCE(SUM(dsu.cached_input_tokens), 0), "
-                    "  COALESCE(SUM(dsu.output_tokens), 0) "
-                    "FROM derived_goals dg "
-                    "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
-                    "WHERE dg.cwd = ? AND dg.last_seen_at IS NOT NULL "
-                    "GROUP BY dg.thread_id",
-                    (cwd,),
-                ).fetchall()
-                # Practice-event distribution, scoped to the current cwd via
-                # the goals table so foreign repos' events don't bleed in.
-                practice_rows = conn.execute(
-                    "SELECT pe.practice_name, pe.source_kind, COUNT(*) "
-                    "FROM derived_practice_events pe "
-                    "JOIN derived_goals dg ON dg.thread_id = pe.thread_id "
-                    "WHERE dg.cwd = ? "
-                    "GROUP BY pe.practice_name, pe.source_kind",
-                    (cwd,),
-                ).fetchall()
-            by_day: dict[str, dict[str, int]] = {}
-            for last_seen_at, main_attempts in retry_rows:
-                day = last_seen_at[:10]
-                if day not in by_day:
-                    by_day[day] = {"threads": 0, "retry_threads": 0}
-                by_day[day]["threads"] += 1
-                if main_attempts and main_attempts > 1:
-                    by_day[day]["retry_threads"] += 1
-            warehouse_retry = by_day
-            warehouse_tokens = [
-                (last_seen_at, model, inp, cac, out)
-                for last_seen_at, model, inp, cac, out in token_rows
-            ]
-            warehouse_practice = [
-                (name, source_kind, count)
-                for name, source_kind, count in practice_rows
-            ]
-        except (sqlite3.Error, OSError):
-            pass  # warehouse unavailable or schema mismatch — fall back to ledger
-
-    # Load model pricing for token-cost breakdown in chart 3.
-    pricing: dict[str, dict[str, float | None]] | None = None
-    try:
-        from ai_agents_metrics.usage_resolution import PRICING_JSON_PATH, load_pricing
-        pricing = load_pricing(PRICING_JSON_PATH)
-    except Exception:
-        pricing = None
+    warehouse_rows = (
+        _load_render_html_warehouse_rows(warehouse_path, cwd)
+        if warehouse_state.get("status") == "ok" and warehouse_path.is_file()
+        else _WarehouseRenderRows()
+    )
 
     chart_data = aggregate_report_data(
-        goals, days,
-        warehouse_retry=warehouse_retry,
-        warehouse_tokens=warehouse_tokens,
-        pricing=pricing,
-        warehouse_practice=warehouse_practice,
+        data.get("goals", []),
+        args.days,
+        warehouse_retry=warehouse_rows.retry,
+        warehouse_tokens=warehouse_rows.tokens,
+        pricing=_safe_load_effective_pricing(_cli_module),
+        warehouse_practice=warehouse_rows.practice,
         warehouse_state=warehouse_state,
     )
-    generated_at = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    html = render_html_report(chart_data, generated_at)
+    html = render_html_report(
+        chart_data, datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
+    print(_render_html_source_message(
+        output_path,
+        warehouse_retry=warehouse_rows.retry,
+        warehouse_tokens=warehouse_rows.tokens,
+        warehouse_practice=warehouse_rows.practice,
+        warehouse_state=warehouse_state,
+    ))
+    return 0
+
+
+def _render_html_source_message(
+    output_path: Path,
+    *,
+    warehouse_retry: dict[str, dict[str, int]] | None,
+    warehouse_tokens: list[tuple[str, str | None, int, int, int]] | None,
+    warehouse_practice: list[tuple[str, str, int]] | None,
+    warehouse_state: dict[str, str],
+) -> str:
     retry_src = "warehouse" if warehouse_retry is not None else "ledger"
     token_src = "warehouse" if warehouse_tokens is not None else "ledger"
     practice_n = sum(c for _, _, c in warehouse_practice) if warehouse_practice else 0
     practice_src = f"warehouse ({practice_n} events)" if warehouse_practice else "none"
     wh_status = warehouse_state.get("status", "ok")
-    print(
+    return (
         f"Rendered HTML report: {output_path} "
         f"(retry: {retry_src}, tokens: {token_src}, practice: {practice_src}, "
         f"warehouse: {wh_status})"
     )
-    return 0

@@ -4,7 +4,7 @@ import importlib.util
 import json
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -13,6 +13,7 @@ from ai_agents_metrics.domain import (
     AttemptEntryRecord,
     EffectiveGoalRecord,
     GoalRecord,
+    ManualGoalUpdates,
     apply_attempt_usage_deltas,
     apply_goal_updates,
     build_effective_goals,
@@ -408,7 +409,7 @@ def test_next_goal_id_ignores_malformed_and_other_day_ids() -> None:
             {"goal_id": "2026-03-28-999"},
             {"goal_id": None},
         ],
-        now=datetime(2026, 3, 29, 12, 0, tzinfo=timezone.utc),
+        now=datetime(2026, 3, 29, 12, 0, tzinfo=UTC),
     )
 
     assert goal_id == "2026-03-29-002"
@@ -769,37 +770,9 @@ def test_apply_goal_updates_rejects_blank_title() -> None:
 
     with pytest.raises(ValueError, match="title cannot be empty"):
         apply_goal_updates(
-            entries=[],
-            task=task,
-            title="   ",
-            task_type=None,
-            status=None,
-            attempts_delta=None,
-            attempts_abs=None,
-            cost_usd_add=None,
-            cost_usd_set=None,
-            input_tokens_add=None,
-            cached_input_tokens_add=None,
-            output_tokens_add=None,
-            tokens_add=None,
-            tokens_set=None,
-            usage_cost_usd=None,
-            usage_input_tokens=None,
-            usage_cached_input_tokens=None,
-            usage_output_tokens=None,
-            usage_total_tokens=None,
-            auto_cost_usd=None,
-            auto_input_tokens=None,
-            auto_cached_input_tokens=None,
-            auto_output_tokens=None,
-            auto_total_tokens=None,
-            model=None,
-            usage_model=None,
-            auto_model=None,
-            failure_reason=None,
-            notes=None,
-            started_at=None,
-            finished_at=None,
+            [],
+            task,
+            ManualGoalUpdates(title="   "),
         )
 
 
@@ -843,22 +816,22 @@ def test_parse_usage_event_extracts_expected_fields() -> None:
     assert event["tool_tokens"] == 10
 
 
-def test_resolve_pricing_model_alias_accepts_current_model_suffixes() -> None:
+def test_resolve_pricing_model_alias_prefers_direct_openai_model_match() -> None:
     pricing = {
-        "gpt-5": {
-            "input_per_million_usd": 1.25,
-            "cached_input_per_million_usd": 0.125,
-            "output_per_million_usd": 10.0,
+        "gpt-5.4": {
+            "input_per_million_usd": 2.5,
+            "cached_input_per_million_usd": 0.25,
+            "output_per_million_usd": 15.0,
         },
-        "gpt-5-mini": {
-            "input_per_million_usd": 0.25,
-            "cached_input_per_million_usd": 0.025,
-            "output_per_million_usd": 2.0,
+        "gpt-5.4-mini": {
+            "input_per_million_usd": 0.75,
+            "cached_input_per_million_usd": 0.075,
+            "output_per_million_usd": 4.5,
         },
     }
 
-    assert MODULE.resolve_pricing_model_alias("gpt-5.4", pricing) == "gpt-5"
-    assert MODULE.resolve_pricing_model_alias("gpt-5.4-mini", pricing) == "gpt-5-mini"
+    assert MODULE.resolve_pricing_model_alias("gpt-5.4", pricing) == "gpt-5.4"
+    assert MODULE.resolve_pricing_model_alias("gpt-5.4-mini", pricing) == "gpt-5.4-mini"
 
 
 def test_resolve_pricing_model_alias_strips_date_suffix() -> None:
@@ -906,6 +879,30 @@ def test_resolve_pricing_path_falls_back_to_bundled(tmp_path: Path) -> None:
     assert result.exists()
 
 
+def test_resolve_effective_pricing_path_prefers_explicit_path(tmp_path: Path) -> None:
+    explicit = tmp_path / "explicit-pricing.json"
+    result = MODULE.resolve_effective_pricing_path(cwd=tmp_path, pricing_path=explicit)
+    assert result == explicit
+
+
+def test_resolve_effective_pricing_path_falls_back_to_workspace_resolution(tmp_path: Path) -> None:
+    override = tmp_path / "model_pricing.json"
+    override.write_text("{}", encoding="utf-8")
+    result = MODULE.resolve_effective_pricing_path(cwd=tmp_path)
+    assert result == override
+
+
+def test_load_effective_pricing_uses_explicit_path(tmp_path: Path) -> None:
+    explicit = tmp_path / "explicit-pricing.json"
+    explicit.write_text(
+        json.dumps({"models": {"my-model": {"input_per_million_usd": 1.0, "cached_input_per_million_usd": 0.1, "output_per_million_usd": 5.0}}}),
+        encoding="utf-8",
+    )
+
+    pricing = MODULE.load_effective_pricing(cwd=tmp_path, pricing_path=explicit)
+    assert pricing["my-model"]["input_per_million_usd"] == 1.0
+
+
 def test_resolve_codex_usage_window_returns_none_without_matching_thread(
     tmp_path: Path,
 ) -> None:
@@ -917,10 +914,10 @@ def test_resolve_codex_usage_window_returns_none_without_matching_thread(
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -977,10 +974,10 @@ def test_resolve_codex_usage_window_falls_back_to_session_token_counts(
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -1058,7 +1055,7 @@ def test_resolve_codex_usage_window_falls_back_to_session_token_counts(
         started_at="2026-03-29T09:00:00+00:00",
         finished_at="2026-03-29T09:10:00+00:00",
         pricing_path=pricing_path,
-    ) == (0.006263, 1625, 1000, 100, 500, "gpt-5.4")
+    ) == (0.010025, 1625, 1000, 100, 500, "gpt-5.4")
 
 
 def test_resolve_codex_usage_window_sums_multiple_session_token_events(
@@ -1075,10 +1072,10 @@ def test_resolve_codex_usage_window_sums_multiple_session_token_events(
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -1174,7 +1171,7 @@ def test_resolve_codex_usage_window_sums_multiple_session_token_events(
         started_at="2026-03-29T09:00:00+00:00",
         finished_at="2026-03-29T09:10:00+00:00",
         pricing_path=pricing_path,
-    ) == (0.011263, 3885, 3000, 100, 750, "gpt-5.4")
+    ) == (0.018775, 3885, 3000, 100, 750, "gpt-5.4")
 
 
 def test_resolve_codex_usage_window_ignores_session_events_outside_window(
@@ -1191,10 +1188,10 @@ def test_resolve_codex_usage_window_ignores_session_events_outside_window(
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -1308,7 +1305,7 @@ def test_resolve_codex_usage_window_ignores_session_events_outside_window(
         started_at="2026-03-29T09:00:00+00:00",
         finished_at="2026-03-29T09:10:00+00:00",
         pricing_path=pricing_path,
-    ) == (0.006263, 1625, 1000, 100, 500, "gpt-5.4")
+    ) == (0.010025, 1625, 1000, 100, 500, "gpt-5.4")
 
 
 def test_resolve_codex_usage_window_recovers_tokens_without_cost_when_model_missing(
@@ -1325,10 +1322,10 @@ def test_resolve_codex_usage_window_recovers_tokens_without_cost_when_model_miss
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -1419,10 +1416,10 @@ def test_resolve_codex_usage_window_prefers_legacy_sse_events_over_session_fallb
         json.dumps(
             {
                 "models": {
-                    "gpt-5": {
-                        "input_per_million_usd": 1.25,
-                        "cached_input_per_million_usd": 0.125,
-                        "output_per_million_usd": 10.0,
+                    "gpt-5.4": {
+                        "input_per_million_usd": 2.5,
+                        "cached_input_per_million_usd": 0.25,
+                        "output_per_million_usd": 15.0,
                     }
                 }
             }
@@ -1510,7 +1507,7 @@ def test_resolve_codex_usage_window_prefers_legacy_sse_events_over_session_fallb
         started_at="2026-03-29T09:00:00+00:00",
         finished_at="2026-03-29T09:10:00+00:00",
         pricing_path=pricing_path,
-    ) == (0.006263, 1600, 1000, 100, 500, "gpt-5.4")
+    ) == (0.010025, 1600, 1000, 100, 500, "gpt-5.4")
 
 
 def test_load_pricing_rejects_negative_values(tmp_path: Path) -> None:
