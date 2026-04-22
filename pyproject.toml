@@ -92,8 +92,8 @@ python_version = "3.14"
 # it, and promoted the flag to the top-level config.
 strict = true
 files = [
-  "src/ai_agents_metrics",
-  "scripts/metrics_cli.py",
+  "src",
+  "scripts",
 ]
 exclude = [
   "^\\.venv/",
