@@ -12,11 +12,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from conftest import find_repo_paths
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_ROOT, _SCRIPTS_DIR, ABS_SRC = find_repo_paths()
 SCRIPT = Path("scripts/metrics_cli.py")
-ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "metrics_cli.py"
-ABS_SRC = WORKSPACE_ROOT / "src"
+ABS_SCRIPT = _SCRIPTS_DIR / "metrics_cli.py"
 PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
 if str(ABS_SRC) not in sys.path:
@@ -472,31 +472,62 @@ def create_codex_session_usage_sources(
     return state_path, logs_path
 
 
+@pytest.fixture(scope="session")
+def _repo_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the baseline git repo once per session; ``repo`` copies from here."""
+    template = tmp_path_factory.mktemp("repo_template")
+
+    (template / "src").mkdir(parents=True, exist_ok=True)
+    (template / "scripts").mkdir(parents=True, exist_ok=True)
+    (template / "docs").mkdir(parents=True, exist_ok=True)
+    (template / "metrics").mkdir(parents=True, exist_ok=True)
+    (template / "pricing").mkdir(parents=True, exist_ok=True)
+
+    (template / "pricing" / "model_pricing.json").write_text(
+        PRICING.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    (template / "scripts" / "metrics_cli.py").write_text(
+        ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    shutil.copytree(ABS_SRC, template / "src", dirs_exist_ok=True)
+
+    subprocess.run(["git", "init"], cwd=template, text=True, capture_output=True, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "codex@example.com"],
+        cwd=template, text=True, capture_output=True, check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Codex"],
+        cwd=template, text=True, capture_output=True, check=True,
+    )
+    subprocess.run(["git", "add", "."], cwd=template, text=True, capture_output=True, check=True)
+    subprocess.run(
+        ["git", "commit", "-m", "baseline"],
+        cwd=template, text=True, capture_output=True, check=True,
+    )
+    # Guardrail for the cp -rl hardlink fixture below: strip write bits on
+    # every file in the template. Since hardlinks share inode permissions,
+    # any test that accidentally does write_text() on a template-originated
+    # path (src/**, scripts/metrics_cli.py, pricing/model_pricing.json, .git/**)
+    # fails loudly with PermissionError instead of silently poisoning the
+    # template for every subsequent test in the session. Directories stay
+    # writable so tests can still add new files to their own copy.
+    for path in template.rglob("*"):
+        if path.is_file():
+            path.chmod(path.stat().st_mode & 0o555)
+    return template
+
+
 @pytest.fixture
-def repo(tmp_path: Path) -> Path:
-    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "docs").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
-
-    pricing_target = tmp_path / "pricing" / "model_pricing.json"
-    pricing_target.write_text(PRICING.read_text(encoding="utf-8"), encoding="utf-8")
-    # Script shim is cheap to copy and needed by subprocess-based tests
-    # (install-self, bootstrap wrapper, script_shim_exposes_cli_version, run_module_cmd).
-    script_target = tmp_path / "scripts" / "metrics_cli.py"
-    script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
-
-    # Keep subprocess-based CLI tests hermetic: the script shim should always
-    # import the package from the temp repo, not rely on an ambient editable
-    # install or global PYTHONPATH.
-    shutil.copytree(ABS_SRC, tmp_path / "src", dirs_exist_ok=True)
-
-    subprocess.run(["git", "init"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.email", "codex@example.com"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.name", "Codex"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "add", "."], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "commit", "-m", "baseline"], cwd=tmp_path, text=True, capture_output=True, check=True)
+def repo(tmp_path: Path, _repo_template: Path) -> Path:
+    # cp -rl hardlinks every file to the template — near-instant copy.
+    # The template's files are read-only (see _repo_template), so any attempt
+    # to overwrite a template-originated file from a test body will fail loudly
+    # rather than silently mutate the shared inode.
+    subprocess.run(
+        ["cp", "-rl", f"{_repo_template}/.", str(tmp_path)],
+        check=True, capture_output=True,
+    )
     yield tmp_path
 
 

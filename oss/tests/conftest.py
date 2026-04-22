@@ -4,19 +4,26 @@ import io
 import os
 import subprocess
 import sys
+import tomllib
 from contextlib import contextmanager
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-# Ensure oss/tests/ is importable by its real path so that cross-test imports
-# like `from test_history_ingest import ...` work regardless of whether tests
-# run from oss/ directly or from the root repo via the tests/public/ symlink.
-_tests_dir = str(Path(__file__).resolve().parent)
-if _tests_dir not in sys.path:
-    sys.path.insert(0, _tests_dir)
+# Ensure oss/tests/ and every immediate test subdirectory are importable by
+# their real paths so cross-test imports like `from test_history_ingest import
+# ...` keep resolving after tests were grouped into subject-area subdirs.
+_tests_dir = Path(__file__).resolve().parent
+if str(_tests_dir) not in sys.path:
+    sys.path.insert(0, str(_tests_dir))
+for _sub in _tests_dir.iterdir():
+    if _sub.is_dir() and not _sub.name.startswith((".", "__")):
+        _sub_str = str(_sub)
+        if _sub_str not in sys.path:
+            sys.path.insert(0, _sub_str)
 
 # Ensure oss/ is on sys.path so tests can `import scripts.*` regardless of
 # whether pytest is invoked via `python -m pytest` (which adds cwd) or via
@@ -25,6 +32,25 @@ if _tests_dir not in sys.path:
 _repo_root = str(Path(__file__).resolve().parent.parent)
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
+
+
+@lru_cache(maxsize=1)
+def find_repo_paths() -> tuple[Path, Path, Path]:
+    """Locate the repo root, scripts/, and src/ via ``[tool.codex_tests]``.
+
+    Walks up from this file until a ``pyproject.toml`` with a ``[tool.codex_tests]``
+    section is found. Prefer this over ``Path(__file__).parents[N]`` so tests
+    keep resolving paths correctly even when files move between subdirectories.
+    """
+    for parent in Path(__file__).resolve().parents:
+        cfg = parent / "pyproject.toml"
+        if not cfg.exists():
+            continue
+        with cfg.open("rb") as fh:
+            codex_tests = tomllib.load(fh).get("tool", {}).get("codex_tests")
+        if codex_tests:
+            return parent, parent / codex_tests["scripts"], parent / codex_tests["src"]
+    raise RuntimeError("No [tool.codex_tests] found in any ancestor pyproject.toml")
 
 
 @contextmanager
