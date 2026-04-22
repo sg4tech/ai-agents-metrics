@@ -64,7 +64,13 @@ def _json_text(value: Any) -> str:
 
 def _optional_row_value(row: sqlite3.Row | dict[str, Any], key: str, default: Any = None) -> Any:
     if isinstance(row, sqlite3.Row):
-        return row[key] if key in row.keys() else default  # noqa: SIM118 sqlite3.Row lacks .get()
+        # sqlite3.Row has no .get(); ``row[key]`` raises IndexError on missing
+        # columns, which lets us express the default-on-miss semantics without
+        # the SIM118-triggering ``key in row.keys()`` idiom.
+        try:
+            return row[key]
+        except IndexError:
+            return default
     return row.get(key, default)
 
 
