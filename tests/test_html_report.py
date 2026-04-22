@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -101,8 +101,7 @@ def test_bucket_key_daily():
 
 def test_bucket_key_weekly():
     # Wednesday 2026-01-14 → week of Monday 2026-01-12
-    from datetime import timezone
-    dt = datetime(2026, 1, 14, 9, 0, tzinfo=timezone.utc)
+    dt = datetime(2026, 1, 14, 9, 0, tzinfo=UTC)
     assert _bucket_key(dt, "week") == "2026-01-12"
 
 
@@ -294,9 +293,9 @@ def test_granularity_weekly_for_long_span():
 
 
 def test_days_filter():
-    from datetime import timedelta, timezone
+    from datetime import timedelta
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     old = (now - timedelta(days=60)).isoformat()
     recent = (now - timedelta(days=5)).isoformat()
 
