@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ._report_buckets import _bucket_key, _make_buckets, _parse_date
+from .buckets import _bucket_key, _make_buckets, _parse_date
 
 # ── internal helpers ──────────────────────────────────────────────────────────
 

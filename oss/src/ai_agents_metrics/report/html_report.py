@@ -13,10 +13,10 @@ import json
 import sqlite3
 from typing import TYPE_CHECKING, Any
 
-from ._report_aggregation import (
+from .aggregation import (
     aggregate_report_data,
 )
-from ._report_template import _HTML_TEMPLATE
+from .template import _HTML_TEMPLATE
 
 if TYPE_CHECKING:
     from pathlib import Path

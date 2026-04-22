@@ -129,10 +129,10 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `reporting.py` | Markdown generation, product quality summaries, agent recommendations |
 | `cost_audit.py` | Audits missing/incomplete token and cost data; categorises issues |
 | `retro_timeline.py` | Derives a retrospective work timeline from goal records |
-| `html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
-| `_report_aggregation.py` | Transforms ndjson goals + warehouse rows into chart-ready series; `_apply_token_pricing` applies model-aware pricing |
-| `_report_buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
-| `_report_template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
+| `report/html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
+| `report/aggregation.py` | Transforms ndjson goals + warehouse rows into chart-ready series; `_apply_token_pricing` applies model-aware pricing |
+| `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
+| `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
 
 ### Integrations
 

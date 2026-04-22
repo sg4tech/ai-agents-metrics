@@ -115,19 +115,21 @@ New entries should follow the format below. Add entries as decisions are made or
 
 ---
 
-## html_report.py split into four focused modules
+## html_report.py split into the `report/` subpackage
 
 **Context:** `html_report.py` grew to 1084 lines as the HTML template, aggregation logic, date helpers, and public API accumulated in one file. Diffs and code review were impractical; the ~730-line template string dominated the file.
 
-**Decision:** The file is split into:
-- `_report_buckets.py` — pure date/bucket helpers (no I/O, no side effects)
-- `_report_aggregation.py` — all aggregation logic; `_apply_token_pricing` extracted to eliminate duplication between the warehouse and ledger token paths
-- `_report_template.py` — the HTML/CSS/JS template string (inert data, no Python logic)
-- `html_report.py` — thin 37-line facade; public API (`aggregate_report_data`, `render_html_report`) unchanged
+**Decision:** The file is split into a dedicated `ai_agents_metrics.report` subpackage:
+- `report/buckets.py` — pure date/bucket helpers (no I/O, no side effects)
+- `report/aggregation.py` — all aggregation logic; `_apply_token_pricing` extracted to eliminate duplication between the warehouse and ledger token paths
+- `report/template.py` — the HTML/CSS/JS template string (inert data, no Python logic)
+- `report/html_report.py` — thin facade; public API (`aggregate_report_data`, `render_html_report`) unchanged
 
-**Trade-offs:** Three new private modules with underscore-prefixed names. Tests import from the sub-modules directly.
+The original split used three underscore-prefixed modules (`_report_aggregation.py`, `_report_buckets.py`, `_report_template.py`) living next to `html_report.py` at the package root. They were later collected into the `report/` subpackage so the top-level listing shows a single unit instead of four cross-coupled files.
 
-**Why this works:** Each module has exactly one reason to change. The public import surface is preserved; `commands.py` and any downstream code importing from `html_report` requires no changes.
+**Trade-offs:** Imports move from `ai_agents_metrics.html_report` / `ai_agents_metrics._report_*` to `ai_agents_metrics.report.*`. One-time migration; the symbol names inside the modules are unchanged.
+
+**Why this works:** Each module has exactly one reason to change, and the subpackage boundary matches the dependency cluster that already existed.
 
 ---
 
