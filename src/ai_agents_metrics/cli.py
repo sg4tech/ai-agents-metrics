@@ -70,14 +70,6 @@ from ai_agents_metrics.history.normalize import (
     normalize_codex_history as run_normalize_codex_history,
 )
 from ai_agents_metrics.observability import record_cli_invocation_observation
-
-# These two are not used in this module directly; they are re-exported so that
-# scripts/metrics_cli.py (which does globals().update(vars(cli))) exposes them
-# as MODULE.xxx in test_metrics_domain.py.  Remove once tests import directly.
-from ai_agents_metrics.pricing_runtime import (  # pylint: disable=unused-import
-    load_effective_pricing,  # noqa: F401
-    resolve_effective_pricing_path,  # noqa: F401
-)
 from ai_agents_metrics.public_boundary import PublicBoundaryReport
 from ai_agents_metrics.public_boundary import (
     verify_public_boundary as run_verify_public_boundary,
@@ -99,19 +91,7 @@ from ai_agents_metrics.usage_backends import (
 from ai_agents_metrics.usage_backends import (
     resolve_usage_window as resolve_backend_usage_window,
 )
-
-# parse_usage_event, resolve_codex_usage_window, resolve_pricing_path,
-# load_pricing, resolve_pricing_model_alias are not used here directly;
-# re-exported for scripts/metrics_cli.py → MODULE surface accessed by tests.
-# Remove once tests import directly.
-from ai_agents_metrics.usage_resolution import (  # pylint: disable=unused-import
-    find_usage_thread_id,
-    load_pricing,  # noqa: F401
-    parse_usage_event,  # noqa: F401
-    resolve_codex_usage_window,  # noqa: F401
-    resolve_pricing_model_alias,  # noqa: F401
-    resolve_pricing_path,  # noqa: F401
-)
+from ai_agents_metrics.usage_resolution import find_usage_thread_id
 from ai_agents_metrics.workflow_fsm import (
     WorkflowEvent,
     WorkflowResolution,
