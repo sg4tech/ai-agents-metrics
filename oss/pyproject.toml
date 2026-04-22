@@ -198,9 +198,6 @@ name = "Package modules must not import cli outside the entrypoint shim"
 # here because import-linter rejects overlap between source and forbidden sets.
 type = "forbidden"
 source_modules = [
-    "ai_agents_metrics._report_aggregation",
-    "ai_agents_metrics._report_buckets",
-    "ai_agents_metrics._report_template",
     "ai_agents_metrics._version",
     "ai_agents_metrics.bootstrap",
     "ai_agents_metrics.commands",
@@ -213,11 +210,11 @@ source_modules = [
     "ai_agents_metrics.git_hooks",
     "ai_agents_metrics.git_state",
     "ai_agents_metrics.history",
-    "ai_agents_metrics.html_report",
     "ai_agents_metrics.observability",
     "ai_agents_metrics.pricing_runtime",
     "ai_agents_metrics.public_boundary",
     "ai_agents_metrics.redaction",
+    "ai_agents_metrics.report",
     "ai_agents_metrics.reporting",
     "ai_agents_metrics.retro_timeline",
     "ai_agents_metrics.runtime_facade",

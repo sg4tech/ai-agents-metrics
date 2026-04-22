@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from ai_agents_metrics.domain import load_metrics
 from ai_agents_metrics.history.ingest import default_raw_warehouse_path
-from ai_agents_metrics.html_report import (
+from ai_agents_metrics.report.html_report import (
     aggregate_report_data,
     check_warehouse_state,
     render_html_report,
