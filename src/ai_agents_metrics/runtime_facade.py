@@ -1,17 +1,29 @@
+"""Orchestration facade: the concrete ``CommandRuntime`` used by CLI command handlers."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from ai_agents_metrics.bootstrap import bootstrap_project as run_bootstrap_project
+from ai_agents_metrics.bootstrap import (
+    BootstrapCallbacks,
+    BootstrapPaths,
+)
+from ai_agents_metrics.bootstrap import (
+    bootstrap_project as run_bootstrap_project,
+)
 from ai_agents_metrics.cost_audit import (
+    CostAuditContext,
     CostAuditReport,
     render_cost_audit_report_json,
 )
+from ai_agents_metrics.cost_audit import (
+    audit_cost_coverage as _run_audit_cost_coverage,
+)
 from ai_agents_metrics.domain import (
     GoalRecord,
+    GoalUsageResolution,
+    ManualGoalUpdates,
     apply_goal_updates,
     build_merged_notes,
     choose_earliest_timestamp,
@@ -37,7 +49,7 @@ from ai_agents_metrics.domain import (
     validate_non_negative_int,
 )
 from ai_agents_metrics.git_state import (
-    StartedWorkReport,
+    ActiveTaskResolution,
     detect_started_work,
 )
 from ai_agents_metrics.history.audit import (
@@ -102,6 +114,7 @@ from ai_agents_metrics.retro_timeline import (
 )
 from ai_agents_metrics.storage import (
     atomic_write_text,
+    ensure_parent_dir,
     metrics_mutation_lock,
 )
 from ai_agents_metrics.usage_backends import (
@@ -144,6 +157,7 @@ __all__ = [
     "CODEX_LOGS_PATH",
     "CODEX_STATE_PATH",
     "EVENTS_NDJSON_PATH",
+    "GoalUsageResolution",
     "METRICS_JSON_PATH",
     "PRICING_JSON_PATH",
     "RAW_WAREHOUSE_PATH",
@@ -198,14 +212,6 @@ __all__ = [
     "upsert_task",
     "verify_public_boundary",
 ]
-
-
-@dataclass(frozen=True)
-class ActiveTaskResolution:
-    status: str
-    goal_id: str | None
-    message: str
-    started_work_report: StartedWorkReport | None = None
 
 
 def ingest_codex_history(source_root: Path, warehouse_path: Path, source: str = "codex") -> IngestSummary:
@@ -290,6 +296,7 @@ def ensure_active_task(data: dict[str, Any], cwd: Path) -> ActiveTaskResolution:
 
 
 def resolve_usage_costs(
+    *,
     pricing_path: Path,
     model: str | None,
     input_tokens: int | None,
@@ -325,7 +332,7 @@ def resolve_usage_costs(
         raise ValueError(f"Model {model} does not support cached input pricing")
 
     input_cost = Decimal(str(model_pricing["input_per_million_usd"])) * Decimal(input_tokens_value) / Decimal(1_000_000)
-    cached_input_cost = Decimal("0")
+    cached_input_cost = Decimal(0)
     if cached_rate is not None:
         cached_input_cost = Decimal(str(cached_rate)) * Decimal(cached_input_tokens_value) / Decimal(1_000_000)
     output_cost = Decimal(str(model_pricing["output_per_million_usd"])) * Decimal(output_tokens_value) / Decimal(1_000_000)
@@ -347,8 +354,6 @@ def init_files(metrics_path: Path, report_path: Path | None, force: bool = False
             raise ValueError(
                 f"Metrics files already exist: {joined_paths}. Use --force to overwrite."
             )
-    from ai_agents_metrics.storage import ensure_parent_dir
-
     ensure_parent_dir(metrics_path)
     metrics_path.write_text("", encoding="utf-8")
     if report_path is not None:
@@ -368,23 +373,35 @@ def bootstrap_project(
     force: bool = False,
     dry_run: bool = False,
 ) -> list[str]:
+    del target_dir
     result = run_bootstrap_project(
-        target_dir=target_dir,
-        metrics_path=metrics_path,
-        report_path=report_path,
-        policy_path=policy_path,
-        command_path=command_path,
-        agents_path=agents_path,
+        paths=BootstrapPaths(
+            metrics_path=metrics_path,
+            report_path=report_path,
+            policy_path=policy_path,
+            command_path=command_path,
+            agents_path=agents_path,
+        ),
         force=force,
         dry_run=dry_run,
-        load_metrics=load_metrics,
-        default_metrics=default_metrics,
-        save_report=save_report,
+        callbacks=BootstrapCallbacks(
+            load_metrics=load_metrics,
+            default_metrics=default_metrics,
+            save_report=save_report,
+        ),
     )
     return result.messages
 
 
-def resolve_goal_usage_updates(
+# GoalUsageResolution is re-exported from ai_agents_metrics.domain so that
+# apply_goal_updates (domain layer) can accept it without triggering the
+# import-linter `Domain layer must not import from orchestration` rule.
+
+
+# Wide kwargs surface reflects the CLI update contract (manual / usage-driven
+# / auto-recovered sources kept distinct for precedence). Grouping into
+# sub-dataclasses is tracked as a follow-up once precedence rules stabilise.
+def resolve_goal_usage_updates(  # pylint: disable=too-many-arguments,too-many-locals
     *,
     task: GoalRecord,
     usage_backend: UsageBackend | None = None,
@@ -404,21 +421,7 @@ def resolve_goal_usage_updates(
     started_at: str | None,
     finished_at: str | None,
     claude_root: Path = CLAUDE_ROOT,
-) -> tuple[
-    float | None,
-    int | None,
-    int | None,
-    int | None,
-    int | None,
-    str | None,
-    float | None,
-    int | None,
-    int | None,
-    int | None,
-    int | None,
-    str | None,
-    str | None,
-]:
+) -> GoalUsageResolution:
     explicit_cost_fields_used = cost_usd_add is not None or cost_usd_set is not None
     explicit_token_fields_used = tokens_add is not None or tokens_set is not None
 
@@ -498,28 +501,31 @@ def resolve_goal_usage_updates(
                 auto_output_tokens = window.output_tokens
                 auto_model = window.model_name
 
-        if auto_cost_usd is not None or auto_total_tokens is not None:
-            if task.agent_name is None:
-                detected_agent_name = window.backend_name
+        if (auto_cost_usd is not None or auto_total_tokens is not None) and task.agent_name is None:
+            detected_agent_name = window.backend_name
 
-    return (
-        usage_cost_usd,
-        usage_total_tokens,
-        usage_input_tokens,
-        usage_cached_input_tokens,
-        usage_output_tokens,
-        usage_model,
-        auto_cost_usd,
-        auto_total_tokens,
-        auto_input_tokens,
-        auto_cached_input_tokens,
-        auto_output_tokens,
-        auto_model,
-        detected_agent_name,
+    return GoalUsageResolution(
+        usage_cost_usd=usage_cost_usd,
+        usage_total_tokens=usage_total_tokens,
+        usage_input_tokens=usage_input_tokens,
+        usage_cached_input_tokens=usage_cached_input_tokens,
+        usage_output_tokens=usage_output_tokens,
+        usage_model=usage_model,
+        auto_cost_usd=auto_cost_usd,
+        auto_total_tokens=auto_total_tokens,
+        auto_input_tokens=auto_input_tokens,
+        auto_cached_input_tokens=auto_cached_input_tokens,
+        auto_output_tokens=auto_output_tokens,
+        auto_model=auto_model,
+        detected_agent_name=detected_agent_name,
     )
 
 
-def upsert_task(
+# upsert_task is the central CLI-surface mutator; its kwargs mirror the
+# `update`/`start-task`/`finish-task` argparse flags. See apply_goal_updates
+# for the matching precedent and follow-up plan.
+def upsert_task(  # pylint: disable=too-many-arguments,too-many-locals
+    *,
     data: dict[str, Any],
     task_id: str | None,
     title: str | None,
@@ -581,21 +587,7 @@ def upsert_task(
         task_index = len(tasks) - 1
 
     task = goal_from_dict(tasks[task_index])
-    (
-        usage_cost_usd,
-        usage_total_tokens,
-        usage_input_tokens,
-        usage_cached_input_tokens,
-        usage_output_tokens,
-        usage_model,
-        auto_cost_usd,
-        auto_total_tokens,
-        auto_input_tokens,
-        auto_cached_input_tokens,
-        auto_output_tokens,
-        auto_model,
-        detected_agent_name,
-    ) = resolve_goal_usage_updates(
+    resolution = resolve_goal_usage_updates(
         task=task,
         usage_backend=usage_backend,
         cost_usd_add=cost_usd_add,
@@ -616,39 +608,26 @@ def upsert_task(
         claude_root=claude_root,
     )
     apply_goal_updates(
-        entries=entries,
-        task=task,
-        title=title,
-        task_type=task_type,
-        status=status,
-        attempts_delta=attempts_delta,
-        attempts_abs=attempts_abs,
-        cost_usd_add=cost_usd_add,
-        cost_usd_set=cost_usd_set,
-        input_tokens_add=None,
-        cached_input_tokens_add=None,
-        output_tokens_add=None,
-        tokens_add=tokens_add,
-        tokens_set=tokens_set,
-        usage_cost_usd=usage_cost_usd,
-        usage_input_tokens=usage_input_tokens,
-        usage_cached_input_tokens=usage_cached_input_tokens,
-        usage_output_tokens=usage_output_tokens,
-        usage_total_tokens=usage_total_tokens,
-        auto_cost_usd=auto_cost_usd,
-        auto_input_tokens=auto_input_tokens,
-        auto_cached_input_tokens=auto_cached_input_tokens,
-        auto_output_tokens=auto_output_tokens,
-        auto_total_tokens=auto_total_tokens,
-        model=model,
-        usage_model=usage_model,
-        auto_model=auto_model,
-        failure_reason=failure_reason,
-        notes=notes,
-        agent_name=detected_agent_name,
-        started_at=started_at,
-        finished_at=finished_at,
-        result_fit=result_fit,
+        entries,
+        task,
+        ManualGoalUpdates(
+            title=title,
+            task_type=task_type,
+            status=status,
+            attempts_delta=attempts_delta,
+            attempts_abs=attempts_abs,
+            cost_usd_add=cost_usd_add,
+            cost_usd_set=cost_usd_set,
+            tokens_add=tokens_add,
+            tokens_set=tokens_set,
+            failure_reason=failure_reason,
+            result_fit=result_fit,
+            notes=notes,
+            started_at=started_at,
+            finished_at=finished_at,
+            model=model,
+        ),
+        resolution,
     )
     finalize_goal_update(task)
     task_dict = goal_to_dict(task)
@@ -656,8 +635,89 @@ def upsert_task(
     return task_dict
 
 
+def _resolve_sync_usage_window(
+    task: dict[str, Any],
+    *,
+    cwd: Path,
+    pricing_path: Path,
+    usage_state_path: Path,
+    usage_logs_path: Path,
+    usage_thread_id: str | None,
+    usage_backend: UsageBackend | None,
+    claude_root: Path,
+) -> tuple[Any, str | None]:
+    """Resolve the usage window for one task; return (window, detected_agent_name)."""
+    task_agent_name = task.get("agent_name")
+    detected_agent_name: str | None = None
+    if usage_backend is not None:
+        resolved_backend: UsageBackend = usage_backend
+        effective_state_path = usage_state_path
+    elif task_agent_name == "claude":
+        resolved_backend = ClaudeUsageBackend()
+        effective_state_path = claude_root
+    else:
+        resolved_backend = select_usage_backend(usage_state_path, cwd, usage_thread_id)
+        effective_state_path = usage_state_path
+    window = resolve_backend_usage_window(
+        resolved_backend,
+        state_path=effective_state_path,
+        logs_path=usage_logs_path,
+        cwd=cwd,
+        started_at=task.get("started_at"),
+        finished_at=task.get("finished_at"),
+        pricing_path=pricing_path,
+        thread_id=usage_thread_id,
+    )
+    if (
+        window.cost_usd is None
+        and window.total_tokens is None
+        and task_agent_name is None
+        and usage_backend is None
+    ):
+        claude_window = resolve_backend_usage_window(
+            ClaudeUsageBackend(),
+            state_path=claude_root,
+            logs_path=usage_logs_path,
+            cwd=cwd,
+            started_at=task.get("started_at"),
+            finished_at=task.get("finished_at"),
+            pricing_path=pricing_path,
+            thread_id=None,
+        )
+        if claude_window.cost_usd is not None or claude_window.total_tokens is not None:
+            window = claude_window
+            detected_agent_name = claude_window.backend_name
+    return window, detected_agent_name
+
+
+def _apply_auto_usage_updates(
+    task: dict[str, Any], window: Any, detected_agent_name: str | None
+) -> bool:
+    """Copy resolved window fields onto *task*; return True if anything changed."""
+    auto_fields: list[tuple[str, Any]] = [
+        ("cost_usd", window.cost_usd),
+        ("input_tokens", window.input_tokens),
+        ("cached_input_tokens", window.cached_input_tokens),
+        ("output_tokens", window.output_tokens),
+        ("tokens_total", window.total_tokens),
+        ("model", window.model_name),
+    ]
+    if all(value is None for _, value in auto_fields):
+        return False
+    changed = False
+    for field_name, value in auto_fields:
+        if value is not None and task.get(field_name) != value:
+            task[field_name] = value
+            changed = True
+    if detected_agent_name is not None and task.get("agent_name") is None:
+        task["agent_name"] = detected_agent_name
+        changed = True
+    return changed
+
+
 def sync_usage(
     data: dict[str, Any],
+    *,
     cwd: Path,
     pricing_path: Path,
     usage_state_path: Path,
@@ -670,92 +730,27 @@ def sync_usage(
     tasks: list[dict[str, Any]] = data["goals"]
     for task in tasks:
         previous_task = dict(task)
-        task_agent_name = task.get("agent_name")
-        detected_agent_name: str | None = None
-        if usage_backend is not None:
-            resolved_backend: UsageBackend = usage_backend
-            effective_state_path = usage_state_path
-        elif task_agent_name == "claude":
-            resolved_backend = ClaudeUsageBackend()
-            effective_state_path = claude_root
-        else:
-            resolved_backend = select_usage_backend(usage_state_path, cwd, usage_thread_id)
-            effective_state_path = usage_state_path
-        window = resolve_backend_usage_window(
-            resolved_backend,
-            state_path=effective_state_path,
-            logs_path=usage_logs_path,
+        window, detected_agent_name = _resolve_sync_usage_window(
+            task,
             cwd=cwd,
-            started_at=task.get("started_at"),
-            finished_at=task.get("finished_at"),
             pricing_path=pricing_path,
-            thread_id=usage_thread_id,
+            usage_state_path=usage_state_path,
+            usage_logs_path=usage_logs_path,
+            usage_thread_id=usage_thread_id,
+            usage_backend=usage_backend,
+            claude_root=claude_root,
         )
-        if (
-            window.cost_usd is None
-            and window.total_tokens is None
-            and task_agent_name is None
-            and usage_backend is None
-        ):
-            claude_window = resolve_backend_usage_window(
-                ClaudeUsageBackend(),
-                state_path=claude_root,
-                logs_path=usage_logs_path,
-                cwd=cwd,
-                started_at=task.get("started_at"),
-                finished_at=task.get("finished_at"),
-                pricing_path=pricing_path,
-                thread_id=None,
-            )
-            if claude_window.cost_usd is not None or claude_window.total_tokens is not None:
-                window = claude_window
-                detected_agent_name = claude_window.backend_name
-        auto_cost_usd = window.cost_usd
-        auto_total_tokens = window.total_tokens
-        auto_input_tokens = window.input_tokens
-        auto_cached_input_tokens = window.cached_input_tokens
-        auto_output_tokens = window.output_tokens
-        auto_model = window.model_name
-        if (
-            auto_cost_usd is None
-            and auto_total_tokens is None
-            and auto_input_tokens is None
-            and auto_cached_input_tokens is None
-            and auto_output_tokens is None
-            and auto_model is None
-        ):
+        if not _apply_auto_usage_updates(task, window, detected_agent_name):
             continue
-        changed = False
-        if auto_cost_usd is not None and task.get("cost_usd") != auto_cost_usd:
-            task["cost_usd"] = auto_cost_usd
-            changed = True
-        if auto_input_tokens is not None and task.get("input_tokens") != auto_input_tokens:
-            task["input_tokens"] = auto_input_tokens
-            changed = True
-        if auto_cached_input_tokens is not None and task.get("cached_input_tokens") != auto_cached_input_tokens:
-            task["cached_input_tokens"] = auto_cached_input_tokens
-            changed = True
-        if auto_output_tokens is not None and task.get("output_tokens") != auto_output_tokens:
-            task["output_tokens"] = auto_output_tokens
-            changed = True
-        if auto_total_tokens is not None and task.get("tokens_total") != auto_total_tokens:
-            task["tokens_total"] = auto_total_tokens
-            changed = True
-        if auto_model is not None and task.get("model") != auto_model:
-            task["model"] = auto_model
-            changed = True
-        if detected_agent_name is not None and task.get("agent_name") is None:
-            task["agent_name"] = detected_agent_name
-            changed = True
-        if changed:
-            validate_goal_record(task)
-            sync_goal_attempt_entries(data, task, previous_task)
-            updated_tasks += 1
+        validate_goal_record(task)
+        sync_goal_attempt_entries(data, task, previous_task)
+        updated_tasks += 1
     return updated_tasks
 
 
 def sync_codex_usage(
     data: dict[str, Any],
+    *,
     cwd: Path,
     pricing_path: Path,
     codex_state_path: Path,
@@ -784,9 +779,8 @@ def audit_cost_coverage(
     cwd: Path,
     claude_root: Path = CLAUDE_ROOT,
 ) -> CostAuditReport:
-    from ai_agents_metrics.cost_audit import audit_cost_coverage as build_cost_report
-
     def resolve_cost_audit_usage_window(
+        *,
         state_path: Path,
         logs_path: Path,
         cwd: Path,
@@ -812,24 +806,28 @@ def audit_cost_coverage(
         )
         return window.cost_usd, window.total_tokens
 
-    return build_cost_report(
+    return _run_audit_cost_coverage(
         data,
-        pricing_path=pricing_path,
-        codex_state_path=codex_state_path,
-        codex_logs_path=codex_logs_path,
-        claude_root=claude_root,
-        cwd=cwd,
-        codex_thread_id=codex_thread_id,
-        find_thread_id=find_usage_thread_id,
-        resolve_usage_window=resolve_cost_audit_usage_window,
+        context=CostAuditContext(
+            pricing_path=pricing_path,
+            codex_state_path=codex_state_path,
+            codex_logs_path=codex_logs_path,
+            claude_root=claude_root,
+            cwd=cwd,
+            codex_thread_id=codex_thread_id,
+            find_thread_id=find_usage_thread_id,
+            resolve_usage_window=resolve_cost_audit_usage_window,
+        ),
     )
 
 
-def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> dict[str, Any]:
+def _validate_merge_preconditions(
+    tasks: list[dict[str, Any]],
+    keep_task_id: str,
+    drop_task_id: str,
+) -> tuple[int, int, dict[str, Any], dict[str, Any]]:
     if keep_task_id == drop_task_id:
         raise ValueError("keep_task_id and drop_task_id must be different")
-
-    tasks: list[dict[str, Any]] = data["goals"]
     keep_index = get_task_index(tasks, keep_task_id)
     drop_index = get_task_index(tasks, drop_task_id)
     if keep_index is None:
@@ -845,7 +843,15 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
         raise ValueError("only goals with the same goal_type can be merged")
     if dropped_task.get("supersedes_goal_id") == keep_task_id:
         raise ValueError("merge would create a supersession cycle")
+    return keep_index, drop_index, kept_task, dropped_task
 
+
+def _verify_merge_supersession(
+    tasks: list[dict[str, Any]],
+    keep_task_id: str,
+    drop_task_id: str,
+) -> None:
+    """Simulate the merge on a copy and validate the supersession graph stays acyclic."""
     simulated_tasks = [dict(task) for task in tasks]
     simulated_kept_task = next(task for task in simulated_tasks if task["goal_id"] == keep_task_id)
     simulated_dropped_task = next(task for task in simulated_tasks if task["goal_id"] == drop_task_id)
@@ -860,6 +866,8 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
     except ValueError as exc:
         raise ValueError("merge would create a supersession cycle") from exc
 
+
+def _merge_kept_task_fields(kept_task: dict[str, Any], dropped_task: dict[str, Any]) -> None:
     kept_task["attempts"] = int(kept_task["attempts"]) + int(dropped_task["attempts"])
     kept_task["started_at"] = choose_earliest_timestamp(kept_task.get("started_at"), dropped_task.get("started_at"))
     kept_task["finished_at"] = choose_latest_timestamp(kept_task.get("finished_at"), dropped_task.get("finished_at"))
@@ -881,6 +889,13 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
     elif kept_task.get("failure_reason") is None:
         kept_task["failure_reason"] = dropped_task.get("failure_reason")
 
+
+def _rehome_entries_and_resolve_model(
+    data: dict[str, Any],
+    kept_task: dict[str, Any],
+    keep_task_id: str,
+    drop_task_id: str,
+) -> None:
     entries: list[dict[str, Any]] = data["entries"]
     for entry in entries:
         if entry.get("goal_id") == drop_task_id:
@@ -893,6 +908,16 @@ def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> d
         kept_task["model"] = distinct_models.pop() if len(distinct_models) == 1 else None
     else:
         kept_task["model"] = None
+
+
+def merge_tasks(data: dict[str, Any], keep_task_id: str, drop_task_id: str) -> dict[str, Any]:
+    tasks: list[dict[str, Any]] = data["goals"]
+    _, drop_index, kept_task, dropped_task = _validate_merge_preconditions(
+        tasks, keep_task_id, drop_task_id
+    )
+    _verify_merge_supersession(tasks, keep_task_id, drop_task_id)
+    _merge_kept_task_fields(kept_task, dropped_task)
+    _rehome_entries_and_resolve_model(data, kept_task, keep_task_id, drop_task_id)
     validate_goal_record(kept_task)
     for task in tasks:
         if task.get("supersedes_goal_id") == drop_task_id:
