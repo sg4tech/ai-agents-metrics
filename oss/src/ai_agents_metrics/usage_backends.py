@@ -107,7 +107,12 @@ def detect_usage_backend_name(
     if row is None:
         return None
 
-    provider = row["model_provider"] if "model_provider" in row.keys() else None  # noqa: SIM118 sqlite3.Row lacks .get()
+    # sqlite3.Row[str] raises IndexError on missing column; catch it to express
+    # the default-on-miss semantics without the SIM118-triggering ``.keys()`` idiom.
+    try:
+        provider = row["model_provider"]
+    except IndexError:
+        provider = None
     if provider in {"anthropic", "claude"}:
         return "claude"
     if provider in {"openai", "codex"}:
