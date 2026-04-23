@@ -61,7 +61,9 @@ Reporting (reporting.py)
 ```
 ai-agents-metrics/
 ├── src/ai_agents_metrics/   # Main Python package
-├── tests/               # Pytest test suite
+├── tests/               # Pytest test suite (grouped by subject area: cli/,
+│                        # domain/, history/, reporting/, workflow/, infra/;
+│                        # hypothesis strategies in tests/strategies/)
 ├── scripts/             # Automation and utility scripts
 ├── tools/               # CLI wrapper (tools/ai-agents-metrics)
 ├── config/              # Public boundary rules (TOML)
@@ -127,18 +129,18 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `reporting.py` | Markdown generation, product quality summaries, agent recommendations |
 | `cost_audit.py` | Audits missing/incomplete token and cost data; categorises issues |
 | `retro_timeline.py` | Derives a retrospective work timeline from goal records |
-| `html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
-| `_report_aggregation.py` | Transforms ndjson goals + warehouse rows into chart-ready series; `_apply_token_pricing` applies model-aware pricing |
-| `_report_buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
-| `_report_template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
+| `report/html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
+| `report/aggregation.py` | Transforms ndjson goals + warehouse rows into chart-ready series; `_apply_token_pricing` applies model-aware pricing |
+| `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
+| `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
 
 ### Integrations
 
 | File | Role |
 |------|------|
-| `pricing_runtime.py` | Sanctioned application-level pricing API: resolves effective pricing path and loads workspace-aware pricing |
-| `usage_resolution.py` | Pricing data loading, usage event parsing, cost computation, and window resolution logic for Claude and Codex sessions |
-| `usage_backends.py` | `UsageBackend` Protocol with `ClaudeUsageBackend` and `UnknownUsageBackend` implementations; delegates window resolution to `usage_resolution` |
+| `usage/pricing_runtime.py` | Sanctioned application-level pricing API: resolves effective pricing path and loads workspace-aware pricing |
+| `usage/resolution.py` | Pricing data loading, usage event parsing, cost computation, and window resolution logic for Claude and Codex sessions |
+| `usage/backends.py` | `UsageBackend` Protocol with `ClaudeUsageBackend` and `UnknownUsageBackend` implementations; delegates window resolution to `usage.resolution` |
 | `git_hooks.py` | Implements commit-msg validation and pre-push security scanning logic |
 | `commit_message.py` | Validates commit subject format (`CODEX-123:` / `NO-TASK:`) |
 | `public_boundary.py` | Verifies files against TOML-configured inclusion/exclusion rules |
@@ -194,7 +196,7 @@ Boundary note:
 - `cli.py` is the entrypoint module, not the general runtime dependency surface
 - `commands/` depends on `runtime_facade/`, not on `cli.py` (enforced by import-linter)
 - Inside `runtime_facade/` the one-way direction is `mutations → costs → orchestration`
-- pricing-aware runtime consumers should go through `pricing_runtime.py`, not ad-hoc pricing-path resolution
+- pricing-aware runtime consumers should go through `usage/pricing_runtime.py`, not ad-hoc pricing-path resolution
 
 Key command groups:
 
@@ -223,22 +225,25 @@ Key command groups:
 
 ## Tests (`tests/`)
 
-One test file per module; naming mirrors the source:
+One test file per module; files are grouped into subject-area subdirectories so
+the root shows structure at a glance:
 
-| Test file | Covers |
-|-----------|--------|
-| `test_metrics_cli.py` | Full CLI workflow integration |
-| `test_metrics_domain.py` | Domain model logic |
-| `test_workflow_fsm.py` | State machine transitions |
-| `test_history_{ingest,normalize,derive,compare,audit}.py` | Pipeline stages |
-| `test_storage_roundtrip.py` | Event log I/O and replay |
-| `test_{cost_audit,reporting,retro_timeline}.py` | Analysis and reporting |
-| `test_{git_hooks,commit_message,public_boundary}.py` | Integrations |
-| `test_observability.py` | Event recording |
-| `test_public_overlay.py` | Public/private sync |
-| `test_claude_md.py` | Documentation generation |
+| Subdir | Test file | Covers |
+|--------|-----------|--------|
+| `cli/` | `test_metrics_cli.py` | Full CLI workflow integration |
+| `domain/` | `test_metrics_domain{,_properties}.py` | Domain model logic + hypothesis invariants |
+| `history/` | `test_history_{ingest,normalize,normalize_properties,derive,classify,compare,audit,pipeline_json}.py` | Pipeline stages |
+| `reporting/` | `test_{html_report,reporting,retro_timeline,show_json}.py` | Analysis and report rendering |
+| `workflow/` | `test_workflow_fsm.py`, `test_git_state.py`, `test_commit_message.py` | State machine transitions, git + hook integrations |
+| `infra/` | `test_{public_boundary,public_overlay,security,storage_roundtrip,observability,cost_audit}.py` | Boundary rules, sync, event log I/O, observability |
+| `strategies/` | `domain.py`, `history.py` | Hypothesis strategies shared across property tests |
+| `tests/private/` (private root only) | `test_git_hooks.py`, `test_claude_md.py` | Git hook behavior and doc generation |
 
-`conftest.py` provides shared fixtures (temp metrics paths, fake goal factories, etc.).
+`conftest.py` provides shared fixtures (temp metrics paths, fake goal factories,
+etc.) plus `find_repo_paths()` — a `[tool.codex_tests]`-marker-based helper for
+resolving the repo root from any test subdir. Prefer it over
+`Path(__file__).parents[N]` so test paths stay stable when files move between
+subdirs.
 
 ---
 

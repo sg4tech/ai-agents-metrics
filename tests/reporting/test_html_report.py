@@ -7,13 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from ai_agents_metrics._report_aggregation import (
+from ai_agents_metrics.report.aggregation import (
     _aggregate_warehouse_retry,
     _aggregate_warehouse_tokens_by_model,
     aggregate_report_data,
 )
-from ai_agents_metrics._report_buckets import _bucket_key, _make_buckets, _monday_of, _parse_date
-from ai_agents_metrics.html_report import check_warehouse_state, render_html_report
+from ai_agents_metrics.report.buckets import _bucket_key, _make_buckets, _monday_of, _parse_date
+from ai_agents_metrics.report.html_report import check_warehouse_state, render_html_report
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -416,13 +416,13 @@ def test_summary_total_cost_is_none_when_no_cost_data():
 
 
 def test_empty_data_has_chart2_source():
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
     data = _empty_data()
     assert data["chart2_source"] == "ledger"
 
 
 def test_empty_data_has_chart3_source():
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
     data = _empty_data()
     assert data["chart3_source"] == "ledger"
 
@@ -553,7 +553,7 @@ def test_aggregate_report_data_warehouse_tokens_separates_models():
 
 
 def test_render_html_returns_string_with_key_markers():
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
 
     data = _empty_data()
     html = render_html_report(data, "2026-01-15 12:00 UTC")
@@ -575,7 +575,7 @@ def test_render_html_embeds_chart_data():
 
 def test_render_html_escapes_script_closing_tag():
     """Inline JSON must not contain </script> — would break the HTML parser."""
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
 
     data = _empty_data()
     html = render_html_report(data, "2026-01-15 10:00 UTC")
@@ -584,7 +584,7 @@ def test_render_html_escapes_script_closing_tag():
 
 
 def test_render_html_no_external_urls():
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
 
     data = _empty_data()
     html = render_html_report(data, "2026-01-15 10:00 UTC")
@@ -609,7 +609,7 @@ def test_embedded_js_is_valid_syntax(tmp_path):
         pytest.skip("node not available")
     assert node is not None  # narrow type for static analysis
 
-    from ai_agents_metrics._report_aggregation import _empty_data
+    from ai_agents_metrics.report.aggregation import _empty_data
 
     data = _empty_data()
     html = render_html_report(data, "2026-01-15 10:00 UTC")
@@ -835,7 +835,7 @@ def test_render_html_includes_warehouse_callout_wiring():
 def test_pricing_file_has_claude_opus_4_7():
     """Guard against regression: opus-4-7 was silently dropped from chart 3
     when absent from the pricing file (P0-4, 2026-04-20). Keep it here."""
-    from ai_agents_metrics.usage_resolution import PRICING_JSON_PATH, load_pricing
+    from ai_agents_metrics.usage.resolution import PRICING_JSON_PATH, load_pricing
     pricing = load_pricing(PRICING_JSON_PATH)
     assert "claude-opus-4-7" in pricing
     entry = pricing["claude-opus-4-7"]
@@ -857,7 +857,7 @@ def test_smartmax_cap_has_rawmax_floor():
     non-outlier bar indistinguishable (24× off-scale). New floor clamps
     cap ≥ rawMax/5 so outliers are at most 5× above the visible axis.
     """
-    from ai_agents_metrics._report_template import _HTML_TEMPLATE
+    from ai_agents_metrics.report.template import _HTML_TEMPLATE
     # Pin the exact formula so that a future well-intentioned "simplification"
     # cannot silently revert this fix.
     assert "Math.max(median * 2.5, rawMax / 5)" in _HTML_TEMPLATE
@@ -870,7 +870,7 @@ def test_drawline_stacks_overlapping_outlier_labels():
     Regression bug (2026-04-20): `$147.70 $140.62` on consecutive days
     rendered on the same y-coordinate, labels visually touching.
     """
-    from ai_agents_metrics._report_template import _HTML_TEMPLATE
+    from ai_agents_metrics.report.template import _HTML_TEMPLATE
     # Marker variables for the stacking loop; presence pins the algorithm.
     assert "outlierRowEdges" in _HTML_TEMPLATE
     assert "OUTLIER_LABEL_LINE_HEIGHT" in _HTML_TEMPLATE
@@ -903,7 +903,7 @@ def test_retry_pressure_subtitle_disambiguates_from_subagents():
     """Chart 2 subtitle must say 'main-agent session' and 'subagent spawns
     excluded' so the human reader does not confuse this signal with total
     session-file count (which would include Task() subagent spawns)."""
-    from ai_agents_metrics._report_template import _HTML_TEMPLATE
+    from ai_agents_metrics.report.template import _HTML_TEMPLATE
     assert "main-agent session" in _HTML_TEMPLATE
     assert "subagent spawns excluded" in _HTML_TEMPLATE
     assert "Main-agent retry threads" in _HTML_TEMPLATE
@@ -913,7 +913,7 @@ def test_retry_pressure_no_retries_message_is_source_specific():
     """The green 'no retries' plaque text changes by source so it accurately
     reflects the metric: warehouse-source measures main-agent sessions,
     ledger-source measures goal-level attempt count."""
-    from ai_agents_metrics._report_template import _HTML_TEMPLATE
+    from ai_agents_metrics.report.template import _HTML_TEMPLATE
     assert "No main-agent retries" in _HTML_TEMPLATE
     assert "every task completed in a single main session" in _HTML_TEMPLATE
     # Ledger path keeps its legacy wording.
@@ -924,6 +924,6 @@ def test_retry_chart_renders_when_all_rates_are_zero():
     """When the retry signal is genuinely zero (all threads completed in a
     single main session), the chart should still render so the no-retries
     plaque can appear. Previously all-zero was conflated with 'no data'."""
-    from ai_agents_metrics._report_template import _HTML_TEMPLATE
+    from ai_agents_metrics.report.template import _HTML_TEMPLATE
     # The empty-state guard must not trigger on all-zero line values.
     assert "const lineHasData = lineValues.some(v => v !== null)" in _HTML_TEMPLATE

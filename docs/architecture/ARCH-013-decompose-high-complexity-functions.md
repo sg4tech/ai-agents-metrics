@@ -12,7 +12,7 @@ One has been substantially reduced via a module split; the other remains unaddre
 | Function | File | Original CC | Current CC | Target |
 |----------|------|-------------|------------|--------|
 | `derive_codex_history` | `history/derive.py:48` | F (85) | C (15) | ≤ B (10) |
-| `aggregate_report_data` | `_report_aggregation.py:126` | F (70) | F (70) | ≤ B (10) |
+| `aggregate_report_data` | `report/aggregation.py:126` | F (70) | F (70) | ≤ B (10) |
 
 ## Progress
 
@@ -54,7 +54,7 @@ and loop bodies into named helpers so the top-level reads as a sequence of named
 Both insertion helpers combine query construction, data transformation, and conditional
 branching. Extract per-record transformation logic into focused sub-functions.
 
-### `aggregate_report_data` (CC=70, `_report_aggregation.py:126`)
+### `aggregate_report_data` (CC=70, `report/aggregation.py:126`)
 
 Extract aggregation phases into focused helpers:
 - Token/cost series assembly
@@ -66,7 +66,7 @@ Extract aggregation phases into focused helpers:
 
 - [ ] `radon cc src/ai_agents_metrics/history/derive.py -s` shows `derive_codex_history` ≤ B (CC ≤ 10)
 - [ ] `radon cc src/ai_agents_metrics/history/derive_insert.py -s` shows all functions ≤ B (CC ≤ 10)
-- [ ] `radon cc src/ai_agents_metrics/_report_aggregation.py -s` shows `aggregate_report_data` ≤ B (CC ≤ 10)
+- [ ] `radon cc src/ai_agents_metrics/report/aggregation.py -s` shows `aggregate_report_data` ≤ B (CC ≤ 10)
 - [ ] `make verify` passes without regressions
 - [ ] New unit tests cover at least the major extracted sub-functions
 - [ ] No change to public API or CLI behaviour

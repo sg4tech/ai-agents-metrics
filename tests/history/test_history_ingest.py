@@ -2,14 +2,12 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import sqlite3
 import subprocess
 import sys
-import tomllib
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-import pytest
+from conftest import find_repo_paths
 
 from ai_agents_metrics.history.ingest import (
     _encode_claude_cwd,
@@ -19,22 +17,11 @@ from ai_agents_metrics.history.ingest import (
     _optional_row_value,
 )
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def _find_paths() -> tuple[Path, Path, Path]:
-    for parent in Path(__file__).resolve().parents:
-        cfg = parent / "pyproject.toml"
-        if not cfg.exists():
-            continue
-        with cfg.open("rb") as f:
-            ct = tomllib.load(f).get("tool", {}).get("codex_tests")
-        if ct:
-            return parent, parent / ct["scripts"], parent / ct["src"]
-    raise RuntimeError("No [tool.codex_tests] found in any pyproject.toml")
-
-
-_REPO_ROOT, _SCRIPTS_DIR, _SRC_DIR = _find_paths()
+_REPO_ROOT, _SCRIPTS_DIR, _SRC_DIR = find_repo_paths()
 ABS_SCRIPT = _SCRIPTS_DIR / "metrics_cli.py"
-ABS_SRC = _SRC_DIR
 
 
 def build_cmd(*args: str) -> list[str]:
@@ -85,27 +72,8 @@ def run_cmd(
     return run_cli_inprocess(tmp_path, *args, extra_env=extra_env)
 
 
-@pytest.fixture
-def repo(tmp_path: Path) -> Path:
-    (tmp_path / "docs").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
-
-    if os.environ.get("CODEX_SUBPROCESS_COVERAGE") == "1":
-        (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
-        script_target = tmp_path / "scripts" / "metrics_cli.py"
-        script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
-        shutil.copytree(ABS_SRC, tmp_path / "src")
-
-    (tmp_path / ".gitkeep").write_text("", encoding="utf-8")
-    subprocess.run(["git", "init"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.email", "codex@example.com"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.name", "Codex"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "add", "."], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "commit", "-m", "baseline"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    return tmp_path
-
-
+# The ``repo`` fixture is provided by tests/conftest.py — a session-scoped
+# git template hardlink-copied per test.
 def create_codex_history_source_root(root: Path) -> Path:
     source_root = root / "codex-source"
     sessions_dir = source_root / "sessions" / "2026" / "04" / "02"

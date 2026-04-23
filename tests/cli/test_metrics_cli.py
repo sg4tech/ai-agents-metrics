@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
 import sqlite3
 import subprocess
 import sys
@@ -12,11 +11,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from conftest import find_repo_paths
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE_ROOT, _SCRIPTS_DIR, ABS_SRC = find_repo_paths()
 SCRIPT = Path("scripts/metrics_cli.py")
-ABS_SCRIPT = WORKSPACE_ROOT / "scripts" / "metrics_cli.py"
-ABS_SRC = WORKSPACE_ROOT / "src"
+ABS_SCRIPT = _SCRIPTS_DIR / "metrics_cli.py"
 PRICING = WORKSPACE_ROOT / "pricing" / "model_pricing.json"
 
 if str(ABS_SRC) not in sys.path:
@@ -24,8 +23,8 @@ if str(ABS_SRC) not in sys.path:
 
 import ai_agents_metrics as codex_metrics_pkg
 import ai_agents_metrics.cli as codex_metrics_cli
-from ai_agents_metrics.usage_backends import ClaudeUsageBackend, select_usage_backend
-from ai_agents_metrics.usage_backends import resolve_usage_window as resolve_backend_usage_window
+from ai_agents_metrics.usage.backends import ClaudeUsageBackend, select_usage_backend
+from ai_agents_metrics.usage.backends import resolve_usage_window as resolve_backend_usage_window
 
 
 def _build_subprocess_cmd(*args: str) -> list[str]:
@@ -472,32 +471,9 @@ def create_codex_session_usage_sources(
     return state_path, logs_path
 
 
-@pytest.fixture
-def repo(tmp_path: Path) -> Path:
-    (tmp_path / "src").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "scripts").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "docs").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "metrics").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "pricing").mkdir(parents=True, exist_ok=True)
-
-    pricing_target = tmp_path / "pricing" / "model_pricing.json"
-    pricing_target.write_text(PRICING.read_text(encoding="utf-8"), encoding="utf-8")
-    # Script shim is cheap to copy and needed by subprocess-based tests
-    # (install-self, bootstrap wrapper, script_shim_exposes_cli_version, run_module_cmd).
-    script_target = tmp_path / "scripts" / "metrics_cli.py"
-    script_target.write_text(ABS_SCRIPT.read_text(encoding="utf-8"), encoding="utf-8")
-
-    # Keep subprocess-based CLI tests hermetic: the script shim should always
-    # import the package from the temp repo, not rely on an ambient editable
-    # install or global PYTHONPATH.
-    shutil.copytree(ABS_SRC, tmp_path / "src", dirs_exist_ok=True)
-
-    subprocess.run(["git", "init"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.email", "codex@example.com"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "config", "user.name", "Codex"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "add", "."], cwd=tmp_path, text=True, capture_output=True, check=True)
-    subprocess.run(["git", "commit", "-m", "baseline"], cwd=tmp_path, text=True, capture_output=True, check=True)
-    yield tmp_path
+# _repo_template + repo fixtures live in tests/conftest.py (shared with
+# tests/history/*) so the baseline git repo is built once per session and
+# hardlink-copied per test.
 
 
 def test_init_creates_files(repo: Path) -> None:
@@ -1191,6 +1167,10 @@ def test_bootstrap_can_target_claude_instructions_file(repo: Path) -> None:
     assert "Use `tools/ai-agents-metrics ...` in this repository." in instructions_text
 
 
+# Bumped timeout: this test legitimately spawns two real Python subprocesses
+# (``bootstrap`` then the wrapper's ``show``), each doing full package import.
+# Under xdist CPU contention the two spawns alone can cross the 5s default.
+@pytest.mark.timeout(15)
 def test_bootstrap_wrapper_runs_from_repo_root_even_when_invoked_from_other_cwd(repo: Path, tmp_path: Path) -> None:
     result = _run_cmd_subprocess(repo, "bootstrap")
     assert result.returncode == 0, result.stderr
