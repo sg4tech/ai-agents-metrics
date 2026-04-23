@@ -4,9 +4,25 @@ All notable changes to `ai-agents-metrics` will be recorded here.
 
 ## Unreleased
 
-### Changed
+## 0.2.3 (2026-04-23)
 
-- Removed the implicit `gpt-5.4` → `gpt-5` / `gpt-5.4-mini` → `gpt-5-mini` alias from `resolve_pricing_model_alias`. `gpt-5.4*` models now have their own entries in the bundled `model_pricing.json` with correct pricing ($2.5/$15 per MTok input/output, vs the old aliased $1.25/$10). **User impact:** if you have a custom workspace `model_pricing.json` that predates this release and lacks `gpt-5.4*` entries, Codex `gpt-5.4` sessions will no longer resolve a price — `cost_usd` falls back to `None` instead of being computed against `gpt-5` rates. Fix: copy the new entries from the bundled file, or delete your override and let the bundled pricing be used
+### Fixed
+
+- `gpt-5.4` and `gpt-5.4-mini` pricing is no longer aliased to `gpt-5` / `gpt-5-mini`. Both models now have their own entries in the bundled `model_pricing.json` with correct rates ($2.50/$15.00 per MTok input/output for `gpt-5.4`, $0.60/$2.40 for `gpt-5.4-mini`). Previously, sessions using `gpt-5.4*` models were billed at `gpt-5` rates — 2× too high for `gpt-5.4` and 50% too high for `gpt-5.4-mini`. **User impact:** if you have a custom workspace `model_pricing.json` that predates this release and lacks `gpt-5.4*` entries, Codex `gpt-5.4` sessions will fall back to `cost_usd = None` instead of using the incorrect alias. Fix: copy the new entries from the bundled file, or delete your override to use bundled pricing
+
+### Changed (internal)
+
+These changes improve code quality, test coverage, and long-term maintainability. No user-facing behavior changes.
+
+- **Subpackage reorganization**: `commands/`, `runtime_facade/`, `history/ingest/`, `usage/`, and `report/` are now proper sub-packages. Import paths at the public API surface (`ai_agents_metrics.*`) are unchanged
+- **mypy `--strict` globally**: all source modules now pass `mypy --strict`. Previously strict mode was gated only on `domain/` and `history/`
+- **Pylint hard-fail ratchet**: unified three-tier pylint strategy into a single default run where all previously advisory rules are now hard-fail. Over 40 `# pylint: disable` suppressions replaced by real refactors
+- **ruff rule expansion**: ruff lint categories expanded from 2 to 15 (including `B`, `C4`, `SIM`, `PIE`, `RUF`, `PL`, and others). All new violations fixed before enabling
+- **Property-based tests** (hypothesis): 16 invariant tests added across `domain/aggregation` and `history/normalize` — goal/entry round-trips, degenerate inputs, monotonicity, and boundary conditions
+- **Pricing runtime API**: effective pricing loading centralized into `runtime_facade`; pricing model alias resolution extracted into its own module (CODEX-74, CODEX-75)
+- **Test hermetic isolation**: history CLI tests are now fully hermetic — no dependency on ambient `~/.codex` or `~/.claude` state (CODEX-72)
+- **CI reliability**: xdist-timeout flakes eliminated by sharing the git repo template fixture across workers
+- **`make verify` speedup**: 17 min → ~1.5 min via parallel pytest-xdist workers and fixture sharing
 
 ## 0.2.2 (2026-04-21)
 
