@@ -115,19 +115,57 @@ New entries should follow the format below. Add entries as decisions are made or
 
 ---
 
-## html_report.py split into four focused modules
+## html_report.py split into the `report/` subpackage
 
 **Context:** `html_report.py` grew to 1084 lines as the HTML template, aggregation logic, date helpers, and public API accumulated in one file. Diffs and code review were impractical; the ~730-line template string dominated the file.
 
-**Decision:** The file is split into:
-- `_report_buckets.py` — pure date/bucket helpers (no I/O, no side effects)
-- `_report_aggregation.py` — all aggregation logic; `_apply_token_pricing` extracted to eliminate duplication between the warehouse and ledger token paths
-- `_report_template.py` — the HTML/CSS/JS template string (inert data, no Python logic)
-- `html_report.py` — thin 37-line facade; public API (`aggregate_report_data`, `render_html_report`) unchanged
+**Decision:** The file is split into a dedicated `ai_agents_metrics.report` subpackage:
+- `report/buckets.py` — pure date/bucket helpers (no I/O, no side effects)
+- `report/aggregation.py` — all aggregation logic; `_apply_token_pricing` extracted to eliminate duplication between the warehouse and ledger token paths
+- `report/template.py` — the HTML/CSS/JS template string (inert data, no Python logic)
+- `report/html_report.py` — thin facade; public API (`aggregate_report_data`, `render_html_report`) unchanged
 
-**Trade-offs:** Three new private modules with underscore-prefixed names. Tests import from the sub-modules directly.
+The original split used three underscore-prefixed modules (`_report_aggregation.py`, `_report_buckets.py`, `_report_template.py`) living next to `html_report.py` at the package root. They were later collected into the `report/` subpackage so the top-level listing shows a single unit instead of four cross-coupled files.
 
-**Why this works:** Each module has exactly one reason to change. The public import surface is preserved; `commands.py` and any downstream code importing from `html_report` requires no changes.
+**Trade-offs:** Imports move from `ai_agents_metrics.html_report` / `ai_agents_metrics._report_*` to `ai_agents_metrics.report.*`. One-time migration; the symbol names inside the modules are unchanged.
+
+**Why this works:** Each module has exactly one reason to change, and the subpackage boundary matches the dependency cluster that already existed.
+
+---
+
+## Subpackage-grouping heuristic: 3+ tightly-coupled top-level modules
+
+**Context:** After the `report/` and `usage/` extractions (the `usage_*.py` + `pricing_runtime.py` trio moved into `usage/` the same way), we need a rule for when the next grouping is worth doing — otherwise every refactor devolves into debating taste.
+
+**Decision:** Promote top-level modules into a subpackage when **three or more** of them form a directed import cluster. Two files is too thin to justify the restructuring cost (directory, `__init__.py`, importer updates, import-linter contract rewrites). Examples:
+- `report/` (4 files: `html_report`, `aggregation`, `buckets`, `template`) — promoted.
+- `usage/` (3 files: `backends`, `resolution`, `pricing_runtime` — `backends` imports `resolution`, `pricing_runtime` imports `resolution`) — promoted.
+- `git/` (`git_hooks.py` + `git_state.py`, 2 files) — **not** promoted.
+- One-file concerns (`bootstrap.py`, `workflow_fsm.py`, `observability.py`, `storage.py`, …) — stay flat.
+
+When promoting, drop leading underscores from files whose privacy the new package boundary already expresses (`_report_aggregation.py` → `report/aggregation.py`). Collapse the matching `ai_agents_metrics.<module>` entries in import-linter's "no cli import" contract into a single `ai_agents_metrics.<pkg>` entry — `as_packages=True` covers the subtree.
+
+**Trade-offs:** The threshold is a judgement call, not a rigid rule. Two files that are about to grow into three can be grouped pre-emptively if the third is already in a PR. Conversely, three files without real coupling (only thematic similarity) are not a cluster — don't promote.
+
+**Why this works:** The rule matches the observed ROI curve. Two-file groupings save ~3 lines of import-linter config but cost a PR's worth of importer churn; three-file groupings start paying back (import-linter collapse, top-level listing clean-up, localized contract). Beyond the file-count test, the hard signal is internal edges: if the would-be submodules already import each other, the package boundary matches reality.
+
+---
+
+## Shared `_repo_template` fixture in `tests/conftest.py`
+
+**Context:** Five test files (`tests/cli/test_metrics_cli.py` plus four `tests/history/test_history_*.py`) each defined a local `repo` fixture that spawned five git subprocesses per test (`git init`, two `git config`, `git add`, `git commit`). Across ~160 tests this is several hundred subprocess invocations per run. Under xdist parallel workers + the 5s per-test `pytest-timeout` the git spawns queued up during CPU contention and pushed tests over the cliff intermittently (~50% flake rate on 1-CPU CI hardware).
+
+**Decision:** Build a session-scoped `_repo_template` once (`tests/conftest.py`), then have a function-scoped `repo` fixture `cp -rl` (hardlink-copy) from it for each test. The template's files are `chmod 0o555` so accidental writes fail loudly instead of silently poisoning the shared inode. The pattern was originally introduced for the cli test suite (PR #46) and generalized to all subdirs in PR #49.
+
+Two supporting conventions:
+
+1. **Subprocess-heavy tests get an explicit `@pytest.mark.timeout(15)` override**, not a global timeout bump. The 5s default catches runaway loops; bumping it repo-wide would mask real regressions. Tests that legitimately spawn multiple real Python subprocesses (e.g. `test_bootstrap_wrapper_runs_from_repo_root_even_when_invoked_from_other_cwd`, which runs `bootstrap` then the wrapper's `show`) are rare and marked at the call site.
+
+2. **New test subdirectories must not redefine `repo`.** If a test needs a repo variant, extend via a sibling fixture that takes `repo` as input, or factor the divergent setup into an explicit helper. Per-file copies of the heavy fixture were the exact pattern this ADR replaces.
+
+**Trade-offs:** Tests that don't need `src/`, `scripts/`, or `pricing/` now get them as hardlinks. Hardlink cost is near-zero, so the extra files are free; the risk is tests accidentally depending on template-baked state, which the read-only permission guardrail surfaces immediately.
+
+**Why this works:** The session-scoped template amortizes the 5-subprocess git setup across the entire test run. `cp -rl` makes the per-test copy effectively free because no bytes are copied — just inode entries. Flake rate dropped from ~50% to 0 across 5 consecutive full-suite runs without any test skipping or xdist worker tuning.
 
 ---
 
@@ -137,7 +175,7 @@ New entries should follow the format below. Add entries as decisions are made or
 
 **Decision:** `cli.py` re-exports ~50 symbols from `domain`, `reporting`, and `storage` to maintain backward compatibility.
 
-**Trade-offs:** Any code importing from `cli` pulls the entire CLI layer as a dependency. Adding a new domain function requires updating the re-export list. This is a known weakness tracked in ARCH-001. ARCH-032 (2026-04-22) removed 9 re-exports that were kept only for a reflective test pattern; `test_metrics_domain.py` now imports directly from `usage_resolution` / `pricing_runtime` / `runtime_facade`.
+**Trade-offs:** Any code importing from `cli` pulls the entire CLI layer as a dependency. Adding a new domain function requires updating the re-export list. This is a known weakness tracked in ARCH-001. ARCH-032 (2026-04-22) removed 9 re-exports that were kept only for a reflective test pattern; `test_metrics_domain.py` now imports directly from `usage.resolution` / `usage.pricing_runtime` / `runtime_facade`.
 
 ---
 
@@ -189,7 +227,7 @@ for `domain/*` and `history/*` using the explicit strict flag set.
 section. All 65 source files (`src/` + `scripts/`) now pass `mypy --strict`.
 
 **Trade-offs:**
-- Required three small fixes: a typed local in `usage_backends.py:135`
+- Required three small fixes: a typed local in `usage/backends.py:135`
   (`sqlite3.Cursor.fetchone()` is typeshed-typed `Any | None`), explicit
   `-> ModuleType` annotations on two bootstrap shim files, and `dict` →
   `dict[str, Any]` in one permission-audit helper.

@@ -52,7 +52,7 @@ alongside Tier 1 and Tier 2.
 
 - `file_immutability.py`: added `check=False` to the cleanup `subprocess.run`
   so the gate is explicit.
-- `usage_resolution.py`: rewrote two `if not (a <= x <= b):` guards into
+- `usage/resolution.py`: rewrote two `if not (a <= x <= b):` guards into
   positive `if x < a or x > b:` form (removes `C0325` and improves
   readability).
 - `commands.py`: replaced `[tuple(row) for row in token_rows]` with
@@ -61,7 +61,7 @@ alongside Tier 1 and Tier 2.
   to module-top imports.
 - `domain/aggregation.py`: extracted `_needs_goal_window_nudge` helper from
   `finalize_goal_update`, removing the 6-boolean `if` chain.
-- `usage_backends.py`: inline-disabled `W0613` on `UnknownUsageBackend.resolve_window`
+- `usage/backends.py`: inline-disabled `W0613` on `UnknownUsageBackend.resolve_window`
   (interface conformance — all kwargs are intentionally unused) and
   `ClaudeUsageBackend.resolve_window` (protocol requires `logs_path` and
   `thread_id` but Claude JSONL telemetry ignores them).
@@ -82,7 +82,7 @@ called:
   `_insert_message_facts` / `_insert_goal_and_retry_chain` /
   `_insert_message_fact_row` in `history/derive_insert.py`.
 - `_apply_int_token_update` in `domain/aggregation.py`.
-- `aggregate_report_data` in `_report_aggregation.py` (kwonly for the
+- `aggregate_report_data` in `report/aggregation.py` (kwonly for the
   warehouse-series tail).
 
 `UsageResolver` was upgraded from a plain `Callable[...]` alias to a
@@ -96,7 +96,7 @@ Lazy imports were hoisted where circular risk is absent (confirmed against
 
 - `cost_audit.py`, `history/compare.py`, `history/audit.py` → `import json` at top.
 - `commands.py` → `from datetime import datetime, timezone` and
-  `from ai_agents_metrics.html_report import aggregate_report_data, check_warehouse_state, render_html_report` at top.
+  `from ai_agents_metrics.report.html_report import aggregate_report_data, check_warehouse_state, render_html_report` at top.
 - `cli.py` → `import os`, `ensure_parent_dir`, and
   `audit_cost_coverage as _run_audit_cost_coverage` added to existing
   top-level imports.
