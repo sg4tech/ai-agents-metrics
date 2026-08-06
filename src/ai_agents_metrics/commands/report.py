@@ -1,4 +1,4 @@
-"""CLI handlers for rendering markdown and HTML reports."""
+"""CLI handler for rendering the warehouse-backed HTML report."""
 from __future__ import annotations
 
 import sqlite3
@@ -7,8 +7,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.domain import load_metrics
-from ai_agents_metrics.history.ingest import default_raw_warehouse_path
 from ai_agents_metrics.report.html_report import (
     aggregate_report_data,
     check_warehouse_state,
@@ -19,15 +17,6 @@ if TYPE_CHECKING:
     from argparse import Namespace
 
     from ai_agents_metrics.commands._runtime import CommandRuntime
-
-
-def handle_render_report(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    report_path = Path(args.report_path)
-    data = load_metrics(metrics_path)
-    cli_module.save_report(report_path, data)
-    print(f"Rendered markdown report: {report_path}")
-    return 0
 
 
 @dataclass(frozen=True)
@@ -43,7 +32,7 @@ def _load_render_html_warehouse_rows(
     """Read retry/token/practice rows from the warehouse; return three-way Nones on error.
 
     The queries pin to the given cwd so cross-repo rows don't bleed in. See
-    `handle_render_html` for the ledger-fallback rationale.
+    `handle_render_html` for the warehouse-only rendering.
     """
     try:
         with sqlite3.connect(warehouse_path) as conn:
@@ -114,34 +103,14 @@ def _safe_load_effective_pricing(
         return None
 
 
-def _resolve_render_html_cwd_and_warehouse(args: Namespace, metrics_path: Path) -> tuple[str, Path]:
-    """Return (cwd, warehouse_path) for an html-render invocation.
-
-    --cwd override supports cross-machine warehouses (e.g. an imported Mac
-    snapshot queried on Linux) where Path.cwd() would never match the stored
-    paths. Empty override falls back to the real process cwd. When the
-    supplied warehouse path is missing we fall back to the default location
-    beside the metrics file.
-    """
-    cwd_arg = getattr(args, "cwd", "") or ""
-    cwd = cwd_arg or str(Path.cwd())
-    warehouse_arg = getattr(args, "warehouse_path", "") or ""
-    warehouse_path = Path(warehouse_arg) if warehouse_arg else None
-    if warehouse_path is None or not warehouse_path.is_file():
-        warehouse_path = default_raw_warehouse_path(metrics_path)
-    return cwd, warehouse_path
-
-
 def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
     output_path = Path(args.output)
-    data = load_metrics(metrics_path)
-
-    cwd, warehouse_path = _resolve_render_html_cwd_and_warehouse(args, metrics_path)
+    cwd = getattr(args, "cwd", "") or str(Path.cwd())
+    warehouse_path = Path(args.warehouse_path).expanduser()
     warehouse_state = check_warehouse_state(warehouse_path, cwd)
     # Only query warehouse when it will actually yield usable rows. An empty
     # empty_for_cwd path would otherwise produce "warehouse-source" charts
-    # with all-zero values, conflicting with the ledger-fallback badge and
+    # with all-zero values, conflicting with the warehouse-only badge and
     # callout shown to the user.
     warehouse_rows = (
         _load_render_html_warehouse_rows(warehouse_path, cwd)
@@ -150,10 +119,9 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     )
 
     chart_data = aggregate_report_data(
-        data.get("goals", []),
-        args.days,
-        warehouse_retry=warehouse_rows.retry,
-        warehouse_tokens=warehouse_rows.tokens,
+        days=args.days,
+        warehouse_retry=warehouse_rows.retry or {},
+        warehouse_tokens=warehouse_rows.tokens or [],
         pricing=_safe_load_effective_pricing(_cli_module),
         warehouse_practice=warehouse_rows.practice,
         warehouse_state=warehouse_state,
@@ -166,8 +134,6 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     output_path.write_text(html, encoding="utf-8")
     print(_render_html_source_message(
         output_path,
-        warehouse_retry=warehouse_rows.retry,
-        warehouse_tokens=warehouse_rows.tokens,
         warehouse_practice=warehouse_rows.practice,
         warehouse_state=warehouse_state,
     ))
@@ -177,18 +143,14 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
 def _render_html_source_message(
     output_path: Path,
     *,
-    warehouse_retry: dict[str, dict[str, int]] | None,
-    warehouse_tokens: list[tuple[str, str | None, int, int, int]] | None,
     warehouse_practice: list[tuple[str, str, int]] | None,
     warehouse_state: dict[str, str],
 ) -> str:
-    retry_src = "warehouse" if warehouse_retry is not None else "ledger"
-    token_src = "warehouse" if warehouse_tokens is not None else "ledger"
     practice_n = sum(c for _, _, c in warehouse_practice) if warehouse_practice else 0
     practice_src = f"warehouse ({practice_n} events)" if warehouse_practice else "none"
     wh_status = warehouse_state.get("status", "ok")
     return (
         f"Rendered HTML report: {output_path} "
-        f"(retry: {retry_src}, tokens: {token_src}, practice: {practice_src}, "
+        f"(retry: warehouse, tokens: warehouse, practice: {practice_src}, "
         f"warehouse: {wh_status})"
     )

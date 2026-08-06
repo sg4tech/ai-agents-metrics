@@ -1,4 +1,4 @@
-"""CLI handlers for install-self, init, and bootstrap."""
+"""CLI handler for installing the executable."""
 from __future__ import annotations
 
 import os
@@ -7,8 +7,6 @@ import stat
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
-
-from ai_agents_metrics.storage import metrics_mutation_lock
 
 if TYPE_CHECKING:
     from argparse import Namespace
@@ -227,65 +225,4 @@ def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
             f"Warning: active virtualenv is shadowing the global install via {shadowing_path}. "
             f"Use {target_path} explicitly or deactivate the virtualenv before relying on `{args.command_name}`."
         )
-    return 0
-
-
-def handle_init(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    report_path = Path(args.report_path) if getattr(args, "write_report", False) else None
-    with metrics_mutation_lock(metrics_path):
-        cli_module.init_files(metrics_path, report_path, force=args.force)
-    print(f"Initialized {metrics_path}")
-    if report_path is not None:
-        print(f"Rendered markdown report: {report_path}")
-    return 0
-
-
-def handle_bootstrap(args: Namespace, cli_module: CommandRuntime) -> int:
-    target_dir = Path(args.target_dir)
-
-    def resolve_target_path(raw_path: str) -> Path:
-        path = Path(raw_path)
-        return path if path.is_absolute() else target_dir / path
-
-    metrics_path = resolve_target_path(args.metrics_path)
-    report_path = resolve_target_path(args.report_path) if getattr(args, "write_report", False) else None
-    policy_path = resolve_target_path(args.policy_path)
-    command_path = resolve_target_path(args.command_path)
-    agents_path = resolve_target_path(args.agents_path)
-    source_path = _resolve_invocation_path()
-    wrapper_content = _render_repo_local_wrapper(source_path, target_dir.resolve())
-    wrapper_exists = command_path.exists()
-    wrapper_matches = wrapper_exists and command_path.read_text(encoding="utf-8") == wrapper_content
-
-    with metrics_mutation_lock(metrics_path):
-        messages = cli_module.bootstrap_project(
-            target_dir=target_dir,
-            metrics_path=metrics_path,
-            report_path=report_path,
-            policy_path=policy_path,
-            command_path=command_path,
-            agents_path=agents_path,
-            force=args.force,
-            dry_run=args.dry_run,
-        )
-        if args.dry_run:
-            if not wrapper_exists:
-                messages.append(f"Would create command wrapper: {command_path}")
-            elif wrapper_matches:
-                messages.append(f"Would keep command wrapper: {command_path}")
-            else:
-                messages.append(f"Would update command wrapper: {command_path}")
-        else:
-            if not wrapper_exists:
-                _write_repo_local_wrapper(command_path, source_path, target_dir.resolve())
-                messages.append(f"Created command wrapper: {command_path}")
-            elif wrapper_matches:
-                messages.append(f"Keeping command wrapper: {command_path}")
-            else:
-                _write_repo_local_wrapper(command_path, source_path, target_dir.resolve())
-                messages.append(f"Updated command wrapper: {command_path}")
-
-    for message in messages:
-        print(message)
     return 0

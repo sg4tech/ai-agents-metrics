@@ -2,9 +2,8 @@
 
 Technical debt and structural improvements not tied to specific product features.
 
-Each file is a standalone task. Track via an in-repo metrics goal
-(`./tools/ai-agents-metrics start-task --title '...' --task-type meta`) and
-commit via `NO-TASK: ARCH-NNN <summary>`. Tickets without an individual
+Each file is a standalone task. Commit changes via
+`NO-TASK: ARCH-NNN <summary>`. Tickets without an individual
 spec file (post-ARCH-023) are documented through their commit messages and
 the campaign-level retros in `docs/private/retros/`.
 

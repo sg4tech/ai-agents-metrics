@@ -10,7 +10,6 @@
 
 **Related docs:**
 - [history-pipeline.md](history-pipeline.md) — current table catalog and pipeline stages
-- [data-schema.md](data-schema.md) — field reference per table
 - [architecture.md](architecture.md) — where each stage runs in the code
 
 ---

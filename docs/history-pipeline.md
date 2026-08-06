@@ -12,8 +12,6 @@
 **Related docs:**
 - [architecture.md](architecture.md) — where the history pipeline fits in the overall system
 - [warehouse-layering.md](warehouse-layering.md) — rules that govern what each `raw_*` / `normalized_*` / `derived_*` layer is allowed to contain
-- [data-schema.md](data-schema.md) — the GoalRecord / AttemptEntryRecord model this pipeline feeds into
-- [data-invariants.md](data-invariants.md) — business rules for reconstructed records
 
 ---
 
@@ -25,11 +23,9 @@ This pipeline supports three `--source` values:
 - **Codex** (`--source codex`): reads from `~/.codex` only — full transcript, token usage, and thread metadata.
 - **Claude Code** (`--source claude`): reads from `~/.claude/projects/` only — full transcript and token usage from session JSONL files, including subagent sessions.
 
-Both sources feed the same ingest → normalize → derive pipeline and produce the same warehouse table shapes. The history pipeline is the primary product flow — run it to get retry pressure, token cost, and session timelines from existing history files with no prior setup. The NDJSON ledger (`events.ndjson`) is a complementary opt-in layer for explicit goal boundaries and outcome judgements.
+Both sources feed the same ingest → normalize → derive pipeline and produce the same warehouse table shapes. The history pipeline is the product flow — run it to get retry pressure, token cost, and session timelines from existing history files with no prior setup.
 
 **Note on Codex vs Claude:** For Codex, each session file maps 1:1 to a thread — there is no multi-session threading. Retry pressure is still measured correctly for Codex through user message counts, not session counts.
-
-`sync-usage` is a separate lightweight cost-backfill adapter (reads `~/.claude` telemetry) and is not part of this transcript pipeline.
 
 The product model (goals, attempts, outcomes, cost) is source-agnostic. New sources would follow the same pattern but with different raw tables and source readers.
 
@@ -43,17 +39,14 @@ Raw sources (~/.codex, Codex sessions)
   ↓  normalize    → cleaned, stable rows
   ↓  classify     → session kinds (main/subagent) + practice events
   ↓  derive       → goal/attempt/timeline marts
-  ↓  compare      → diff against metrics ledger (events.ndjson)
+  ↓  compare      → optional consistency analysis
 
 Raw sources (~/.claude/projects, Claude Code sessions)
   ↓  ingest       → raw warehouse tables (SQLite)
   ↓  normalize    → cleaned, stable rows
   ↓  classify     → session kinds (main/subagent) + practice events
   ↓  derive       → goal/attempt/timeline marts
-  ↓  compare      → diff against metrics ledger (events.ndjson)
-
-Raw sources (~/.claude, Claude Code telemetry) — cost/token only (lightweight backfill)
-  ↓  sync-usage   → goal cost fields in events.ndjson (no transcript)
+  ↓  compare      → optional consistency analysis
 ```
 
 | Stage | Module | What it does |
@@ -62,9 +55,8 @@ Raw sources (~/.claude, Claude Code telemetry) — cost/token only (lightweight 
 | Normalize | `history/normalize.py` | Cleans and stabilises raw rows |
 | Classify | `history/classify.py` | Labels session kinds (main vs subagent) and extracts practice events |
 | Derive | `history/derive.py` + `derive_build.py` + `derive_insert.py` + `derive_schema.py` | Builds goal, attempt, and timeline marts |
-| Compare | `history/compare.py` | Diffs derived goals against the NDJSON ledger |
 
-Run in order: ingest → normalize → classify → derive → compare.
+Run in order: ingest → normalize → classify → derive.
 
 ---
 
@@ -361,13 +353,6 @@ For Codex or Claude Code sessions (full transcript + cost):
 7. Use `derived_message_facts` for message-level OLAP analysis or token spend by date.
 8. Use `derived_goals` and `derived_projects` for project-level comparison.
 
-For cost-only backfill (Claude Code, lightweight):
-
-1. Run `sync-usage` to backfill cost and token totals from `~/.claude` telemetry into the NDJSON ledger.
-2. This does not ingest transcripts — use `history-ingest` (or `--source claude`) above for full conversation history.
-
----
-
 ## Useful Query Shapes
 
 Search transcript text:
@@ -413,7 +398,6 @@ To add a new data source (e.g. a different agent or log format):
 
 1. Add a new ingest module that reads from the new source and writes into the same raw warehouse schema, or a new schema alongside it.
 2. Add normalize and derive stages that produce the same output table shapes (`derived_goals`, `derived_attempts`, etc.) so downstream comparison and analysis remain unchanged.
-3. The compare stage (`history/compare.py`) works against the NDJSON ledger and is source-agnostic — it does not need to change for new sources.
 
 The current raw table names (`raw_threads`, `raw_sessions`, etc.) are Codex-specific. New adapters should introduce their own raw table namespace rather than reusing these names.
 

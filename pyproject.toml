@@ -133,17 +133,12 @@ forbidden_modules = [
     "ai_agents_metrics.cli",
     "ai_agents_metrics.commands",
     "ai_agents_metrics.storage",
-    "ai_agents_metrics.reporting",
-    "ai_agents_metrics.workflow_fsm",
     "ai_agents_metrics.history.ingest",
     "ai_agents_metrics.history.normalize",
     "ai_agents_metrics.history.derive",
     "ai_agents_metrics.history.derive_insert",
     "ai_agents_metrics.history.derive_build",
     "ai_agents_metrics.history.derive_schema",
-    "ai_agents_metrics.history.compare",
-    "ai_agents_metrics.history.compare_store",
-    "ai_agents_metrics.history.audit",
 ]
 
 [[tool.importlinter.contracts]]
@@ -154,14 +149,12 @@ forbidden_modules = [
     "ai_agents_metrics.domain",
     "ai_agents_metrics.cli",
     "ai_agents_metrics.commands",
-    "ai_agents_metrics.reporting",
 ]
 
 [[tool.importlinter.contracts]]
-name = "History pipeline follows ingest -> normalize -> derive -> compare order"
+name = "History pipeline follows ingest -> normalize -> derive order"
 type = "layers"
 layers = [
-    "ai_agents_metrics.history.compare : ai_agents_metrics.history.compare_store : ai_agents_metrics.history.audit",
     "ai_agents_metrics.history.derive",
     "ai_agents_metrics.history.derive_insert",
     "ai_agents_metrics.history.derive_build",
@@ -199,28 +192,20 @@ name = "Package modules must not import cli outside the entrypoint shim"
 type = "forbidden"
 source_modules = [
     "ai_agents_metrics._version",
-    "ai_agents_metrics.bootstrap",
     "ai_agents_metrics.commands",
     "ai_agents_metrics.commit_message",
     "ai_agents_metrics.completion",
-    "ai_agents_metrics.cost_audit",
     "ai_agents_metrics.domain",
-    "ai_agents_metrics.event_store",
-    "ai_agents_metrics.file_immutability",
     "ai_agents_metrics.git_hooks",
-    "ai_agents_metrics.git_state",
     "ai_agents_metrics.history",
     "ai_agents_metrics.observability",
     "ai_agents_metrics.public_boundary",
     "ai_agents_metrics.redaction",
     "ai_agents_metrics.report",
-    "ai_agents_metrics.reporting",
-    "ai_agents_metrics.retro_timeline",
     "ai_agents_metrics.runtime_facade",
     "ai_agents_metrics.security",
     "ai_agents_metrics.storage",
     "ai_agents_metrics.usage",
-    "ai_agents_metrics.workflow_fsm",
 ]
 forbidden_modules = ["ai_agents_metrics.cli"]
 

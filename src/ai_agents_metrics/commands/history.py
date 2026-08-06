@@ -6,8 +6,6 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.cost_audit import render_cost_audit_report
-
 if TYPE_CHECKING:
     from argparse import Namespace
 
@@ -108,35 +106,6 @@ def _summarise_ingest_results(
         else:
             ingest_summaries = {source: json.loads(cli_module.render_ingest_summary_json(ingest_summary))}
     return ingest_summaries
-
-
-def handle_audit_history(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    data = cli_module.load_metrics(metrics_path)
-    report = cli_module.audit_history(data)
-    if getattr(args, "json", False):
-        print(cli_module.render_audit_report_json(report))
-    else:
-        print(cli_module.render_audit_report(report))
-    return 0
-
-
-def handle_compare_metrics_to_history(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    warehouse_path = Path(args.warehouse_path).expanduser()
-    cwd = Path(args.cwd).expanduser()
-    data = cli_module.load_metrics(metrics_path)
-    report = cli_module.compare_metrics_to_history(
-        data,
-        warehouse_path=warehouse_path,
-        cwd=cwd,
-        metrics_path=metrics_path,
-    )
-    if getattr(args, "json", False):
-        print(cli_module.render_history_compare_report_json(report))
-    else:
-        print(cli_module.render_history_compare_report(report))
-    return 0
 
 
 def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
@@ -310,51 +279,4 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
                 }
             )
         )
-    return 0
-
-
-def handle_derive_retro_timeline(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    warehouse_path = Path(args.warehouse_path).expanduser()
-    cwd = Path(args.cwd).expanduser()
-    data = cli_module.load_metrics(metrics_path)
-    cli_module.recompute_summary(data)
-    with cli_module.metrics_mutation_lock(warehouse_path):
-        report = cli_module.derive_retro_timeline(
-            data,
-            warehouse_path=warehouse_path,
-            cwd=cwd,
-            metrics_path=metrics_path,
-            window_size=args.window_size,
-        )
-    if getattr(args, "json", False):
-        print(cli_module.render_retro_timeline_report_json(report))
-    else:
-        print(cli_module.render_retro_timeline_report(report))
-    return 0
-
-
-def handle_audit_cost_coverage(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    pricing_path = cli_module.resolve_effective_pricing_path(
-        cwd=Path.cwd(),
-        pricing_path=Path(args.pricing_path) if args.pricing_path else None,
-    )
-    codex_state_path = Path(args.codex_state_path)
-    codex_logs_path = Path(args.codex_logs_path)
-    claude_root = Path(args.claude_root) if getattr(args, "claude_root", None) is not None else Path.home() / ".claude"
-    data = cli_module.load_metrics(metrics_path)
-    report = cli_module.audit_cost_coverage(
-        data,
-        pricing_path=pricing_path,
-        codex_state_path=codex_state_path,
-        codex_logs_path=codex_logs_path,
-        codex_thread_id=args.codex_thread_id,
-        cwd=Path.cwd(),
-        claude_root=claude_root,
-    )
-    if getattr(args, "json", False):
-        print(cli_module.render_cost_audit_report_json(report))
-    else:
-        print(render_cost_audit_report(report))
     return 0
