@@ -191,6 +191,17 @@ make verify
 validation, architecture contracts, complexity, and pylint. Do not treat one passing test module
 as proof that the full change works.
 
+Validate changes in layers: lint, typecheck, focused tests, regression tests, integration checks,
+build validation, and runtime checks when applicable. Passing an earlier layer does not prove that
+later layers work. A task is complete only when the relevant checks pass or any verification gap
+is stated explicitly.
+
+## External tools and APIs
+
+Read official documentation before changing integrations, GitHub Actions, packaging metadata, or
+third-party APIs. Verify action repositories and supported refs, packaging fields, API parameters,
+and format keys instead of guessing them.
+
 ## CLI, storage, and security rules
 
 - Preserve CLI behavior unless the change explicitly requires a compatibility break.
@@ -215,6 +226,19 @@ configuration is their canonical source.
 
 Keep each rule in one canonical location and link to detailed documentation instead of copying
 large specifications into multiple files.
+
+## Learning loop
+
+When a bug or repeated failure is found, add a permanent guardrail where practical: a test, type,
+validation, lint rule, script, or documentation. Do not leave important debugging lessons only in
+chat or local agent memory.
+
+## Knowledge persistence
+
+Store durable project knowledge in committed project documentation so it remains available across
+agents and machines. Use local agent memory only as an index pointing to canonical repository
+documentation. Move substantive project knowledge found only in local memory into the repository
+and keep the memory entry as a pointer.
 
 ## Git
 
