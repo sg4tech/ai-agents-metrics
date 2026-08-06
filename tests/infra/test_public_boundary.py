@@ -45,7 +45,9 @@ ignored_paths = [".git/**", "build/**"]
 def test_load_public_boundary_rules_reads_repo_config() -> None:
     rules = load_public_boundary_rules(Path("config/public-boundary-rules.toml"))
 
+    assert "AGENTS.md" in rules.allowed_roots
     assert "src" in rules.allowed_roots
+    assert "AGENTS.md" not in rules.forbidden_paths
     assert "metrics" in rules.forbidden_paths
     assert "docs/private" in rules.forbidden_paths
     assert "/Users/[^/]+/PycharmProjects/" in rules.forbidden_regex_markers
