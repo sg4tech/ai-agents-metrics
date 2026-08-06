@@ -128,7 +128,6 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `git_hooks.py` | Implements commit-msg validation and pre-push security scanning logic |
 | `commit_message.py` | Validates commit subject format (`CODEX-123:` / `NO-TASK:`) |
 | `public_boundary.py` | Verifies files against TOML-configured inclusion/exclusion rules |
-| `observability.py` | Appends mutation events to `.ai-agents-metrics/events.sqlite` and a debug log |
 | `completion.py` | Shell tab-completion helpers |
 
 ---
@@ -139,10 +138,7 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 - Intermediate cache populated by `history/ingest/` (Codex + Claude adapters)
 - Consumed by normalize → classify → derive steps
 - Read directly by `show` and `render-html` for token, retry, timeline, and practice data
-- `show --json` exposes a versioned warehouse summary contract and does not read the legacy ledger
-
-**Event log:** `.ai-agents-metrics/events.sqlite` + `events.debug.log`
-- Append-only mutation audit trail written by `observability.py`
+- `show --json` exposes a versioned warehouse summary contract
 
 ---
 
@@ -188,7 +184,7 @@ the root shows structure at a glance:
 | `history/` | `test_history_{ingest,normalize,normalize_properties,derive,classify,compare,audit,pipeline_json}.py` | Pipeline stages |
 | `reporting/` | `test_{html_report,show_json}.py` | Warehouse-backed report rendering |
 | `workflow/` | `test_commit_message.py` | Commit-message and hook integration |
-| `infra/` | `test_{public_boundary,public_overlay,security,observability}.py` | Boundary rules, security, and observability |
+| `infra/` | `test_{public_boundary,public_overlay,security}.py` | Boundary and security rules |
 | `strategies/` | `domain.py`, `history.py` | Hypothesis strategies shared across property tests |
 | `tests/private/` (private root only) | `test_git_hooks.py`, `test_claude_md.py` | Git hook behavior and doc generation |
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from conftest import run_cli_inprocess
+
 from ai_agents_metrics import runtime_facade
 from ai_agents_metrics.cli_parsers import build_parser
 
@@ -48,6 +50,13 @@ def test_help_describes_history_only_workflow(capsys) -> None:
     assert "Manual tracking" not in help_text
 
 
+def test_cli_does_not_create_an_observability_store(tmp_path: Path) -> None:
+    result = run_cli_inprocess(tmp_path, "completion", "zsh")
+
+    assert result.returncode == 0
+    assert not (tmp_path / ".ai-agents-metrics").exists()
+
+
 def test_maintained_docs_do_not_recommend_removed_commands() -> None:
     repo_root = Path(__file__).parents[2]
     maintained_docs = (
@@ -56,6 +65,7 @@ def test_maintained_docs_do_not_recommend_removed_commands() -> None:
         "docs/history-pipeline.md",
         "docs/testing-guide.md",
         "docs/product-framing.md",
+        "llms.txt",
     )
     removed_invocations = {f"`{command}`" for command in REMOVED_MANUAL_COMMANDS}
     removed_invocations.update(f"ai-agents-metrics {command}" for command in REMOVED_MANUAL_COMMANDS)

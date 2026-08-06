@@ -7,7 +7,7 @@ This file contains repository-specific instructions for AI coding agents working
 
 `ai-agents-metrics` is a Python CLI for analyzing AI-agent history and measuring token cost and
 retry pressure. It reads existing Codex and Claude Code session files into a local SQLite
-warehouse without manual instrumentation.
+warehouse.
 
 There is no database server, background service, or required network connection at runtime.
 

@@ -67,7 +67,7 @@ dropping the file at the root.
 | `history/` | `test_history_{ingest,normalize,normalize_properties,derive,classify,compare,audit,pipeline_json}.py` | Pipeline stages |
 | `reporting/` | `test_{html_report,show_json}.py` | Warehouse-backed report rendering |
 | `workflow/` | `test_commit_message.py` | Commit-message and hook integrations |
-| `infra/` | `test_{public_boundary,public_overlay,security,observability}.py` | Boundary rules, security, and observability |
+| `infra/` | `test_{public_boundary,public_overlay,security}.py` | Boundary and security rules |
 | `strategies/` | `domain.py`, `history.py` | Hypothesis strategies shared across property tests |
 | `tests/private/` (private root) | `test_git_hooks.py`, `test_claude_md.py` | Git hook behavior, doc generation |
 

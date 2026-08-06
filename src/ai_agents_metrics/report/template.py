@@ -137,7 +137,6 @@ _HTML_TEMPLATE = """\
     padding: 2px 7px;
     border-radius: 4px;
   }
-  .src-badge.ledger { background: #f1f5f9; color: #64748b; }
   .src-badge.history { background: #f0fdf4; color: #15803d; }
 
   /* warehouse-state callout */
@@ -171,7 +170,7 @@ _HTML_TEMPLATE = """\
 
 <div class="summary-strip" id="summary-strip"></div>
 
-<div id="sh-ledger" class="section-header"></div>
+<div id="sh-activity" class="section-header"></div>
 <div class="grid">
 
   <div class="card">
@@ -287,7 +286,7 @@ function niceMax(v) {
 // Uses median as the baseline: if max > 4× median, the top values are outliers.
 // The cap is floored at rawMax/5 so that on skewed distributions (a low
 // median with a very large rawMax) the cap never ends up >5× below rawMax —
-// that failure mode produced 24×-off-scale bars on real ledger cost data,
+// that failure mode produced severely off-scale bars on real cost data,
 // rendering every non-outlier bar indistinguishable.
 function smartMax(values) {
   const valid = values.filter(v => v != null).sort((a, b) => a - b);
@@ -445,17 +444,15 @@ function drawStackedBar(id, labels, series, colors, useSmartMax, labelPrefix, to
 
 // ── chart 2: combo bar + line ────────────────────────────────────────────────
 
-function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, linePct, suppressNoRetriesMessage) {
+function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppressNoRetriesMessage) {
   const { ctx, w, h } = setupCanvas(id);
   // Only treat an empty-label or no-non-null-line case as "No data available".
   // An all-zero retry signal is real data (every thread completed without a
   // retry) and must render so the green "no retries" plaque can appear.
   const lineHasData = lineValues.some(v => v !== null);
   if (!labels.length || !lineHasData) { drawEmpty(ctx, w, h); return; }
-  // Only surface the "No retries" green message when it reflects a real signal
-  // (warehouse source + all bars empty). Suppress under any warehouse fallback
-  // state to avoid a false positive on the ledger path where attempt_count
-  // increments only when the user manually calls continue-task.
+  // Only surface the "No retries" green message when the warehouse is current
+  // and all retry bars are empty.
   const noRetries = !suppressNoRetriesMessage && barValues.every(v => !v);
 
   const ML = 48, MR = 48, MT = 12, MB = 68;
@@ -480,7 +477,7 @@ function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, lineP
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const val = (i / 4) * maxLine;
-    ctx.fillText(linePct ? fmt(val) + '%' : fmt(val), ML + cw + 6, y);
+    ctx.fillText(fmt(val) + '%', ML + cw + 6, y);
   }
 
   // Bars
@@ -535,13 +532,8 @@ function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, lineP
   drawXLabels(ctx, labels, ML, MT, cw, ch, step);
 
   if (noRetries) {
-    // Message is source-specific: for warehouse, "main session" disambiguates
-    // from subagent spawns (which are filtered out upstream). For ledger,
-    // "attempt" keeps parity with the ledger-side legend.
-    const warehouseSource = DATA.chart2_source === 'warehouse';
-    const msg = warehouseSource
-      ? 'No main-agent retries \u2014 every task completed in a single main session'
-      : 'No retries \u2014 all goals completed on first attempt';
+    // "Main session" disambiguates retries from subagent spawns filtered upstream.
+    const msg = 'No main-agent retries \u2014 every task completed in a single main session';
     ctx.font = '11px system-ui';
     const msgW = ctx.measureText(msg).width;
     const px = ML + cw / 2 - msgW / 2 - 8;
@@ -726,11 +718,11 @@ function renderSectionHeaders() {
     return from === to ? from : from + ' \u2192 ' + to;
   }
 
-  const ledgerEl = document.getElementById('sh-ledger');
-  if (ledgerEl) {
+  const activityEl = document.getElementById('sh-activity');
+  if (activityEl) {
     const range = dateRange(d.history_date_from, d.history_date_to);
     const count = d.summary ? ' \u00b7 ' + d.summary.total_closed + ' threads' : '';
-    ledgerEl.innerHTML =
+    activityEl.innerHTML =
       '<h3>Agent Activity</h3>' +
       '<span class="src-badge history">warehouse</span>' +
       '<p>' + range + count + '</p>';
@@ -792,10 +784,9 @@ function renderChart3Meta() {
   const gran = DATA.granularity === 'day' ? 'day' : 'week';
   const title = document.getElementById('c3-title');
   const sub = document.getElementById('c3-subtitle');
-  const src = DATA.chart3_source === 'warehouse' ? ' \u00b7 source: history' : '';
   if (title) title.textContent = cost ? 'Cost by Model' : 'Tokens by Model';
   if (sub) sub.textContent = (cost ? 'USD per ' + gran : 'Tokens per ' + gran) +
-    ' \u00b7 stacked by model' + src;
+    ' \u00b7 stacked by model \u00b7 source: history';
   renderC3Legend();
 }
 
@@ -865,17 +856,12 @@ function renderWarehouseCallout() {
 }
 
 function renderChart2Meta() {
-  const warehouse = DATA.chart2_source === 'warehouse';
   const sub = document.getElementById('c2-subtitle');
   const leg = document.getElementById('c2-legend');
-  if (sub) sub.textContent = warehouse
-    ? 'Threads needing >1 main-agent session (bars) \u00b7 retry rate % (line) \u00b7 subagent spawns excluded \u00b7 source: history'
-    : 'Goals requiring >1 attempt (bars) \u00b7 avg attempts per closed goal (line) \u00b7 source: ledger';
-  if (leg) leg.innerHTML = warehouse
-    ? '<div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Main-agent retry threads</div>' +
-      '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div>Retry rate % (line)</div>'
-    : '<div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Goals with retries</div>' +
-      '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div>Avg attempts (line)</div>';
+  if (sub) sub.textContent = 'Threads needing >1 main-agent session (bars) \u00b7 retry rate % (line) \u00b7 subagent spawns excluded \u00b7 source: history';
+  if (leg) leg.innerHTML =
+    '<div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Main-agent retry threads</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div>Retry rate % (line)</div>';
 }
 
 function render() {
@@ -894,7 +880,7 @@ function render() {
   renderC1Legend();
   drawStackedBar('c1', d.buckets, [d.chart1_product, d.chart1_meta, d.chart1_retro], ['#22c55e', '#94a3b8', '#f59e0b'], false, '', seriesToggles.c1);
   const whStatus = (d.warehouse_state && d.warehouse_state.status) || 'ok';
-  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', d.chart2_source === 'warehouse', whStatus !== 'ok');
+  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', whStatus !== 'ok');
   const c3Prefix = d.chart3_mode === 'cost' ? '$' : '';
   const c3Values = (d.chart3_series || []).map(s => s.values);
   const c3Colors = (d.chart3_series || []).map(s => s.color);

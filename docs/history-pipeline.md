@@ -1,6 +1,6 @@
 # History Pipeline
 
-**What this document is:** How `ai-agents-metrics` extracts metrics from raw AI agent session data. The history pipeline is the primary analysis layer — it reads existing conversation history files and produces retry pressure, token cost, and session timelines without any manual instrumentation. This document describes the current adapters and the pipeline stages.
+**What this document is:** How `ai-agents-metrics` extracts metrics from raw AI agent session data. The history pipeline reads existing conversation history files and produces retry pressure, token cost, and session timelines. This document describes the current adapters and the pipeline stages.
 
 **Retry pressure definition:** `retry_count` is the number of user messages sent after the first one in a thread — each additional user message represents a clarifying or corrective input that the agent required before completing the task. `has_retry_pressure = retry_count > 0`. This definition is source-agnostic and works identically for Codex and Claude sessions.
 
@@ -121,10 +121,6 @@ flowchart LR
         DP["derived_projects"]
     end
 
-    subgraph Ops["Operational store"]
-        EV["events.sqlite.events"]
-    end
-
     ST --> RT
     SS --> RS
     SS --> RSE
@@ -151,10 +147,6 @@ flowchart LR
     DA --> DUS
     DA --> DTE
 ```
-
-`events.sqlite.events` is a separate operational audit store written by `observability.py` — not part of the transcript warehouse.
-
----
 
 ## Raw Warehouse Tables
 
@@ -314,12 +306,6 @@ Project-level aggregate after derivation.
 
 - Primary key: `project_cwd`
 - Use for: project comparison across threads, attempts, tokens, and timeline volume
-
----
-
-## Event Store
-
-`events.sqlite.events` is the audit log of `ai-agents-metrics` CLI operations and goal mutations — written by `observability.py`. It is not part of the transcript/history warehouse and is not produced by this pipeline.
 
 ---
 
