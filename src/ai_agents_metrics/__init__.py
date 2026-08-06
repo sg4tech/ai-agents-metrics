@@ -16,7 +16,7 @@ def _resolve_version() -> str:
     try:
         # Lazy to tolerate editable installs where _version.py is generated on demand.
         from ai_agents_metrics._version import version  # pylint: disable=import-outside-toplevel
-        return version
+        return str(version)
     except ImportError:
         return "unknown"
 

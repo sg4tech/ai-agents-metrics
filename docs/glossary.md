@@ -80,16 +80,8 @@ The computed aggregate under `summary` in replayed metrics state, including nest
 
 ### task
 
-A legacy synonym for `goal` that persists in CLI names, parser flags, policy language, and the old `tasks` alias in historical data; in the current schema, tasks are stored as goals.
+A legacy synonym for `goal` retained in historical data and internal domain names; the public CLI no longer exposes task-mutation commands.
 
 ### warehouse
 
 The intermediate SQLite cache used by the history pipeline, living under `.ai-agents-metrics/` and holding raw, normalized, and derived tables for transcript analysis rather than the primary JSON metrics store.
-
-### WorkflowEvent
-
-The CLI event enum that drives workflow transitions: `start-task`, `continue-task`, `finish-task(success)`, `finish-task(fail)`, `update(create)`, `update(close)`, `update(repair)`, `ensure-active-task`, and `show`.
-
-### WorkflowState
-
-The workflow FSM state enum: `CLEAN_NO_ACTIVE_GOAL` means no active goal and no detected started work, `STARTED_WORK_WITHOUT_ACTIVE_GOAL` means work is underway without a bookkeeping goal, `ACTIVE_GOAL_EXISTS` means at least one active goal is present, `CLOSED_GOAL_REPAIR` is the repair-only path for closed-goal mutations, and `DETECTION_UNCERTAIN` means the detector could not reliably tell what state the repo is in.

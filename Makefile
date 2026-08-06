@@ -1,4 +1,4 @@
-.PHONY: init check-init remind-task lint typecheck test verify verify-fast build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull sync-bootstrap-policy
+.PHONY: init check-init lint typecheck test verify verify-fast build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
 
 PYTHON3 ?= python3
 
@@ -8,25 +8,19 @@ init:
 	$(PYTHON3) -m venv .venv
 	.venv/bin/pip install -U pip setuptools wheel
 	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
-	@$(MAKE) remind-task
 	@$(MAKE) public-overlay-pull || true
 endif
 
 check-init:
 	@test -d .venv || $(MAKE) init
 
-remind-task:
-	@echo ""
-	@echo "reminder: before starting engineering work, run: ./tools/ai-agents-metrics start-task --title '...' --task-type <product|meta|retro>"
-	@echo ""
-
-lint: remind-task
+lint:
 	./.venv/bin/ruff check .
 
-typecheck: remind-task
+typecheck:
 	./.venv/bin/mypy src scripts
 
-test: remind-task
+test:
 	./.venv/bin/python -m pytest tests/
 
 ifndef PRIVATE_OVERRIDE
@@ -52,9 +46,6 @@ arch-check: check-init
 	PYTHONPATH=src .venv/bin/lint-imports
 endif
 
-sync-bootstrap-policy:
-	@test -r src/ai_agents_metrics/data/bootstrap_codex_metrics_policy.md || { echo "ERROR: bootstrap policy not found (expected symlink to docs/)"; exit 1; }
-
 ifndef PRIVATE_OVERRIDE
 pylint-check: check-init
 	./.venv/bin/pylint src/
@@ -62,12 +53,12 @@ endif
 
 verify-fast: check-init lint typecheck test
 
-verify: check-init remind-task sync-bootstrap-policy lint security bandit typecheck test build-check complexity complexity-check arch-check pylint-check
+verify: check-init lint security bandit typecheck test build-check complexity complexity-check arch-check pylint-check
 
 security:
 	./.venv/bin/python -m ai_agents_metrics security --repo-root . --rules-path config/security-rules.toml
 
-bandit: remind-task
+bandit:
 	./.venv/bin/bandit -r src scripts -q --skip B404,B607,B603 --exclude scripts/permission_audit/test_*.py
 
 verify-public-boundary:
@@ -79,7 +70,7 @@ setup-hooks:
 dev-refresh-local:
 	./.venv/bin/python -m pip install --no-deps --no-build-isolation -e .
 
-package: sync-bootstrap-policy
+package:
 	rm -rf build dist src/ai_agents_metrics.egg-info
 	./.venv/bin/python -m build --no-isolation
 

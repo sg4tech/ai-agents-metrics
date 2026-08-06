@@ -199,7 +199,6 @@ name = "Package modules must not import cli outside the entrypoint shim"
 type = "forbidden"
 source_modules = [
     "ai_agents_metrics._version",
-    "ai_agents_metrics.bootstrap",
     "ai_agents_metrics.commands",
     "ai_agents_metrics.commit_message",
     "ai_agents_metrics.completion",
