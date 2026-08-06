@@ -5,15 +5,9 @@ This file contains repository-specific instructions for AI coding agents working
 
 ## Project overview
 
-`ai-agents-metrics` is a Python CLI for analyzing AI-agent history, measuring token cost and
-retry pressure, and optionally recording explicit task outcomes.
-
-The product has two complementary data paths:
-
-- History extraction reads existing Codex and Claude Code session files into a local SQLite
-  warehouse. This is the primary, zero-setup workflow.
-- Manual tracking writes explicit task boundaries and outcome judgements to an append-only
-  NDJSON event log.
+`ai-agents-metrics` is a Python CLI for analyzing AI-agent history and measuring token cost and
+retry pressure. It reads existing Codex and Claude Code session files into a local SQLite
+warehouse without manual instrumentation.
 
 There is no database server, background service, or required network connection at runtime.
 
@@ -23,29 +17,16 @@ Read the documents relevant to the change:
 
 - `docs/architecture.md` for package structure and dependency direction.
 - `docs/testing-guide.md` for test layout, fixtures, and verification commands.
-- `docs/data-schema.md` and `docs/data-invariants.md` for domain or storage changes.
 - `docs/history-pipeline.md` and `docs/warehouse-layering.md` for history ingestion,
   normalization, classification, or derivation changes.
 - `docs/cli-reference.md` for CLI behavior and compatibility expectations.
 - `docs/decisions.md` before changing an established architectural choice.
-
-## Setup
-
-Run commands from the repository root:
-
-```bash
-make init
-```
-
-This creates `.venv` and installs the project with development dependencies. Do not share or
-symlink a virtual environment from another checkout or worktree.
 
 ## Repository layout
 
 - `src/ai_agents_metrics/` contains the Python package.
 - `tests/` contains the pytest suite, grouped by subject area.
 - `scripts/` contains development and packaging utilities.
-- `tools/ai-agents-metrics` is the repository CLI wrapper.
 - `config/` contains security and publication-boundary rules.
 - `pricing/` contains model-pricing data.
 - `docs/` contains public product and engineering documentation.
@@ -55,7 +36,7 @@ workspace material out of the repository.
 
 ## Architecture
 
-Preserve the dependency direction enforced by import-linter:
+Preserve the documented dependency direction:
 
 ```text
 adapters and CLI -> application orchestration -> domain
@@ -129,15 +110,14 @@ Run the full gate once after the implementation is stable:
 make verify
 ```
 
-`make verify` covers formatting and lint rules, security checks, strict typing, tests, packaging,
-architecture contracts, complexity, and pylint. Do not treat a successful build or one passing
-test module as proof that the full change works.
+`make verify` covers lint rules, security checks, strict typing, tests, editable-install
+validation, architecture contracts, complexity, and pylint. Do not treat one passing test module
+as proof that the full change works.
 
 ## CLI, storage, and security rules
 
 - Preserve CLI behavior unless the change explicitly requires a compatibility break.
 - Validate inputs before mutation and fail loudly on invalid state.
-- Keep the NDJSON event log append-only; reconstruct state through the existing replay code.
 - Never edit generated summaries as a substitute for changing their source data or generator.
 - Use parameterized SQL placeholders for every dynamic value. Never assemble SQL with f-strings
   or string concatenation.
