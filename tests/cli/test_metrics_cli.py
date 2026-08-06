@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ai_agents_metrics import runtime_facade
 from ai_agents_metrics.cli_parsers import build_parser
 
 REMOVED_MANUAL_COMMANDS = {
@@ -28,6 +29,7 @@ def _command_choices() -> set[str]:
 
 def test_manual_tracking_commands_are_removed() -> None:
     assert REMOVED_MANUAL_COMMANDS.isdisjoint(_command_choices())
+    assert not hasattr(runtime_facade, "bootstrap_project")
 
 
 def test_primary_history_commands_remain_available() -> None:

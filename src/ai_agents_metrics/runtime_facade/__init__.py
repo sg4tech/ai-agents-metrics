@@ -1,7 +1,7 @@
 """Orchestration facade: the concrete ``CommandRuntime`` used by CLI command handlers.
 
 The facade is layered into submodules by concern:
-  - ``orchestration`` — path constants, history-pipeline wrappers, workflow, init/bootstrap
+  - ``orchestration`` — path constants and history-pipeline wrappers
   - ``costs`` — usage-cost resolution and cost-audit coverage
 
 This ``__init__`` re-exports the full public surface so ``from ai_agents_metrics
@@ -50,13 +50,10 @@ from ai_agents_metrics.runtime_facade.orchestration import (
     METRICS_JSON_PATH,
     RAW_WAREHOUSE_PATH,
     REPORT_MD_PATH,
-    bootstrap_project,
     classify_codex_history,
     derive_codex_history,
     ingest_codex_history,
-    init_files,
     normalize_codex_history,
-    save_report,
     verify_public_boundary,
 )
 from ai_agents_metrics.storage import metrics_mutation_lock
@@ -89,7 +86,6 @@ __all__ = [
     "REPORT_MD_PATH",
     "audit_cost_coverage",
     "audit_history",
-    "bootstrap_project",
     "classify_codex_history",
     "compare_metrics_to_history",
     "compute_event_cost_usd",
@@ -97,7 +93,6 @@ __all__ = [
     "derive_retro_timeline",
     "find_usage_thread_id",
     "ingest_codex_history",
-    "init_files",
     "load_effective_pricing",
     "load_metrics",
     "load_pricing",
@@ -126,6 +121,5 @@ __all__ = [
     "resolve_pricing_path",
     "resolve_usage_costs",
     "resolve_usage_session_window",
-    "save_report",
     "verify_public_boundary",
 ]
