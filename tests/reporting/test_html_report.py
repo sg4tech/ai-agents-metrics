@@ -23,19 +23,20 @@ def test_aggregate_report_data_uses_only_warehouse_rows() -> None:
     assert data["chart1_product"] == [4]
     assert data["chart2_bar"] == [1]
     assert data["chart2_line"] == [25.0]
-    assert data["chart2_source"] == "warehouse"
-    assert data["chart3_source"] == "warehouse"
+    assert "chart2_source" not in data
+    assert "chart3_source" not in data
     assert data["chart3_series"][0]["name"] == "gpt-test"
     assert data["chart3_series"][0]["values"] == [150.0]
     assert data["chart5"]["total_events"] == 2
-    assert data["ledger_date_from"] is None
+    assert "ledger_date_from" not in data
+    assert "ledger_date_to" not in data
 
 
 def test_aggregate_report_data_empty_warehouse() -> None:
     data = aggregate_report_data(warehouse_retry={}, warehouse_tokens=[])
     assert data["buckets"] == []
     assert data["summary"] is None
-    assert data["chart2_source"] == "warehouse"
+    assert "chart2_source" not in data
 
 
 def test_aggregate_report_data_prices_known_models() -> None:
@@ -55,7 +56,7 @@ def test_render_html_report_embeds_warehouse_data() -> None:
     )
     html = render_html_report(data, "2026-01-02 00:00 UTC")
     assert "<!DOCTYPE html>" in html
-    assert '"chart2_source": "warehouse"' in html
+    assert "ledger" not in html.lower()
     assert "2026-01-02 00:00 UTC" in html
 
 

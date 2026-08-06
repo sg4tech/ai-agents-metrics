@@ -1,9 +1,9 @@
 """Date and time-bucket helpers for the HTML report pipeline.
 
 All functions are pure (no I/O, no side effects) and work with naive or
-aware :class:`datetime` objects.  Timezone info is stripped before any
-arithmetic so that warehouse timestamps and ndjson timestamps (which may
-carry different offsets) are compared on equal footing.
+aware :class:`datetime` objects. Timezone info is stripped before any
+arithmetic so warehouse timestamps with different offsets are compared on
+equal footing.
 """
 from __future__ import annotations
 

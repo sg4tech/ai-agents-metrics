@@ -9,26 +9,11 @@ from typing import TYPE_CHECKING, Any
 from ai_agents_metrics import commands, runtime_facade
 from ai_agents_metrics.cli_parsers import build_parser
 from ai_agents_metrics.completion import render_completion
-from ai_agents_metrics.observability import record_cli_invocation_observation
 from ai_agents_metrics.security import render_security_report
 from ai_agents_metrics.security import verify_security as security
 
 if TYPE_CHECKING:
     import argparse
-
-
-def _record_cli_invocation(args: argparse.Namespace) -> None:
-    observation_anchor = Path.cwd() / ".ai-agents-metrics"
-    command = getattr(args, "command", None)
-    if command is None:
-        return
-    record_cli_invocation_observation(
-        observation_anchor,
-        command=command,
-        cwd=str(Path.cwd()),
-        task_id=None,
-        extra_payload={},
-    )
 
 
 def _handle_completion(args: argparse.Namespace) -> int:
@@ -48,7 +33,6 @@ def _handle_security(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    _record_cli_invocation(args)
 
     dispatch: dict[str, Any] = {
         "show": commands.handle_show,

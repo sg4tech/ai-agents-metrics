@@ -1,15 +1,15 @@
 """Ingest stage: ~/.codex and ~/.claude on-disk history → raw_* warehouse tables.
 
 Submodule layout:
-  - warehouse: schema + SQL helpers + path resolution
+  - warehouse: schema + SQL helpers
   - codex: Codex adapter (state/logs/sessions)
   - claude: Claude Code adapter (session JSONL)
   - __init__ (this file): orchestration + public API + test-facing re-exports
 
-The public surface (``IngestSummary``, ``default_raw_warehouse_path``,
-``ingest_codex_history``, ``render_ingest_summary_json``) is re-exported so
-that ``from ai_agents_metrics.history.ingest import X`` keeps resolving for
-every external consumer.
+The public surface (``IngestSummary``, ``ingest_codex_history``,
+``render_ingest_summary_json``) is re-exported so that
+``from ai_agents_metrics.history.ingest import X`` keeps resolving for every
+external consumer.
 """
 from __future__ import annotations
 
@@ -34,14 +34,11 @@ from ai_agents_metrics.history.ingest.codex import (
     _iter_source_files,
 )
 from ai_agents_metrics.history.ingest.warehouse import (
-    RAW_WAREHOUSE_DIRNAME,
-    RAW_WAREHOUSE_FILENAME,
     _delete_source_rows,
     _ensure_schema,
     _file_sha256,
     _optional_row_value,
     _upsert_manifest,
-    default_raw_warehouse_path,
 )
 from ai_agents_metrics.storage import ensure_parent_dir
 
@@ -340,10 +337,7 @@ def render_ingest_summary_json(summary: IngestSummary) -> str:
 
 
 __all__ = [
-    "RAW_WAREHOUSE_DIRNAME",
-    "RAW_WAREHOUSE_FILENAME",
     "IngestSummary",
-    "default_raw_warehouse_path",
     "ingest_codex_history",
     "render_ingest_summary_json",
     # Private test-facing re-exports: tests/history/test_history_ingest.py

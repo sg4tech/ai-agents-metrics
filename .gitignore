@@ -27,9 +27,8 @@ dist/
 *.egg-info/
 src/ai_agents_metrics/_version.py
 
-# Local observability state
-.codex-metrics/
-metrics/.codex-metrics/
+# Local warehouse state
+.ai-agents-metrics/
 metrics/.ai-agents-metrics/
 
 # Generated HTML reports (human-facing, not tracked)

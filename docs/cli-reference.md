@@ -1,6 +1,6 @@
 # CLI reference
 
-`ai-agents-metrics` analyzes local Claude Code and Codex history without manual instrumentation.
+`ai-agents-metrics` analyzes local Claude Code and Codex history.
 
 ## Primary workflow
 
@@ -19,12 +19,11 @@ Runs ingest, normalization, classification, and derivation for local agent histo
 Prints a warehouse-native summary of threads, attempts, retry pressure, messages,
 token usage, coverage, and the observed time window. Pass `--json` for the stable,
 versioned machine-readable output or `--warehouse-path` to select a warehouse.
-The command does not read the legacy manual-tracking ledger.
 
 ### `render-html`
 
-Generates a self-contained HTML report. `--output` selects the destination, `--days N` limits the time window, and `--cwd PATH` selects a project in a shared warehouse.
-The report is generated exclusively from the warehouse and does not require a manual ledger.
+Generates a self-contained HTML report from the warehouse. `--output` selects the destination,
+`--days N` limits the time window, and `--cwd PATH` selects a project in a shared warehouse.
 
 ## Pipeline stages
 

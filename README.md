@@ -13,7 +13,7 @@ AI is writing more of your code. You still don't know:
 - Where the process breaks down and why
 - Whether your workflow is getting faster or generating more rework
 
-`ai-agents-metrics` extracts these signals from your existing Claude Code or Codex history — no setup or manual tracking required. Point it at your history files and see what's happening: retry pressure, token cost, and session timeline.
+`ai-agents-metrics` extracts these signals from your existing Claude Code or Codex history. Point it at your history files and see what's happening: retry pressure, token cost, and session timeline.
 
 ![HTML report preview — 5 charts over 25 goals, 243 practice events, 16 days](docs/images/report-preview.png)
 

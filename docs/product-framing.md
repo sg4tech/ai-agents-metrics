@@ -11,7 +11,7 @@ Working product and metrics hypotheses that are not yet fully confirmed belong i
 
 `ai-agents-metrics` is a tool that helps you analyze your history of working with AI agents, track spending, and optimize your work.
 
-The primary entry point is your existing conversation history files — no manual instrumentation required to get value. Point the tool at your `~/.codex` or `~/.claude` directory and it will show you what happened, what it cost, and where the friction is.
+The primary entry point is your existing conversation history files. Point the tool at your `~/.codex` or `~/.claude` directory and it will show you what happened, what it cost, and where the friction is.
 
 All user-facing analysis is derived from the history pipeline. The tool never asks users to hand-tag sessions, open/close tasks manually, or mark outcomes by hand. A minimal internal event log exists for the tool's own dogfood use inside this repository but is not part of the user-facing surface.
 
@@ -53,7 +53,7 @@ Without this tool:
 - quality, speed, and cost are easy to summarize incorrectly from memory or closure status alone
 - AI usage cost is easy to underweight or overread without structured context
 - retries and failed paths get lost because agents rarely log them explicitly
-- new users have no visibility into how they actually use AI agents until they have accumulated manual tracking history — which they have not started yet
+- new users have no visibility into how they actually use AI agents before analyzing their existing history
 
 The tool exists to make this visible from the first run, by extracting the signals that are already present in conversation history files, without requiring prior instrumentation.
 
@@ -66,8 +66,7 @@ In this framing:
 
 The following product truths are already confirmed:
 
-- the primary value proposition is history extraction: give us your agent history files, get insights with no manual setup
-- zero manual tracking is the product direction: no user-facing command requires a human to tag, open, or close anything
+- the primary value proposition is history extraction: give us your agent history files and get insights
 - the primary analytical user is the AI agent that reads metrics and produces synthesis
 - the human user is the receiver of final synthesized conclusions, not the main reader of raw metrics
 - quality, speed, and cost all matter

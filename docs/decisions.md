@@ -70,7 +70,7 @@ The original split used three underscore-prefixed modules (`_report_aggregation.
 - `report/` (4 files: `html_report`, `aggregation`, `buckets`, `template`) — promoted.
 - `usage/` (3 files: `backends`, `resolution`, `pricing_runtime` — `backends` imports `resolution`, `pricing_runtime` imports `resolution`) — promoted.
 - `git_hooks.py` remains flat; the former manual-tracking `git_state.py` was removed.
-- One-file concerns such as `observability.py` and `storage.py` stay flat.
+- One-file concerns such as `storage.py` stay flat.
 
 When promoting, drop leading underscores from files whose privacy the new package boundary already expresses (`_report_aggregation.py` → `report/aggregation.py`). Collapse the matching `ai_agents_metrics.<module>` entries in import-linter's "no cli import" contract into a single `ai_agents_metrics.<pkg>` entry — `as_packages=True` covers the subtree.
 
