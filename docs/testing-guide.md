@@ -137,7 +137,7 @@ def run_cmd(tmp_path: Path, *args: str, extra_env=None) -> subprocess.CompletedP
     ...
 
 # Subprocess: only for tests that need real process isolation
-# (install-self, bootstrap wrapper, script shim, parallel lock)
+# (install-self, script shim, or module entrypoint)
 def _run_cmd_subprocess(tmp_path: Path, *args: str, extra_env=None) -> subprocess.CompletedProcess[str]:
     ...
 
@@ -166,28 +166,19 @@ poison the template for every subsequent test. Create new files under `src/`
 variant repo state, extend via a sibling fixture that takes `repo` as input
 rather than duplicating the template build.
 
-End-to-end test pattern:
+Parser-surface test pattern:
 
 ```python
-from ai_agents_metrics.domain import load_metrics
+from ai_agents_metrics.cli_parsers import build_parser
 
-def read_metrics(repo: Path) -> dict:
-    return load_metrics(repo / "metrics" / "events.ndjson")
+def command_choices() -> set[str]:
+    parser = build_parser()
+    action = next(item for item in parser._actions if item.dest == "command")
+    return set(action.choices)
 
-def test_start_and_finish(tmp_path: Path) -> None:
-    result = run_module_cmd(tmp_path, "init")
-    assert result.returncode == 0
-
-    result = run_module_cmd(tmp_path, "start-task", "--title", "My task", "--task-type", "product")
-    assert result.returncode == 0
-
-    data = read_metrics(tmp_path)
-    goals = data["goals"]
-    assert len(goals) == 1
-    assert goals[0]["status"] == "in_progress"
+def test_primary_commands_are_available() -> None:
+    assert {"history-update", "show", "render-html"} <= command_choices()
 ```
-
-**Do not read `metrics/events.ndjson` with `json.loads` directly.** The file is NDJSON (one JSON object per line), not a single JSON document. Use `load_metrics()` or `replay_events()` to read it correctly.
 
 ---
 
@@ -256,22 +247,6 @@ def test_ingest(tmp_path: Path) -> None:
 
 ---
 
-## Three required buckets for mutating commands
-
-From `AGENTS.md` — for `update`, `merge-tasks`, and sync flows:
-
-1. **Happy path** — successful execution; verify file state after the call
-2. **Invalid-state rejection** — command must exit with a non-zero return code
-3. **Summary/report consistency** — after mutation, `summary` in the JSON is consistent with `goals`/`entries`
-
-```python
-def test_update_happy_path(tmp_path): ...
-def test_update_rejects_closed_goal(tmp_path): ...
-def test_update_summary_stays_consistent(tmp_path): ...
-```
-
----
-
 ## Coverage with subprocess
 
 Tests that invoke the CLI via `subprocess` are not covered by default.
@@ -280,35 +255,10 @@ To enable: `CODEX_SUBPROCESS_COVERAGE=1 make test`.
 
 ---
 
-## Inject-corrupt-data tests
-
-Some tests verify that `show` rejects invalid state by writing bad data directly into `events.ndjson`. These tests must write valid NDJSON events (one JSON object per line) — not raw JSON dicts or old-format payloads.
-
-```python
-def test_invalid_goal_type_fails(repo: Path) -> None:
-    events_path = repo / "metrics" / "events.ndjson"
-    # Write a goal_started event with an invalid field value
-    invalid_goal = {"goal_id": "goal-1", "goal_type": "invalid_type", ...}
-    event = {"event_type": "goal_started", "ts": "2026-01-01T00:00:00+00:00",
-             "goal": invalid_goal, "entries": []}
-    events_path.write_text(json.dumps(event) + "\n", encoding="utf-8")
-
-    result = run_cmd(repo, "show")
-    assert result.returncode != 0
-    assert "invalid_type" in result.stderr
-```
-
-**Common mistake:** writing a raw JSON dict without the expected event shape to `events.ndjson`. During replay, a line with no `event_type` field is silently skipped, so the file loads as empty state — the test passes when it should fail.
-
----
-
 ## Common pitfalls
-
-**Reading the event log as JSON:**
-`events.ndjson` is NDJSON, not a single JSON document. `json.loads(path.read_text())` will fail. Use `load_metrics(path)` or `replay_events(path)` instead.
 
 **PYTHONPATH in a worktree:**
 `.venv` is a symlink to the main repo. In a worktree, always use `PYTHONPATH=src` or run via `make`.
 
-**Test mutating the real event log:**
-CLI commands in end-to-end tests must be run with `cwd=tmp_path`. This makes them resolve `metrics/events.ndjson` relative to `tmp_path`, not the actual repository.
+**Test reading real agent history:**
+CLI integration tests must use temporary source roots and warehouse paths; never read or modify the developer's real `~/.codex`, `~/.claude`, or `.ai-agents-metrics/warehouse.db` data.

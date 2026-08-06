@@ -17,11 +17,9 @@
 
 ## Summary
 
-`ai-agents-metrics` is a CLI tool for analyzing AI agent work history, tracking spending, and optimizing workflows. It operates as two complementary layers:
+`ai-agents-metrics` is a CLI tool for analyzing AI agent work history, tracking spending, and optimizing workflows.
 
 **Primary layer — history pipeline:** reads raw session files from `~/.codex` or `~/.claude`, extracts retry pressure, token cost, and session timelines, and stores results in a local SQLite warehouse. No prior instrumentation required.
-
-**Opt-in layer — NDJSON ledger:** an append-only event log for explicit goal boundaries, outcome judgements, and failure reasons. State is reconstructed at read time by replaying events in order.
 
 There is no database server, no background process, and no network dependency.
 
@@ -35,12 +33,8 @@ Commands (commands/ package)
 History pipeline (history/*)           ← primary analysis layer
   ↓  ingest → normalize → derive from ~/.codex or ~/.claude
   ↓  SQLite warehouse: retry pressure, token cost, session timeline
-Domain (domain/)
-  ↓  validates records, serialises/deserialises, computes aggregates
-Storage (storage.py)
-  ↓  atomic append to metrics/events.ndjson via fcntl lock   ← opt-in ledger
-Reporting (reporting.py)
-  ↓  computes in-memory summary, merges ledger + warehouse signals
+Reporting (report/)
+  ↓  aggregates warehouse signals and renders a self-contained HTML report
 ```
 
 ---
@@ -48,7 +42,7 @@ Reporting (reporting.py)
 ## How to read this
 
 - **New contributor** → Directory Layout → Entry Points → Data and Storage
-- **Working on CLI commands** → Entry Points → Workflow State Machine
+- **Working on CLI commands** → Entry Points → CLI Entry Points
 - **Working on domain validation or aggregation** → Core Domain
 - **Working on storage or event replay** → Data and Storage
 - **Working on history reconstruction** → History Pipeline
@@ -65,9 +59,7 @@ ai-agents-metrics/
 │                        # domain/, history/, reporting/, workflow/, infra/;
 │                        # hypothesis strategies in tests/strategies/)
 ├── scripts/             # Automation and utility scripts
-├── tools/               # CLI wrapper (tools/ai-agents-metrics)
 ├── config/              # Public boundary rules (TOML)
-├── metrics/             # Generated output: events.ndjson + lockfile
 ├── pricing/             # Token pricing data
 ├── .githooks/           # commit-msg, pre-commit, pre-push hooks
 └── pyproject.toml       # Package config, ruff, mypy, pytest settings
@@ -86,8 +78,8 @@ ai-agents-metrics/
 | `cli.py` | CLI dispatcher + facade surface for `scripts/metrics_cli.py` — records invocation, routes `args.command` to handlers, exposes `console_main` |
 | `cli_parsers.py` | Argparse parser construction (`build_parser`, per-group `_add_*_parsers` helpers, hidden-command filter) |
 | `cli_constants.py` | Path defaults (`METRICS_JSON_PATH`, `CODEX_STATE_PATH`, `CLAUDE_ROOT`, `RAW_WAREHOUSE_PATH`, …) consumed by both `cli.py` and `cli_parsers.py` |
-| `commands/` | Package of CLI command handlers split by cluster: `install`, `history`, `tasks`, `report`, `misc`; `_runtime.py` defines the `CommandRuntime` Protocol; `__init__.py` re-exports every `handle_*` for backward-compatible `from ai_agents_metrics import commands` |
-| `runtime_facade/` | Concrete `CommandRuntime` implementation split into three submodules: `orchestration` (path constants, history wrappers, workflow helpers, init/bootstrap), `costs` (usage-cost resolution, `resolve_goal_usage_updates`, cost-audit), `mutations` (`upsert_task`, `sync_usage`, `merge_tasks`); `__init__.py` re-exports the full `__all__` surface |
+| `commands/` | CLI handlers grouped into `history`, `report`, `install`, and `misc`; `_runtime.py` defines the runtime protocol used by handlers |
+| `runtime_facade/` | Concrete runtime surface for history orchestration, reporting, pricing, audits, and installation |
 
 ### Core Domain
 
@@ -95,7 +87,6 @@ ai-agents-metrics/
 |------|------|
 | `domain/` | Domain package split into submodules: `models.py` (dataclasses), `serde.py` (from_dict / to_dict — the only place that converts timestamps between `str` and `datetime`), `validation.py`, `aggregation.py`, `ids.py`, `time_utils.py`. Public API re-exported via `domain/__init__.py`. |
 | `storage.py` | Atomic file writes and fcntl lockfile helpers |
-| `workflow_fsm.py` | Task lifecycle state machine (see below) |
 
 ### History Pipeline
 
@@ -145,41 +136,16 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `commit_message.py` | Validates commit subject format (`CODEX-123:` / `NO-TASK:`) |
 | `public_boundary.py` | Verifies files against TOML-configured inclusion/exclusion rules |
 | `observability.py` | Appends mutation events to `.ai-agents-metrics/events.sqlite` and a debug log |
-| `bootstrap.py` | Project initialisation — scaffold, preflight checks, safe reruns |
 | `completion.py` | Shell tab-completion helpers |
-
----
-
-## Workflow State Machine (`workflow_fsm.py`)
-
-States and events that gate CLI command behaviour:
-
-**States:**
-- `CLEAN_NO_ACTIVE_GOAL` — repo has no active goal, no uncommitted work
-- `ACTIVE_GOAL_EXISTS` — exactly one in-progress goal is open
-- `STARTED_WORK_WITHOUT_ACTIVE_GOAL` — uncommitted changes detected, no goal open
-- `CLOSED_GOAL_REPAIR` — most recent goal is closed; repair path available
-- `DETECTION_UNCERTAIN` — git unavailable or state ambiguous
-
-**Events:** `start-task`, `continue-task`, `finish-task(success/fail)`, `update(create/close/repair)`, `ensure-active-task`, `show`
-
-Transitions produce a `WorkflowDecision(action, message)`. Commands call `classify_workflow_state()` then `resolve_workflow_decision()` to determine whether to proceed, block, or prompt repair.
 
 ---
 
 ## Data and Storage
 
-**Primary store:** `metrics/events.ndjson`
-- Append-only NDJSON event log; one JSON line per CLI command
-- Event types: `goal_started`, `goal_continued`, `goal_finished`, `goal_updated`, `goals_merged`, `usage_synced`
-- State reconstructed at read time via last-write-wins replay per `goal_id` / `entry_id`
-- Summary is always computed in-memory from the replayed state; it is never persisted
-- Mutations serialised via fcntl lockfile (`metrics/events.ndjson.lock`)
-
-**History warehouse:** `.ai-agents-metrics/warehouse.db`
+**Primary store:** `.ai-agents-metrics/warehouse.db`
 - Intermediate cache populated by `history/ingest/` (Codex + Claude adapters)
-- Consumed by normalize → classify → derive steps; not the source of truth
-- Also read directly by `render-html` for token/cost and retry data (warehouse-first reporting, H-038): covers full session history, while the ndjson ledger only covers manually-tracked goals
+- Consumed by normalize → classify → derive steps
+- Read directly by `show` and `render-html` for token, cost, retry, and practice data
 
 **Event log:** `.ai-agents-metrics/events.sqlite` + `events.debug.log`
 - Append-only mutation audit trail written by `observability.py`
@@ -189,26 +155,21 @@ Transitions produce a `WorkflowDecision(action, message)`. Commands call `classi
 ## CLI Entry Points
 
 **Installed command:** `ai-agents-metrics` → `ai_agents_metrics.cli:console_main`
-**Repo wrapper:** `tools/ai-agents-metrics` — thin shell script, no pip install required
 
 Boundary note:
 
 - `cli.py` is the entrypoint module, not the general runtime dependency surface
 - `commands/` depends on `runtime_facade/`, not on `cli.py` (enforced by import-linter)
-- Inside `runtime_facade/` the one-way direction is `mutations → costs → orchestration`
 - pricing-aware runtime consumers should go through `usage/pricing_runtime.py`, not ad-hoc pricing-path resolution
 
 Key command groups:
 
 | Group | Commands |
 |-------|----------|
-| Task lifecycle | `start-task`, `continue-task`, `finish-task` |
-| Metrics mutation | `update`, `merge-tasks`, `ensure-active-task` |
-| Inspection | `show`, `render-report`, `render-html` |
+| Inspection | `show`, `render-html` |
 | History pipeline | `history-ingest`, `history-normalize`, `history-classify`, `history-derive`, `history-update` |
 | History audit | `history-compare`, `history-audit`, `audit-cost-coverage`, `derive-retro-timeline` |
-| Sync | `sync-usage`, `sync-codex-usage` |
-| Tooling | `init`, `bootstrap`, `install-self`, `completion`, `verify-public-boundary`, `security` |
+| Tooling | `install-self`, `completion`, `verify-public-boundary`, `security` |
 
 ---
 

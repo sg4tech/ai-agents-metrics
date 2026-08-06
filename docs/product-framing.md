@@ -191,7 +191,6 @@ In scope now:
 
 - history extraction pipeline: ingest, normalize, derive from `~/.codex` and `~/.claude` session files
 - history-derived retry pressure, token cost, and session timeline — available from the first run with no prior setup
-- local append-only event-log for opt-in manual goal and outcome tracking
 - optional local markdown export
 - agent-facing analysis surfaces for retros, verification, and workflow-change analysis
 - public-release preparation work that makes the reusable core publishable, understandable, and safe to distribute
