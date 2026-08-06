@@ -21,15 +21,6 @@ if TYPE_CHECKING:
     from ai_agents_metrics.commands._runtime import CommandRuntime
 
 
-def handle_render_report(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    report_path = Path(args.report_path)
-    data = load_metrics(metrics_path)
-    cli_module.save_report(report_path, data)
-    print(f"Rendered markdown report: {report_path}")
-    return 0
-
-
 @dataclass(frozen=True)
 class _WarehouseRenderRows:
     retry: dict[str, dict[str, int]] | None = None
