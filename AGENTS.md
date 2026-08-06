@@ -5,15 +5,9 @@ This file contains repository-specific instructions for AI coding agents working
 
 ## Project overview
 
-`ai-agents-metrics` is a Python CLI for analyzing AI-agent history, measuring token cost and
-retry pressure, and optionally recording explicit task outcomes.
-
-The product has two complementary data paths:
-
-- History extraction reads existing Codex and Claude Code session files into a local SQLite
-  warehouse. This is the primary, zero-setup workflow.
-- Manual tracking writes explicit task boundaries and outcome judgements to an append-only
-  NDJSON event log.
+`ai-agents-metrics` is a Python CLI for analyzing AI-agent history and measuring token cost and
+retry pressure. It reads existing Codex and Claude Code session files into a local SQLite
+warehouse without manual instrumentation.
 
 There is no database server, background service, or required network connection at runtime.
 
@@ -23,29 +17,16 @@ Read the documents relevant to the change:
 
 - `docs/architecture.md` for package structure and dependency direction.
 - `docs/testing-guide.md` for test layout, fixtures, and verification commands.
-- `docs/data-schema.md` and `docs/data-invariants.md` for domain or storage changes.
 - `docs/history-pipeline.md` and `docs/warehouse-layering.md` for history ingestion,
   normalization, classification, or derivation changes.
 - `docs/cli-reference.md` for CLI behavior and compatibility expectations.
 - `docs/decisions.md` before changing an established architectural choice.
-
-## Setup
-
-Run commands from the repository root:
-
-```bash
-make init
-```
-
-This creates `.venv` and installs the project with development dependencies. Do not share or
-symlink a virtual environment from another checkout or worktree.
 
 ## Repository layout
 
 - `src/ai_agents_metrics/` contains the Python package.
 - `tests/` contains the pytest suite, grouped by subject area.
 - `scripts/` contains development and packaging utilities.
-- `tools/ai-agents-metrics` is the repository CLI wrapper.
 - `config/` contains security and publication-boundary rules.
 - `pricing/` contains model-pricing data.
 - `docs/` contains public product and engineering documentation.
@@ -55,7 +36,7 @@ workspace material out of the repository.
 
 ## Architecture
 
-Preserve the dependency direction enforced by import-linter:
+Preserve the documented dependency direction:
 
 ```text
 adapters and CLI -> application orchestration -> domain
@@ -76,6 +57,83 @@ adapters and CLI -> application orchestration -> domain
 
 Prefer small, observable changes over broad rewrites. Preserve the working path until its
 replacement is covered by tests.
+
+### General design principles
+
+Apply SOLID, DRY, GRASP, DDD, and Hexagonal/Clean Architecture to new code and refactors. The
+project-specific architecture rules above take precedence over the general principles below.
+
+#### SOLID
+
+- **SRP:** One class, one reason to change. Extract pure algorithms and business rules from
+  controllers and services into independently testable components.
+- **OCP:** Adding a new source, format, or rule should not require modifying existing
+  implementations. Design stable extension points where variants are expected.
+- **ISP:** Keep interfaces small and specific. Split an interface when consumers depend on only a
+  subset of its methods.
+- **DIP:** Application and domain logic depend on port interfaces, not concrete infrastructure.
+  Database sessions, HTTP clients, and file handles must not enter domain logic.
+
+#### DDD
+
+- **Value objects:** Use `@dataclass(frozen=True)` for domain concepts defined by value rather than
+  identity. Do not use mutable domain primitives.
+- **Entities:** Give identity only to concepts that require it. Treat raw input rows as
+  observations, not canonical entities.
+- **Domain services:** Keep business rules pure and free of database, HTTP, and filesystem I/O.
+- **Anti-corruption layer:** Normalize external responses and records into typed dataclasses at
+  the adapter boundary. Raw external data must not cross into application or domain logic.
+
+#### Hexagonal and Clean Architecture
+
+Dependency direction is `adapter -> application -> domain`; inner layers never import outer
+layers.
+
+- **Domain:** Pure Python value objects, entities, domain services, and business rules. No ORM,
+  HTTP client, CLI, or filesystem I/O.
+- **Application:** Use cases orchestrate domain logic and depend only on domain types and port
+  interfaces. They return typed results rather than `dict[str, Any]`.
+- **Adapters:** CLI entrypoints, repositories, external clients, and file readers fetch or render
+  data and delegate behavior to the application layer. They contain no business rules.
+- **Ports:** Keep repository and external-client interfaces on the application side; concrete
+  implementations belong to adapters.
+
+#### GRASP
+
+- **Information Expert:** Put behavior with the data required to perform it.
+- **Low Coupling:** Minimize dependencies. Reconsider a class with four or more constructor
+  dependencies.
+- **Controller:** Keep CLI commands and handlers thin: parse input, call a use case, and delegate
+  output rendering.
+- **Creator:** Use factories or builders for complex objects instead of scattering equivalent
+  construction across callers.
+
+#### DRY
+
+- Keep each business rule, formula, or transformation in one canonical location.
+- Parameterize tests that repeat the same behavior with different inputs instead of copying test
+  bodies.
+- Intentional duplication at layer boundaries, such as separate raw and normalized forms, is a
+  data-modeling decision rather than a DRY violation.
+
+#### Composition over inheritance
+
+Prefer injecting collaborators and delegating behavior over subclassing. Inherit only when the
+subclass is a genuine specialization and satisfies substitution. Extract shared behavior into a
+collaborator instead of creating a base class solely for code reuse.
+
+#### Architecture red flags
+
+Stop and reconsider when:
+
+- A module boundary returns `dict[str, Any]` instead of a typed dataclass or domain object.
+- A class or function has five or more injected dependencies.
+- Business logic lives in a handler, CLI command, or adapter.
+- The same rule or transformation appears in multiple places.
+- Domain or application logic imports an ORM, HTTP client, or other I/O implementation.
+- A private method contains business logic that can be tested without mocks.
+- Domain or application logic calls `datetime.now()` or `datetime.utcnow()` instead of receiving
+  a timestamp from an adapter.
 
 ## Python standards
 
@@ -129,15 +187,25 @@ Run the full gate once after the implementation is stable:
 make verify
 ```
 
-`make verify` covers formatting and lint rules, security checks, strict typing, tests, packaging,
-architecture contracts, complexity, and pylint. Do not treat a successful build or one passing
-test module as proof that the full change works.
+`make verify` covers lint rules, security checks, strict typing, tests, editable-install
+validation, architecture contracts, complexity, and pylint. Do not treat one passing test module
+as proof that the full change works.
+
+Validate changes in layers: lint, typecheck, focused tests, regression tests, integration checks,
+build validation, and runtime checks when applicable. Passing an earlier layer does not prove that
+later layers work. A task is complete only when the relevant checks pass or any verification gap
+is stated explicitly.
+
+## External tools and APIs
+
+Read official documentation before changing integrations, GitHub Actions, packaging metadata, or
+third-party APIs. Verify action repositories and supported refs, packaging fields, API parameters,
+and format keys instead of guessing them.
 
 ## CLI, storage, and security rules
 
 - Preserve CLI behavior unless the change explicitly requires a compatibility break.
 - Validate inputs before mutation and fail loudly on invalid state.
-- Keep the NDJSON event log append-only; reconstruct state through the existing replay code.
 - Never edit generated summaries as a substitute for changing their source data or generator.
 - Use parameterized SQL placeholders for every dynamic value. Never assemble SQL with f-strings
   or string concatenation.
@@ -150,14 +218,33 @@ test module as proof that the full change works.
 ## Documentation
 
 Update public documentation in the same change when behavior, commands, schemas, architecture,
-or contributor workflow changes. Write documentation and code comments in English.
+or contributor workflow changes. Write identifiers, file names, comments, documentation, and
+log messages in English.
+
+Do not duplicate volatile values such as counts, thresholds, or versions in prose when code or
+configuration is their canonical source.
 
 Keep each rule in one canonical location and link to detailed documentation instead of copying
 large specifications into multiple files.
 
+## Learning loop
+
+When a bug or repeated failure is found, add a permanent guardrail where practical: a test, type,
+validation, lint rule, script, or documentation. Do not leave important debugging lessons only in
+chat or local agent memory.
+
+## Knowledge persistence
+
+Store durable project knowledge in committed project documentation so it remains available across
+agents and machines. Use local agent memory only as an index pointing to canonical repository
+documentation. Move substantive project knowledge found only in local memory into the repository
+and keep the memory entry as a pointer.
+
 ## Git
 
 - Keep commits focused and use short, descriptive subjects.
+- Do not rewrite shared history with rebase, pushed-commit amendment, reset, or cherry-pick used
+  to relocate commits. Merge branches instead.
 - Do not use `git rebase` to incorporate upstream changes; merge the base branch instead.
 - Never bypass branch protection, required checks, hooks, or reviews.
 - Do not use force pushes unless a repository maintainer explicitly requests one for a known-safe
