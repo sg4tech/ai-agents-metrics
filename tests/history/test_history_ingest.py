@@ -695,6 +695,65 @@ def test_import_claude_session_file_populates_warehouse(tmp_path: Path) -> None:
         assert usage["total_tokens"] == 360
 
 
+def test_import_codex_session_file_preserves_events_with_duplicate_metadata(
+    tmp_path: Path,
+) -> None:
+    from ai_agents_metrics.history.ingest import _ensure_schema
+    from ai_agents_metrics.history.ingest.codex import _import_session_file
+
+    warehouse = tmp_path / "warehouse.sqlite"
+    session_file = tmp_path / "rollout.jsonl"
+    metadata = {
+        "timestamp": "2026-08-06T10:00:00Z",
+        "type": "session_meta",
+        "payload": {
+            "id": "codex-session-1",
+            "timestamp": "2026-08-06T10:00:00Z",
+            "cwd": str(tmp_path),
+            "source": {"subagent": {"other": "guardian"}},
+            "model_provider": "openai",
+        },
+    }
+    events = [
+        metadata,
+        {
+            "timestamp": "2026-08-06T10:00:01Z",
+            "type": "response_item",
+            "payload": {
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Hello"}],
+            },
+        },
+        metadata,
+        {
+            "timestamp": "2026-08-06T10:00:02Z",
+            "type": "response_item",
+            "payload": {
+                "type": "message",
+                "role": "assistant",
+                "content": [{"type": "output_text", "text": "Hi"}],
+            },
+        },
+    ]
+    session_file.write_text(
+        "\n".join(json.dumps(event) for event in events) + "\n",
+        encoding="utf-8",
+    )
+
+    with sqlite3.connect(warehouse) as conn:
+        _ensure_schema(conn)
+        imported = _import_session_file(conn, session_file)
+
+        assert imported == len(events)
+        assert conn.execute("SELECT count(*) FROM raw_sessions").fetchone()[0] == 1
+        assert conn.execute("SELECT source FROM raw_sessions").fetchone()[0] == (
+            '{"subagent":{"other":"guardian"}}'
+        )
+        assert conn.execute("SELECT count(*) FROM raw_session_events").fetchone()[0] == len(events)
+        assert conn.execute("SELECT count(*) FROM raw_messages").fetchone()[0] == 2
+
+
 def test_import_claude_subagent_groups_under_same_thread(tmp_path: Path) -> None:
     import sqlite3 as _sqlite3
 

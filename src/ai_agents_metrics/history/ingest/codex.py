@@ -81,6 +81,13 @@ def _extract_message_text(content: Any) -> list[str]:
     return texts
 
 
+def _session_source_text(payload: dict[str, Any]) -> str | None:
+    source = payload.get("source")
+    if source is None or isinstance(source, str):
+        return source
+    return _json_text(source)
+
+
 def _extract_token_usage(record: dict[str, Any], *, event_id: str, source_path: str, thread_id: str | None, event_index: int) -> dict[str, Any] | None:
     if record.get("type") != "event_msg":
         return None
@@ -134,8 +141,12 @@ def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
             timestamp = record.get("timestamp") if isinstance(record.get("timestamp"), str) else None
             payload_type = payload.get("type") if isinstance(payload, dict) else None
             role = payload.get("role") if isinstance(payload, dict) else None
-            if record_type == "session_meta" and isinstance(payload, dict):
-                thread_id = str(payload.get("id") or thread_id or source_path.stem)
+            if (
+                record_type == "session_meta"
+                and isinstance(payload, dict)
+                and thread_id is None
+            ):
+                thread_id = str(payload.get("id") or source_path.stem)
                 conn.execute(
                     """
                     INSERT INTO raw_sessions (
@@ -157,7 +168,7 @@ def _import_session_file(conn: sqlite3.Connection, source_path: Path) -> int:
                         thread_id,
                         payload.get("timestamp"),
                         payload.get("cwd"),
-                        payload.get("source"),
+                        _session_source_text(payload),
                         payload.get("model_provider"),
                         payload.get("cli_version"),
                         payload.get("originator"),
