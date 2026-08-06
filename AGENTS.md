@@ -58,6 +58,83 @@ adapters and CLI -> application orchestration -> domain
 Prefer small, observable changes over broad rewrites. Preserve the working path until its
 replacement is covered by tests.
 
+### General design principles
+
+Apply SOLID, DRY, GRASP, DDD, and Hexagonal/Clean Architecture to new code and refactors. The
+project-specific architecture rules above take precedence over the general principles below.
+
+#### SOLID
+
+- **SRP:** One class, one reason to change. Extract pure algorithms and business rules from
+  controllers and services into independently testable components.
+- **OCP:** Adding a new source, format, or rule should not require modifying existing
+  implementations. Design stable extension points where variants are expected.
+- **ISP:** Keep interfaces small and specific. Split an interface when consumers depend on only a
+  subset of its methods.
+- **DIP:** Application and domain logic depend on port interfaces, not concrete infrastructure.
+  Database sessions, HTTP clients, and file handles must not enter domain logic.
+
+#### DDD
+
+- **Value objects:** Use `@dataclass(frozen=True)` for domain concepts defined by value rather than
+  identity. Do not use mutable domain primitives.
+- **Entities:** Give identity only to concepts that require it. Treat raw input rows as
+  observations, not canonical entities.
+- **Domain services:** Keep business rules pure and free of database, HTTP, and filesystem I/O.
+- **Anti-corruption layer:** Normalize external responses and records into typed dataclasses at
+  the adapter boundary. Raw external data must not cross into application or domain logic.
+
+#### Hexagonal and Clean Architecture
+
+Dependency direction is `adapter -> application -> domain`; inner layers never import outer
+layers.
+
+- **Domain:** Pure Python value objects, entities, domain services, and business rules. No ORM,
+  HTTP client, CLI, or filesystem I/O.
+- **Application:** Use cases orchestrate domain logic and depend only on domain types and port
+  interfaces. They return typed results rather than `dict[str, Any]`.
+- **Adapters:** CLI entrypoints, repositories, external clients, and file readers fetch or render
+  data and delegate behavior to the application layer. They contain no business rules.
+- **Ports:** Keep repository and external-client interfaces on the application side; concrete
+  implementations belong to adapters.
+
+#### GRASP
+
+- **Information Expert:** Put behavior with the data required to perform it.
+- **Low Coupling:** Minimize dependencies. Reconsider a class with four or more constructor
+  dependencies.
+- **Controller:** Keep CLI commands and handlers thin: parse input, call a use case, and delegate
+  output rendering.
+- **Creator:** Use factories or builders for complex objects instead of scattering equivalent
+  construction across callers.
+
+#### DRY
+
+- Keep each business rule, formula, or transformation in one canonical location.
+- Parameterize tests that repeat the same behavior with different inputs instead of copying test
+  bodies.
+- Intentional duplication at layer boundaries, such as separate raw and normalized forms, is a
+  data-modeling decision rather than a DRY violation.
+
+#### Composition over inheritance
+
+Prefer injecting collaborators and delegating behavior over subclassing. Inherit only when the
+subclass is a genuine specialization and satisfies substitution. Extract shared behavior into a
+collaborator instead of creating a base class solely for code reuse.
+
+#### Architecture red flags
+
+Stop and reconsider when:
+
+- A module boundary returns `dict[str, Any]` instead of a typed dataclass or domain object.
+- A class or function has five or more injected dependencies.
+- Business logic lives in a handler, CLI command, or adapter.
+- The same rule or transformation appears in multiple places.
+- Domain or application logic imports an ORM, HTTP client, or other I/O implementation.
+- A private method contains business logic that can be tested without mocks.
+- Domain or application logic calls `datetime.now()` or `datetime.utcnow()` instead of receiving
+  a timestamp from an adapter.
+
 ## Python standards
 
 - Support the Python versions declared in `pyproject.toml`.
