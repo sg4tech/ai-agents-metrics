@@ -75,7 +75,7 @@ The following product truths are already confirmed:
 - economics means cost, token usage, and waste control together
 - the product should help decide whether workflow changes actually work and what should be changed again
 - the public product contract should stay agent-agnostic by default, even when telemetry or runtime adapters are provider-specific underneath
-- the canonical user-facing data source is the history warehouse (derived from raw `~/.codex` and `~/.claude` session files). `metrics/events.ndjson` is retained inside this repository as an internal agent-workflow log; it is not the user-facing data source.
+- the canonical data source is the history warehouse derived from raw `~/.codex` and `~/.claude` session files.
 - internal validation of the tool's usefulness to its own author is the current strategic priority; the public-release push is paused until the tool produces at least one concrete workflow-analysis finding that would be worth sharing
 
 The following product questions are still intentionally open and should be treated as active hypotheses until better evidence exists:
@@ -191,7 +191,6 @@ In scope now:
 
 - history extraction pipeline: ingest, normalize, derive from `~/.codex` and `~/.claude` session files
 - history-derived retry pressure, token cost, and session timeline — available from the first run with no prior setup
-- optional local markdown export
 - agent-facing analysis surfaces for retros, verification, and workflow-change analysis
 - public-release preparation work that makes the reusable core publishable, understandable, and safe to distribute
 

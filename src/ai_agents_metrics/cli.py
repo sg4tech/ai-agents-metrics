@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics import commands, runtime_facade
-from ai_agents_metrics.cli_constants import METRICS_JSON_PATH
 from ai_agents_metrics.cli_parsers import build_parser
 from ai_agents_metrics.completion import render_completion
 from ai_agents_metrics.observability import record_cli_invocation_observation
@@ -19,12 +18,12 @@ if TYPE_CHECKING:
 
 
 def _record_cli_invocation(args: argparse.Namespace) -> None:
-    metrics_path = Path(getattr(args, "metrics_path", METRICS_JSON_PATH))
+    observation_anchor = Path.cwd() / ".ai-agents-metrics"
     command = getattr(args, "command", None)
     if command is None:
         return
     record_cli_invocation_observation(
-        metrics_path,
+        observation_anchor,
         command=command,
         cwd=str(Path.cwd()),
         task_id=None,
@@ -54,15 +53,11 @@ def main() -> int:
     dispatch: dict[str, Any] = {
         "show": commands.handle_show,
         "install-self": commands.handle_install_self,
-        "history-audit": commands.handle_audit_history,
-        "history-compare": commands.handle_compare_metrics_to_history,
         "history-ingest": commands.handle_ingest_codex_history,
         "history-normalize": commands.handle_normalize_codex_history,
         "history-classify": commands.handle_classify_codex_history,
         "history-derive": commands.handle_derive_codex_history,
         "history-update": commands.handle_history_update,
-        "derive-retro-timeline": commands.handle_derive_retro_timeline,
-        "audit-cost-coverage": commands.handle_audit_cost_coverage,
         "verify-public-boundary": commands.handle_verify_public_boundary,
         "render-html": commands.handle_render_html,
     }

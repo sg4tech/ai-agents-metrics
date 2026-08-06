@@ -8,24 +8,7 @@ This ``__init__`` re-exports the full public surface so ``from ai_agents_metrics
 import runtime_facade`` and ``runtime_facade.X`` continue to resolve every
 symbol without callers knowing about the submodule layout.
 """
-from ai_agents_metrics.cost_audit import render_cost_audit_report_json
-from ai_agents_metrics.domain import (
-    GoalUsageResolution,
-    load_metrics,
-    recompute_summary,
-)
-from ai_agents_metrics.history.audit import (
-    audit_history,
-    render_audit_report,
-    render_audit_report_json,
-)
 from ai_agents_metrics.history.classify import render_classify_summary_json
-from ai_agents_metrics.history.compare import (
-    compare_metrics_to_history,
-    read_history_signals,
-    render_history_compare_report,
-    render_history_compare_report_json,
-)
 from ai_agents_metrics.history.derive import render_derive_summary_json
 from ai_agents_metrics.history.ingest import render_ingest_summary_json
 from ai_agents_metrics.history.normalize import render_normalize_summary_json
@@ -34,27 +17,14 @@ from ai_agents_metrics.history.summary import (
     render_warehouse_summary,
     render_warehouse_summary_json,
 )
-from ai_agents_metrics.reporting import (
-    print_summary,
-    render_summary_json,
-)
-from ai_agents_metrics.retro_timeline import (
-    derive_retro_timeline,
-    render_retro_timeline_report,
-    render_retro_timeline_report_json,
-)
 from ai_agents_metrics.runtime_facade.costs import (
-    audit_cost_coverage,
     resolve_usage_costs,
 )
 from ai_agents_metrics.runtime_facade.orchestration import (
     CLAUDE_ROOT,
     CODEX_LOGS_PATH,
     CODEX_STATE_PATH,
-    EVENTS_NDJSON_PATH,
-    METRICS_JSON_PATH,
     RAW_WAREHOUSE_PATH,
-    REPORT_MD_PATH,
     classify_codex_history,
     derive_codex_history,
     ingest_codex_history,
@@ -83,43 +53,23 @@ __all__ = [
     "CLAUDE_ROOT",
     "CODEX_LOGS_PATH",
     "CODEX_STATE_PATH",
-    "EVENTS_NDJSON_PATH",
-    "GoalUsageResolution",
-    "METRICS_JSON_PATH",
     "PRICING_JSON_PATH",
     "RAW_WAREHOUSE_PATH",
-    "REPORT_MD_PATH",
-    "audit_cost_coverage",
-    "audit_history",
     "classify_codex_history",
-    "compare_metrics_to_history",
     "compute_event_cost_usd",
     "derive_codex_history",
-    "derive_retro_timeline",
     "find_usage_thread_id",
     "ingest_codex_history",
     "load_effective_pricing",
-    "load_metrics",
     "load_pricing",
     "load_warehouse_summary",
     "metrics_mutation_lock",
     "normalize_codex_history",
     "parse_usage_event",
-    "print_summary",
-    "read_history_signals",
-    "recompute_summary",
-    "render_audit_report",
-    "render_audit_report_json",
     "render_classify_summary_json",
-    "render_cost_audit_report_json",
     "render_derive_summary_json",
-    "render_history_compare_report",
-    "render_history_compare_report_json",
     "render_ingest_summary_json",
     "render_normalize_summary_json",
-    "render_retro_timeline_report",
-    "render_retro_timeline_report_json",
-    "render_summary_json",
     "render_warehouse_summary",
     "render_warehouse_summary_json",
     "resolve_codex_session_usage_window",

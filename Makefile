@@ -1,4 +1,4 @@
-.PHONY: init check-init lint typecheck test verify verify-fast build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global live-usage-smoke public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
+.PHONY: init check-init lint typecheck test verify verify-fast build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
 
 PYTHON3 ?= python3
 
@@ -83,9 +83,6 @@ package-refresh-local: package
 
 package-refresh-global: package-refresh-local package-standalone
 	./dist/standalone/ai-agents-metrics install-self $(INSTALL_SELF_ARGS)
-
-live-usage-smoke:
-	./.venv/bin/python scripts/check_live_usage_recovery.py
 
 public-overlay-status:
 	./.venv/bin/python scripts/public_overlay.py --private-repo-root . status

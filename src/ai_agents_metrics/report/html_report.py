@@ -1,7 +1,7 @@
 """Generate a self-contained HTML report with four trend charts.
 
 Public API (imported by commands.py and tests):
-- :func:`aggregate_report_data` — transform raw goals + warehouse rows into chart data
+- :func:`aggregate_report_data` — transform warehouse rows into chart data
 - :func:`render_html_report`    — serialise chart data into a standalone HTML file
 - :func:`check_warehouse_state` — classify the warehouse file for the current project
 
@@ -42,7 +42,7 @@ def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
 
     The HTML template renders a callout for non-ok states with a hint to run
     ``ai-agents-metrics history-update``. This surfaces the silent fallback
-    path where warehouse-sourced charts quietly degraded to ledger-only data.
+    condition where warehouse-sourced charts cannot be produced.
     """
     if not warehouse_path.is_file():
         return {"status": "missing_file"}

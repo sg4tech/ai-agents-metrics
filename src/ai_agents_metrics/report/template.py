@@ -175,13 +175,13 @@ _HTML_TEMPLATE = """\
 <div class="grid">
 
   <div class="card">
-    <h2>Successful Tasks</h2>
-    <p class="subtitle">Closed goals with status = success per {GRAN_NOUN} · by type</p>
+    <h2>Session Activity</h2>
+    <p class="subtitle">AI-agent threads per {GRAN_NOUN} · source: warehouse</p>
     <canvas id="c1" height="240"></canvas>
     <div class="legend" id="c1-legend"></div>
   </div>
 
-  <div class="card">
+  <div class="card" style="display:none">
     <h2>Cost per Successful Task</h2>
     <p class="subtitle">USD · avg cost per success per {GRAN_NOUN} · outliers clipped</p>
     <canvas id="c4" height="240"></canvas>
@@ -728,23 +728,18 @@ function renderSectionHeaders() {
 
   const ledgerEl = document.getElementById('sh-ledger');
   if (ledgerEl) {
-    const range = dateRange(d.ledger_date_from, d.ledger_date_to);
-    const count = d.summary ? ' \u00b7 ' + d.summary.total_closed + ' goals' : '';
+    const range = dateRange(d.history_date_from, d.history_date_to);
+    const count = d.summary ? ' \u00b7 ' + d.summary.total_closed + ' threads' : '';
     ledgerEl.innerHTML =
-      '<h3>Goals Ledger</h3>' +
-      '<span class="src-badge ledger">ndjson</span>' +
+      '<h3>Agent Activity</h3>' +
+      '<span class="src-badge history">warehouse</span>' +
       '<p>' + range + count + '</p>';
   }
 
   const historyEl = document.getElementById('sh-history');
   if (historyEl) {
     const range = dateRange(d.history_date_from, d.history_date_to);
-    // Badge reflects the actual source of chart 2 & 3. If either fell back to
-    // ledger, the section is not truly warehouse-sourced and must say so.
-    const bothWarehouse = d.chart2_source === 'warehouse' && d.chart3_source === 'warehouse';
-    const badge = bothWarehouse
-      ? '<span class="src-badge history">warehouse</span>'
-      : '<span class="src-badge ledger">ledger</span>';
+    const badge = '<span class="src-badge history">warehouse</span>';
     historyEl.innerHTML =
       '<h3>Session History</h3>' + badge + '<p>' + range + '</p>';
   }
@@ -782,9 +777,7 @@ function renderC1Legend() {
   const leg = document.getElementById('c1-legend');
   if (!leg) return;
   leg.innerHTML = [
-    makeLegendItem('#22c55e', 'Product', 'c1', 0),
-    makeLegendItem('#94a3b8', 'Meta', 'c1', 1),
-    makeLegendItem('#f59e0b', 'Retro', 'c1', 2),
+    makeLegendItem('#22c55e', 'Threads', 'c1', 0),
   ].join('');
 }
 
@@ -861,7 +854,7 @@ function renderWarehouseCallout() {
     },
     empty_for_cwd: {
       title: 'Warehouse has no data for this project yet.',
-      body: 'Session History and Practice Events fall back to ledger-only signals (partial).',
+      body: 'Session History and Practice Events are unavailable for the selected project.',
     },
   };
   const m = messages[state.status];

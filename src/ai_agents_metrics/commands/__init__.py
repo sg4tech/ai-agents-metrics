@@ -7,12 +7,8 @@ symbol without callers knowing about the submodule layout.
 """
 from ai_agents_metrics.commands._runtime import CommandRuntime
 from ai_agents_metrics.commands.history import (
-    handle_audit_cost_coverage,
-    handle_audit_history,
     handle_classify_codex_history,
-    handle_compare_metrics_to_history,
     handle_derive_codex_history,
-    handle_derive_retro_timeline,
     handle_history_update,
     handle_ingest_codex_history,
     handle_normalize_codex_history,
@@ -30,12 +26,8 @@ from ai_agents_metrics.commands.report import (
 
 __all__ = [
     "CommandRuntime",
-    "handle_audit_cost_coverage",
-    "handle_audit_history",
     "handle_classify_codex_history",
-    "handle_compare_metrics_to_history",
     "handle_derive_codex_history",
-    "handle_derive_retro_timeline",
     "handle_history_update",
     "handle_ingest_codex_history",
     "handle_install_self",

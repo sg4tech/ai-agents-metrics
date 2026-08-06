@@ -13,14 +13,9 @@ from typing import Any
 
 from ai_agents_metrics import __version__
 from ai_agents_metrics.cli_constants import (
-    CLAUDE_ROOT,
-    CODEX_LOGS_PATH,
-    CODEX_STATE_PATH,
-    METRICS_JSON_PATH,
     PUBLIC_BOUNDARY_RULES_PATH,
     RAW_WAREHOUSE_PATH,
     REPORT_HTML_PATH,
-    REPORT_MD_PATH,
     SECURITY_RULES_PATH,
 )
 
@@ -41,18 +36,9 @@ def _detect_module_prog() -> str | None:
 _HIDDEN_FROM_TOPLEVEL_HELP: frozenset[str] = frozenset({
     # Pipeline stages — users run the composite `history-update` instead.
     "history-ingest", "history-normalize", "history-classify", "history-derive",
-    # Audit / debug — niche, not primary flow.
-    "history-audit", "history-compare", "audit-cost-coverage", "derive-retro-timeline",
     # Maintenance / low-level.
     "verify-public-boundary", "security",
 })
-
-
-def _add_report_output_flags(parser: argparse.ArgumentParser) -> None:
-    """Shared metrics-path / report-path / --write-report trio."""
-    parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    parser.add_argument("--report-path", default=str(REPORT_MD_PATH))
-    parser.add_argument("--write-report", action="store_true", help="Also render the optional markdown report")
 
 
 def _add_install_parsers(subparsers: Any) -> None:
@@ -86,28 +72,6 @@ def _add_install_parsers(subparsers: Any) -> None:
 
 
 def _add_history_parsers(subparsers: Any) -> None:
-    audit_parser = subparsers.add_parser(
-        "history-audit",
-        help="Flag suspicious history patterns for manual review",
-        description=(
-            "Analyze stored goal history and print audit candidates such as likely misses, "
-            "partial-fit recoveries, stale in-progress goals, and low-cost-coverage product goals."
-        ),
-    )
-    audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-
-    compare_parser = subparsers.add_parser(
-        "history-compare",
-        help="Compare the structured metrics ledger against reconstructed agent history",
-        description=(
-            "Read the metrics source of truth and a derived agent history warehouse, then print an "
-            "aggregate comparison for the current repository cwd."
-        ),
-    )
-    compare_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    compare_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
-    compare_parser.add_argument("--cwd", default=str(Path.cwd()))
-
     _source_choice_help = (
         "Agent source to ingest (default: all):\n"
         "  codex   — reads ~/.codex only\n"
@@ -184,30 +148,6 @@ def _add_history_parsers(subparsers: Any) -> None:
     history_update_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path")
     history_update_parser.add_argument("--json", action="store_true", default=False, help="Output all three stage summaries as a single JSON object")
 
-    retro_timeline_parser = subparsers.add_parser(
-        "derive-retro-timeline",
-        help="Derive before/after product-metric windows around retrospective events",
-        description=(
-            "Read normalized Codex history from main.normalized_messages, build a retrospective timeline dataset, "
-            "write it into the SQLite warehouse, and print before/after product-metric windows around each retro."
-        ),
-    )
-    retro_timeline_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    retro_timeline_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH))
-    retro_timeline_parser.add_argument("--cwd", default=str(Path.cwd()))
-    retro_timeline_parser.add_argument("--window-size", type=int, default=5)
-
-    cost_audit_parser = subparsers.add_parser(
-        "audit-cost-coverage",
-        help="Explain why product goals are missing cost coverage",
-        description="Inspect closed product goals and explain why cost coverage is missing, partial, or recoverable.",
-    )
-    cost_audit_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
-    cost_audit_parser.add_argument("--pricing-path", default=None)
-    cost_audit_parser.add_argument("--codex-state-path", default=str(CODEX_STATE_PATH))
-    cost_audit_parser.add_argument("--codex-logs-path", default=str(CODEX_LOGS_PATH))
-    cost_audit_parser.add_argument("--codex-thread-id")
-    cost_audit_parser.add_argument("--claude-root", default=str(CLAUDE_ROOT))
 
 
 def _add_sync_and_render_parsers(subparsers: Any) -> None:
@@ -250,16 +190,15 @@ def _add_sync_and_render_parsers(subparsers: Any) -> None:
         help="Render a self-contained HTML report with trend charts",
         description="Generate a static HTML file with four trend charts for human review.",
     )
-    render_html_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     render_html_parser.add_argument(
         "--output",
         default=str(REPORT_HTML_PATH),
         help="Output path for the HTML file (default: reports/report.html)",
     )
     render_html_parser.add_argument("--days", type=int, default=None, metavar="N", help="Limit the time window to the last N days")
-    # Default is empty so handle_render_html falls back to the
-    # metrics-path-adjacent default warehouse (derived per call in commands.py).
-    render_html_parser.add_argument("--warehouse-path", default="", help="SQLite warehouse path (default: derived from --metrics-path)")
+    render_html_parser.add_argument(
+        "--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path"
+    )
     render_html_parser.add_argument(
         "--cwd",
         default="",
@@ -297,8 +236,6 @@ def build_parser() -> argparse.ArgumentParser:
             "Additional commands (run `<command> --help` for details):\n"
             "  History pipeline:  history-ingest, history-normalize, history-classify,\n"
             "                     history-derive\n"
-            "  Audit / debug:     history-audit, history-compare, audit-cost-coverage,\n"
-            "                     derive-retro-timeline\n"
             "  Maintenance:       verify-public-boundary, security\n"
             "\n"
             "Examples:\n"

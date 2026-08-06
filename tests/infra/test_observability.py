@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 def test_record_goal_mutation_observation_writes_sqlite_and_debug_log(tmp_path: Path) -> None:
-    metrics_path = tmp_path / "metrics" / "events.ndjson"
+    metrics_path = tmp_path / "project" / ".observability-anchor"
 
     record_goal_mutation_observation(
         metrics_path,
@@ -73,7 +73,7 @@ def test_record_goal_mutation_observation_writes_sqlite_and_debug_log(tmp_path: 
 
 
 def test_record_cli_invocation_observation_writes_sqlite_and_debug_log(tmp_path: Path) -> None:
-    metrics_path = tmp_path / "metrics" / "events.ndjson"
+    metrics_path = tmp_path / "project" / ".observability-anchor"
 
     record_cli_invocation_observation(
         metrics_path,
@@ -104,7 +104,7 @@ def test_record_cli_invocation_observation_writes_sqlite_and_debug_log(tmp_path:
 
 
 def test_record_cli_invocation_observation_redacts_sensitive_payload_values(tmp_path: Path) -> None:
-    metrics_path = tmp_path / "metrics" / "events.ndjson"
+    metrics_path = tmp_path / "project" / ".observability-anchor"
 
     record_cli_invocation_observation(
         metrics_path,
@@ -126,7 +126,7 @@ def test_record_cli_invocation_observation_redacts_sensitive_payload_values(tmp_
 def test_record_cli_invocation_observation_best_effort_on_store_failure(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    metrics_path = tmp_path / "metrics" / "events.ndjson"
+    metrics_path = tmp_path / "project" / ".observability-anchor"
     monkeypatch.setattr(observability, "_store_event", lambda **_: (_ for _ in ()).throw(RuntimeError("boom")))
 
     record_cli_invocation_observation(metrics_path, command="show", cwd="/tmp/workspace")

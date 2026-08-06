@@ -10,7 +10,6 @@
 **Related docs:**
 - [decisions.md](decisions.md) — why key architectural choices were made
 - [testing-guide.md](testing-guide.md) — how to test each layer
-- [data-schema.md](data-schema.md) — what the stored data looks like
 - [warehouse-layering.md](warehouse-layering.md) — rules for what each warehouse layer (`raw_*` / `normalized_*` / `derived_*`) is allowed to contain
 
 ---
@@ -101,13 +100,10 @@ Codex (~/.codex) or Claude Code (~/.claude)
        ingest/__init__.py      — orchestrator (ingest_codex_history), IngestSummary, snapshots
   ↓  history/normalize.py    → cleaned warehouse rows (normalized_* tables)
   ↓  history/classify.py     → session kinds (main vs subagent) + practice-event labels
-  ↓  history/derive.py       → GoalRecord + AttemptEntryRecord objects (derived_* tables)
+  ↓  history/derive.py       → warehouse analysis marts (derived_* tables)
        history/derive_build.py    — pipeline stage builders
        history/derive_insert.py   — typed inserts into derived_*
        history/derive_schema.py   — schema for derived tables
-  ↓  history/compare.py      → diff against replayed metrics state
-       history/compare_store.py  (persistence for compare results)
-       history/audit.py          (consistency checks on derived goals)
 ```
 
 For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggregated) see
@@ -117,11 +113,8 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 
 | File | Role |
 |------|------|
-| `reporting.py` | Markdown generation, product quality summaries, agent recommendations |
-| `cost_audit.py` | Audits missing/incomplete token and cost data; categorises issues |
-| `retro_timeline.py` | Derives a retrospective work timeline from goal records |
 | `report/html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
-| `report/aggregation.py` | Transforms ndjson goals + warehouse rows into chart-ready series; `_apply_token_pricing` applies model-aware pricing |
+| `report/aggregation.py` | Transforms warehouse retry, token, model, and practice rows into chart-ready series |
 | `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
 | `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
 
@@ -169,7 +162,6 @@ Key command groups:
 |-------|----------|
 | Inspection | `show`, `render-html` |
 | History pipeline | `history-ingest`, `history-normalize`, `history-classify`, `history-derive`, `history-update` |
-| History audit | `history-compare`, `history-audit`, `audit-cost-coverage`, `derive-retro-timeline` |
 | Tooling | `install-self`, `completion`, `verify-public-boundary`, `security` |
 
 ---
@@ -181,7 +173,6 @@ Key command groups:
 | `metrics_cli.py` | CLI entry point shim for local development |
 | `public_overlay.py` | Bidirectional sync between private repo and `oss/` public mirror |
 | `build_standalone.py` | Builds self-contained binary distribution |
-| `check_live_usage_recovery.py` | Smoke test for live usage data recovery |
 
 ---
 
@@ -195,9 +186,9 @@ the root shows structure at a glance:
 | `cli/` | `test_metrics_cli.py` | Full CLI workflow integration |
 | `domain/` | `test_metrics_domain{,_properties}.py` | Domain model logic + hypothesis invariants |
 | `history/` | `test_history_{ingest,normalize,normalize_properties,derive,classify,compare,audit,pipeline_json}.py` | Pipeline stages |
-| `reporting/` | `test_{html_report,reporting,retro_timeline,show_json}.py` | Analysis and report rendering |
-| `workflow/` | `test_workflow_fsm.py`, `test_git_state.py`, `test_commit_message.py` | State machine transitions, git + hook integrations |
-| `infra/` | `test_{public_boundary,public_overlay,security,storage_roundtrip,observability,cost_audit}.py` | Boundary rules, sync, event log I/O, observability |
+| `reporting/` | `test_{html_report,show_json}.py` | Warehouse-backed report rendering |
+| `workflow/` | `test_commit_message.py` | Commit-message and hook integration |
+| `infra/` | `test_{public_boundary,public_overlay,security,observability}.py` | Boundary rules, security, and observability |
 | `strategies/` | `domain.py`, `history.py` | Hypothesis strategies shared across property tests |
 | `tests/private/` (private root only) | `test_git_hooks.py`, `test_claude_md.py` | Git hook behavior and doc generation |
 

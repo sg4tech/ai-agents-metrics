@@ -24,6 +24,7 @@ The command does not read the legacy manual-tracking ledger.
 ### `render-html`
 
 Generates a self-contained HTML report. `--output` selects the destination, `--days N` limits the time window, and `--cwd PATH` selects a project in a shared warehouse.
+The report is generated exclusively from the warehouse and does not require a manual ledger.
 
 ## Pipeline stages
 
@@ -31,7 +32,6 @@ The individual `history-ingest`, `history-normalize`, `history-classify`, and `h
 
 ## Analysis and maintenance
 
-- `history-audit`, `history-compare`, `derive-retro-timeline`, `audit-cost-coverage` — advanced analysis and diagnostics.
 - `completion {bash,zsh}` — shell completion output.
 - `install-self` — install the executable in a stable local path.
 - `verify-public-boundary` — check a public repository tree against boundary rules.

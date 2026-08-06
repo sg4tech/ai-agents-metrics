@@ -12,8 +12,6 @@
 **Related docs:**
 - [architecture.md](architecture.md) — where the history pipeline fits in the overall system
 - [warehouse-layering.md](warehouse-layering.md) — rules that govern what each `raw_*` / `normalized_*` / `derived_*` layer is allowed to contain
-- [data-schema.md](data-schema.md) — the GoalRecord / AttemptEntryRecord model this pipeline feeds into
-- [data-invariants.md](data-invariants.md) — business rules for reconstructed records
 
 ---
 
@@ -57,9 +55,8 @@ Raw sources (~/.claude/projects, Claude Code sessions)
 | Normalize | `history/normalize.py` | Cleans and stabilises raw rows |
 | Classify | `history/classify.py` | Labels session kinds (main vs subagent) and extracts practice events |
 | Derive | `history/derive.py` + `derive_build.py` + `derive_insert.py` + `derive_schema.py` | Builds goal, attempt, and timeline marts |
-| Compare | `history/compare.py` | Diffs derived goals against the NDJSON ledger |
 
-Run in order: ingest → normalize → classify → derive → compare.
+Run in order: ingest → normalize → classify → derive.
 
 ---
 
@@ -401,7 +398,6 @@ To add a new data source (e.g. a different agent or log format):
 
 1. Add a new ingest module that reads from the new source and writes into the same raw warehouse schema, or a new schema alongside it.
 2. Add normalize and derive stages that produce the same output table shapes (`derived_goals`, `derived_attempts`, etc.) so downstream comparison and analysis remain unchanged.
-3. The compare stage (`history/compare.py`) works against the NDJSON ledger and is source-agnostic — it does not need to change for new sources.
 
 The current raw table names (`raw_threads`, `raw_sessions`, etc.) are Codex-specific. New adapters should introduce their own raw table namespace rather than reusing these names.
 

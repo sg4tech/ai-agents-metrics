@@ -11,9 +11,6 @@ from ai_agents_metrics.history.derive import (
     derive_codex_history as run_derive_codex_history,
 )
 from ai_agents_metrics.history.ingest import (
-    default_raw_warehouse_path,
-)
-from ai_agents_metrics.history.ingest import (
     ingest_codex_history as run_ingest_codex_history,
 )
 from ai_agents_metrics.history.normalize import (
@@ -31,13 +28,10 @@ if TYPE_CHECKING:
     from ai_agents_metrics.public_boundary import PublicBoundaryReport
 
 
-EVENTS_NDJSON_PATH = Path("metrics/events.ndjson")
-METRICS_JSON_PATH = EVENTS_NDJSON_PATH
-REPORT_MD_PATH = Path("docs/ai-agents-metrics.md")
 CODEX_STATE_PATH = Path.home() / ".codex" / "state_5.sqlite"
 CODEX_LOGS_PATH = Path.home() / ".codex" / "logs_1.sqlite"
 CLAUDE_ROOT = Path.home() / ".claude"
-RAW_WAREHOUSE_PATH = default_raw_warehouse_path(METRICS_JSON_PATH)
+RAW_WAREHOUSE_PATH = Path(".ai-agents-metrics/warehouse.db")
 
 
 def ingest_codex_history(source_root: Path, warehouse_path: Path, source: str = "codex") -> IngestSummary:

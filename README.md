@@ -55,8 +55,6 @@ Not a benchmark, not an eval framework, not a model comparison tool. It is a loc
 All data stays local. Writes only to:
 
 - `.ai-agents-metrics/warehouse.db` — local SQLite warehouse used by the history pipeline
-- `docs/ai-agents-metrics.md` — optional markdown export (regenerated on demand)
-
 No data is sent to any remote service.
 
 ---

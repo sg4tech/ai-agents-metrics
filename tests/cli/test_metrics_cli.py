@@ -18,6 +18,10 @@ REMOVED_MANUAL_COMMANDS = {
     "sync-codex-usage",
     "merge-tasks",
     "render-report",
+    "history-audit",
+    "history-compare",
+    "audit-cost-coverage",
+    "derive-retro-timeline",
 }
 
 
@@ -52,7 +56,6 @@ def test_maintained_docs_do_not_recommend_removed_commands() -> None:
         "docs/history-pipeline.md",
         "docs/testing-guide.md",
         "docs/product-framing.md",
-        "docs/glossary.md",
     )
     removed_invocations = {f"`{command}`" for command in REMOVED_MANUAL_COMMANDS}
     removed_invocations.update(f"ai-agents-metrics {command}" for command in REMOVED_MANUAL_COMMANDS)
