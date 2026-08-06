@@ -2,6 +2,7 @@ allowed_roots = [
   ".githooks",
   ".github",
   ".gitignore",
+  "AGENTS.md",
   "CHANGELOG.md",
   "CONTRIBUTING.md",
   "Makefile",
@@ -20,7 +21,6 @@ allowed_roots = [
 ]
 
 forbidden_paths = [
-  "AGENTS.md",
   "metrics",
   "docs/private",
 ]
