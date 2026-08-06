@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _installed_version
-from typing import cast
 
 __all__ = ["__version__"]
 
@@ -17,7 +16,7 @@ def _resolve_version() -> str:
     try:
         # Lazy to tolerate editable installs where _version.py is generated on demand.
         from ai_agents_metrics._version import version  # pylint: disable=import-outside-toplevel
-        return cast("str", version)
+        return str(version)
     except ImportError:
         return "unknown"
 
