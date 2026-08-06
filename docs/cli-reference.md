@@ -16,7 +16,10 @@ Runs ingest, normalization, classification, and derivation for local agent histo
 
 ### `show`
 
-Prints the current history-derived summary. Pass `--json` for machine-readable output or `--warehouse-path` to select a warehouse.
+Prints a warehouse-native summary of threads, attempts, retry pressure, messages,
+token usage, coverage, and the observed time window. Pass `--json` for the stable,
+versioned machine-readable output or `--warehouse-path` to select a warehouse.
+The command does not read the legacy manual-tracking ledger.
 
 ### `render-html`
 

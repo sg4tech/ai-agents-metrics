@@ -6,45 +6,44 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ai_agents_metrics import commands
+from ai_agents_metrics.history.summary import (
+    ActivitySummary,
+    HistoryWindow,
+    SummaryScope,
+    TokenSummary,
+    WarehouseSummary,
+    render_warehouse_summary_json,
+)
 from ai_agents_metrics.reporting import render_summary_json
 
 if TYPE_CHECKING:
     import pytest
 
 
-class _FakeDecision:
-    action = "warning"
-    message = "working tree has meaningful changes"
-
-
-class _FakeResolution:
-    decision = _FakeDecision()
-
-
 class _FakeRuntime:
-    def __init__(self, data: dict[str, object]) -> None:
-        self.data = data
+    summary = WarehouseSummary(
+        schema_version=1,
+        scope=SummaryScope(project_cwd=str(Path.cwd()), is_all_projects=False),
+        activity=ActivitySummary(
+            threads=3, attempts=4, retry_threads=1, retry_rate=1 / 3, messages=12, usage_events=2,
+        ),
+        tokens=TokenSummary(
+            input_tokens=10, cache_creation_input_tokens=0, cached_input_tokens=5,
+            output_tokens=7, total_tokens=22, coverage=2 / 3,
+        ),
+        window=HistoryWindow(
+            first_seen_at="2026-01-01T00:00:00+00:00",
+            last_seen_at="2026-01-02T00:00:00+00:00",
+        ),
+    )
 
-    def load_metrics(self, path: Path) -> dict[str, object]:
-        assert path == Path("/metrics.json")
-        return self.data
+    def load_warehouse_summary(self, warehouse_path: Path, project_cwd: Path) -> WarehouseSummary:
+        assert warehouse_path == Path("/warehouse.db")
+        assert project_cwd == Path.cwd()
+        return self.summary
 
-    def recompute_summary(self, data: dict[str, object]) -> None:
-        assert data is self.data
-
-    def resolve_workflow_resolution(self, data: dict[str, object], cwd: Path, event: object) -> _FakeResolution:
-        assert data is self.data
-        assert cwd == Path.cwd()
-        return _FakeResolution()
-
-    def read_history_signals(self, warehouse_path: object, project_cwd: object, data: object) -> None:
-        return None
-
-    def print_summary(self, data: dict[str, object], history_signals: object = None) -> None:
-        raise AssertionError("print_summary should not be called in JSON mode")
-
-    def render_summary_json(self, data: dict[str, object], history_signals: object = None) -> str:
-        return render_summary_json(data)
+    def render_warehouse_summary_json(self, summary: WarehouseSummary) -> str:
+        return render_warehouse_summary_json(summary)
 
 
 def test_render_summary_json_includes_product_quality_and_recommendations() -> None:
@@ -157,7 +156,7 @@ def test_render_summary_json_includes_product_quality_and_recommendations() -> N
 
 
 def test_handle_show_prints_json(capsys: pytest.CaptureFixture[str]) -> None:
-    data = {
+    _legacy_data = {
         "summary": {
             "closed_tasks": 1,
             "successes": 1,
@@ -259,14 +258,16 @@ def test_handle_show_prints_json(capsys: pytest.CaptureFixture[str]) -> None:
             }
         ],
     }
-    runtime = _FakeRuntime(data)
+    runtime = _FakeRuntime()
 
-    exit_code = commands.handle_show(Namespace(metrics_path="/metrics.json", json=True, warehouse_path=""), runtime)
+    exit_code = commands.handle_show(Namespace(json=True, warehouse_path="/warehouse.db"), runtime)
 
     assert exit_code == 0
     captured = capsys.readouterr()
     payload = json.loads(captured.out[captured.out.index("{"):])
-    assert payload["product_quality"]["closed_product_goals"] == 1
+    assert payload["schema_version"] == 1
+    assert payload["activity"]["threads"] == 3
+    assert payload["tokens"]["total_tokens"] == 22
 
 
 def test_render_summary_json_history_signals_present() -> None:

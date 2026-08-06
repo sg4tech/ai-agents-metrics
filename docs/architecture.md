@@ -145,7 +145,8 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 **Primary store:** `.ai-agents-metrics/warehouse.db`
 - Intermediate cache populated by `history/ingest/` (Codex + Claude adapters)
 - Consumed by normalize → classify → derive steps
-- Read directly by `show` and `render-html` for token, cost, retry, and practice data
+- Read directly by `show` and `render-html` for token, retry, timeline, and practice data
+- `show --json` exposes a versioned warehouse summary contract and does not read the legacy ledger
 
 **Event log:** `.ai-agents-metrics/events.sqlite` + `events.debug.log`
 - Append-only mutation audit trail written by `observability.py`

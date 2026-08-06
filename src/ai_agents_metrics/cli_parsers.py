@@ -213,14 +213,13 @@ def _add_history_parsers(subparsers: Any) -> None:
 def _add_sync_and_render_parsers(subparsers: Any) -> None:
     show_parser = subparsers.add_parser(
         "show",
-        help="Print current summary and operator review",
-        description="Print the current summary, cost coverage, and operator review.",
+        help="Print a history-derived warehouse summary",
+        description="Print retry, usage, token, and timeline metrics from the history warehouse.",
     )
-    show_parser.add_argument("--metrics-path", default=str(METRICS_JSON_PATH))
     show_parser.add_argument(
         "--warehouse-path",
         default=str(RAW_WAREHOUSE_PATH),
-        help="Path to the history warehouse SQLite file (default: auto-detected from metrics path)",
+        help="Path to the history warehouse SQLite file",
     )
     show_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
 

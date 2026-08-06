@@ -29,6 +29,11 @@ from ai_agents_metrics.history.compare import (
 from ai_agents_metrics.history.derive import render_derive_summary_json
 from ai_agents_metrics.history.ingest import render_ingest_summary_json
 from ai_agents_metrics.history.normalize import render_normalize_summary_json
+from ai_agents_metrics.history.summary import (
+    load_warehouse_summary,
+    render_warehouse_summary,
+    render_warehouse_summary_json,
+)
 from ai_agents_metrics.reporting import (
     print_summary,
     render_summary_json,
@@ -96,6 +101,7 @@ __all__ = [
     "load_effective_pricing",
     "load_metrics",
     "load_pricing",
+    "load_warehouse_summary",
     "metrics_mutation_lock",
     "normalize_codex_history",
     "parse_usage_event",
@@ -114,6 +120,8 @@ __all__ = [
     "render_retro_timeline_report",
     "render_retro_timeline_report_json",
     "render_summary_json",
+    "render_warehouse_summary",
+    "render_warehouse_summary_json",
     "resolve_codex_session_usage_window",
     "resolve_codex_usage_window",
     "resolve_effective_pricing_path",

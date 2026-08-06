@@ -16,18 +16,12 @@ if TYPE_CHECKING:
 
 
 def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
-    metrics_path = Path(args.metrics_path)
-    _warehouse_raw = getattr(args, "warehouse_path", "")
-    # Guard against the empty-string case: Path("").expanduser() resolves to Path(".")
-    # which always exists and causes an unintended SQLite connect attempt.
-    warehouse_path = Path(_warehouse_raw).expanduser() if _warehouse_raw else Path()
-    data = cli_module.load_metrics(metrics_path)
-    cli_module.recompute_summary(data)
-    history_signals = cli_module.read_history_signals(warehouse_path, Path.cwd(), data)
+    warehouse_path = Path(args.warehouse_path).expanduser()
+    summary = cli_module.load_warehouse_summary(warehouse_path, Path.cwd())
     if getattr(args, "json", False):
-        print(cli_module.render_summary_json(data, history_signals))
+        print(cli_module.render_warehouse_summary_json(summary))
     else:
-        cli_module.print_summary(data, history_signals)
+        print(cli_module.render_warehouse_summary(summary))
     return 0
 
 
