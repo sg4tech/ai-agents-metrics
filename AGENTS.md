@@ -130,7 +130,11 @@ as proof that the full change works.
 ## Documentation
 
 Update public documentation in the same change when behavior, commands, schemas, architecture,
-or contributor workflow changes. Write documentation and code comments in English.
+or contributor workflow changes. Write identifiers, file names, comments, documentation, and
+log messages in English.
+
+Do not duplicate volatile values such as counts, thresholds, or versions in prose when code or
+configuration is their canonical source.
 
 Keep each rule in one canonical location and link to detailed documentation instead of copying
 large specifications into multiple files.
@@ -138,6 +142,8 @@ large specifications into multiple files.
 ## Git
 
 - Keep commits focused and use short, descriptive subjects.
+- Do not rewrite shared history with rebase, pushed-commit amendment, reset, or cherry-pick used
+  to relocate commits. Merge branches instead.
 - Do not use `git rebase` to incorporate upstream changes; merge the base branch instead.
 - Never bypass branch protection, required checks, hooks, or reviews.
 - Do not use force pushes unless a repository maintainer explicitly requests one for a known-safe
