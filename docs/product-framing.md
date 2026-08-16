@@ -89,7 +89,7 @@ The following product questions are still intentionally open and should be treat
 
 1. Use an AI coding agent such as Codex or Claude to work on a real engineering goal.
 2. Run `ai-agents-metrics history-ingest` to extract your session history into a local warehouse.
-3. Run `ai-agents-metrics show` to see what happened: sessions, retry pressure, token cost, and timeline.
+3. Run `ai-agents-metrics show` to see what happened: threads, sessions, token cost, and timeline.
 4. Have an AI agent read the analysis and explain whether quality, speed, and cost are in a good state.
 5. Deliver that analysis to the human sponsor rather than raw metric interpretation.
 
@@ -106,7 +106,7 @@ The tool should help the analyzing agent answer:
 
 Primary north star:
 
-- accepted product outcomes with minimal retry pressure and controlled cost
+- accepted product outcomes with controlled cost
 
 This is not meant to optimize for cheapness alone.
 
@@ -156,7 +156,7 @@ At the moment, the exact best cost-view is still open:
 
 - cost per success
 - cost per miss
-- cost per attempt
+- cost per session
 - total cost over time
 
 The system should preserve enough raw cost context to let that be decided later from real use.
@@ -166,15 +166,15 @@ The system should preserve enough raw cost context to let that be decided later 
 Current primary metrics:
 
 - product goal success rate
-- attempts per closed goal
+- sessions per thread
 - entry failure reasons
 - known total cost and known total tokens
-- model identity on goals and attempts for analysis slices
+- model identity on threads and sessions for analysis slices
 - history-derived before/after comparisons when available
 
 Current interpretation rule:
 
-- goal-level success must always be read together with entry-level retry pressure and history-derived context
+- goal-level success must always be read together with history-derived session context
 - current quality-related metrics are provisional agent-facing proxies and should be refined empirically over time
 - cost is a business signal for how painful success or miss was
 - failure reasons are primarily a debugging signal for what the agent should recommend changing next
@@ -189,7 +189,7 @@ Future direction:
 In scope now:
 
 - history extraction pipeline: ingest, normalize, derive from `~/.codex` and `~/.claude` session files
-- history-derived retry pressure, token cost, and session timeline — available from the first run with no prior setup
+- history-derived session structure, token cost, and session timeline — available from the first run with no prior setup
 - agent-facing analysis surfaces for retros, verification, and workflow-change analysis
 - public-release preparation work that makes the reusable core publishable, understandable, and safe to distribute
 
@@ -220,8 +220,8 @@ Current release priority:
 
 Success is measured by whether the tool answers a real workflow question for its own author before it is offered to anyone else. Concretely:
 
-- base metrics (cost, tokens, retry pressure, model attribution) are auditable and known to be correct on the author's own data
-- the tool produces at least one clear finding about the author's AI-workflow — for example, whether a specific practice tends to coincide with lower cost or fewer retries
+- base metrics (cost, tokens, session structure, model attribution) are auditable and known to be correct on the author's own data
+- the tool produces at least one clear finding about the author's AI-workflow — for example, whether a specific practice tends to coincide with lower cost or fewer sessions per thread
 - quality signals are trusted more than intuition alone
 - cost visibility is good enough to spot obviously wasteful patterns
 

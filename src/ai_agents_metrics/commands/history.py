@@ -212,10 +212,9 @@ def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     else:
         print(f"Derived Codex history in {summary.warehouse_path}")
         print(f"Projects: {summary.projects}")
-        print(f"Goals: {summary.goals}")
-        print(f"Attempts: {summary.attempts}")
+        print(f"Threads: {summary.threads}")
+        print(f"Sessions: {summary.sessions}")
         print(f"Timeline events: {summary.timeline_events}")
-        print(f"Retry chains: {summary.retry_chains}")
         print(f"Message facts: {summary.message_facts}")
         print(f"Session usage: {summary.session_usage}")
         print(f"Token coverage: {summary.token_covered_sessions}/{summary.session_usage} sessions")
@@ -266,7 +265,7 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
     with cli_module.metrics_mutation_lock(warehouse_path):
         derive_summary = cli_module.derive_codex_history(warehouse_path)
     if not json_output:
-        print(f"    {derive_summary.goals} goals, {derive_summary.retry_chains} retry chains")
+        print(f"    {derive_summary.threads} threads, {derive_summary.sessions} sessions")
         print(f"Done. Warehouse: {warehouse_path}")
     else:
         print(

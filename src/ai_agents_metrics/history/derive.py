@@ -1,4 +1,4 @@
-"""Derive stage: normalized rows → goals, attempts, timelines, retry chains."""
+"""Derive stage: normalized rows to thread, session, timeline, and usage marts."""
 from __future__ import annotations
 
 import json
@@ -112,10 +112,9 @@ def _fetch_session_kinds(conn: sqlite3.Connection) -> dict[str, str] | None:
 class DeriveSummary:
     warehouse_path: Path
     projects: int
-    goals: int
-    attempts: int
+    threads: int
+    sessions: int
     timeline_events: int
-    retry_chains: int
     message_facts: int
     session_usage: int
     token_covered_sessions: int
@@ -123,10 +122,9 @@ class DeriveSummary:
 
 @dataclass
 class _DeriveCounters:
-    goals: int = 0
-    attempts: int = 0
+    threads: int = 0
+    sessions: int = 0
     timeline_events: int = 0
-    retry_chains: int = 0
     message_facts: int = 0
     session_usage: int = 0
 
@@ -234,9 +232,8 @@ def _process_thread(
         timeline_items=timeline_items,
         session_kinds=session_kinds,
     )
-    counters.goals += 1
-    counters.attempts += len(sorted_sessions)
-    counters.retry_chains += 1
+    counters.threads += 1
+    counters.sessions += len(sorted_sessions)
 
 
 def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
@@ -282,10 +279,9 @@ def derive_codex_history(*, warehouse_path: Path) -> DeriveSummary:
     return DeriveSummary(
         warehouse_path=warehouse_path,
         projects=projects,
-        goals=counters.goals,
-        attempts=counters.attempts,
+        threads=counters.threads,
+        sessions=counters.sessions,
         timeline_events=counters.timeline_events,
-        retry_chains=counters.retry_chains,
         message_facts=counters.message_facts,
         session_usage=counters.session_usage,
         token_covered_sessions=token_covered_sessions,
@@ -296,10 +292,9 @@ def render_derive_summary_json(summary: DeriveSummary) -> str:
     return json.dumps({
         "warehouse_path": str(summary.warehouse_path),
         "projects": summary.projects,
-        "goals": summary.goals,
-        "attempts": summary.attempts,
+        "threads": summary.threads,
+        "sessions": summary.sessions,
         "timeline_events": summary.timeline_events,
-        "retry_chains": summary.retry_chains,
         "message_facts": summary.message_facts,
         "session_usage": summary.session_usage,
         "token_covered_sessions": summary.token_covered_sessions,

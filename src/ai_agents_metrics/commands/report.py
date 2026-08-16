@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ai_agents_metrics.report.html_report import (
+    TokenReportRow,
     aggregate_report_data,
     check_warehouse_state,
     render_html_report,
@@ -21,29 +22,24 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class _WarehouseRenderRows:
-    retry: dict[str, dict[str, int]] | None = None
-    tokens: list[tuple[str, str | None, int, int, int]] | None = None
+    sessions: dict[str, dict[str, int]] | None = None
+    tokens: list[TokenReportRow] | None = None
     practice: list[tuple[str, str, int]] | None = None
 
 
 def _load_render_html_warehouse_rows(
     warehouse_path: Path, cwd: str
 ) -> _WarehouseRenderRows:
-    """Read retry/token/practice rows from the warehouse; return three-way Nones on error.
+    """Read session/token/practice rows from the warehouse; return empty values on error.
 
     The queries pin to the given cwd so cross-repo rows don't bleed in. See
     `handle_render_html` for the warehouse-only rendering.
     """
     try:
         with sqlite3.connect(warehouse_path) as conn:
-            # Use main_attempt_count (H-040 classifier) to distinguish real
-            # main-agent retries from subagent Task() spawns, which also
-            # produce separate session JSONL files and would otherwise
-            # inflate retry_count. COALESCE treats unclassified rows as
-            # single-attempt (conservative — no false retry signal).
-            retry_rows = conn.execute(
+            session_rows = conn.execute(
                 "SELECT last_seen_at, "
-                "  COALESCE(main_attempt_count, 1) as main_attempts "
+                "  session_count "
                 "FROM derived_goals "
                 "WHERE cwd = ? AND last_seen_at IS NOT NULL",
                 (cwd,),
@@ -57,9 +53,12 @@ def _load_render_html_warehouse_rows(
                 "      AND json_extract(nue.raw_json, '$.message.model') IS NOT NULL "
                 "    LIMIT 1"
                 "  )) as model, "
+                "  dg.model_provider, "
                 "  COALESCE(SUM(dsu.input_tokens), 0), "
+                "  COALESCE(SUM(dsu.cache_creation_input_tokens), 0), "
                 "  COALESCE(SUM(dsu.cached_input_tokens), 0), "
-                "  COALESCE(SUM(dsu.output_tokens), 0) "
+                "  COALESCE(SUM(dsu.output_tokens), 0), "
+                "  COALESCE(SUM(dsu.total_tokens), 0) "
                 "FROM derived_goals dg "
                 "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
                 "WHERE dg.cwd = ? AND dg.last_seen_at IS NOT NULL "
@@ -80,16 +79,15 @@ def _load_render_html_warehouse_rows(
         return _WarehouseRenderRows()
 
     by_day: dict[str, dict[str, int]] = {}
-    for last_seen_at, main_attempts in retry_rows:
+    for last_seen_at, session_count in session_rows:
         day = last_seen_at[:10]
         if day not in by_day:
-            by_day[day] = {"threads": 0, "retry_threads": 0}
+            by_day[day] = {"threads": 0, "sessions": 0}
         by_day[day]["threads"] += 1
-        if main_attempts and main_attempts > 1:
-            by_day[day]["retry_threads"] += 1
+        by_day[day]["sessions"] += int(session_count or 0)
     return _WarehouseRenderRows(
-        retry=by_day,
-        tokens=list(token_rows),
+        sessions=by_day,
+        tokens=[TokenReportRow(*row) for row in token_rows],
         practice=list(practice_rows),
     )
 
@@ -120,7 +118,7 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
 
     chart_data = aggregate_report_data(
         days=args.days,
-        warehouse_retry=warehouse_rows.retry or {},
+        warehouse_sessions=warehouse_rows.sessions or {},
         warehouse_tokens=warehouse_rows.tokens or [],
         pricing=_safe_load_effective_pricing(_cli_module),
         warehouse_practice=warehouse_rows.practice,
@@ -151,6 +149,6 @@ def _render_html_source_message(
     wh_status = warehouse_state.get("status", "ok")
     return (
         f"Rendered HTML report: {output_path} "
-        f"(retry: warehouse, tokens: warehouse, practice: {practice_src}, "
+        f"(sessions: warehouse, tokens: warehouse, practice: {practice_src}, "
         f"warehouse: {wh_status})"
     )

@@ -67,10 +67,9 @@ def _make_derive_summary(warehouse: str = "/warehouse.sqlite") -> DeriveSummary:
     return DeriveSummary(
         warehouse_path=Path(warehouse),
         projects=2,
-        goals=3,
-        attempts=4,
+        threads=3,
+        sessions=4,
         timeline_events=5,
-        retry_chains=6,
         message_facts=7,
         session_usage=8,
         token_covered_sessions=6,
@@ -179,7 +178,8 @@ def test_render_history_pipeline_json_summaries() -> None:
     assert normalize_payload["usage_events"] == 6
 
     derive_payload = json.loads(render_derive_summary_json(_make_derive_summary()))
-    assert derive_payload["retry_chains"] == 6
+    assert derive_payload["threads"] == 3
+    assert "retry_chains" not in derive_payload
 
 
 def test_handle_history_pipeline_commands_print_json(capsys: pytest.CaptureFixture[str]) -> None:
@@ -214,7 +214,7 @@ def test_handle_history_pipeline_commands_print_json(capsys: pytest.CaptureFixtu
         )
         == 0
     )
-    assert json.loads(capsys.readouterr().out)["goals"] == 3
+    assert json.loads(capsys.readouterr().out)["threads"] == 3
 
 
 def test_history_update_happy_path(capsys: pytest.CaptureFixture[str]) -> None:
@@ -251,7 +251,8 @@ def test_history_update_json_output(capsys: pytest.CaptureFixture[str]) -> None:
     assert payload["ingest"]["codex"]["threads"] == 3
     assert payload["normalize"]["usage_events"] == 6
     assert payload["classify"]["main_sessions"] == 2
-    assert payload["derive"]["retry_chains"] == 6
+    assert payload["derive"]["threads"] == 3
+    assert "retry_chains" not in payload["derive"]
 
 
 def test_history_update_no_source_reads_both(

@@ -96,11 +96,12 @@ def test_derive_codex_history_builds_analysis_marts(repo: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "Derived Codex history in" in result.stdout
     assert "Projects: 2" in result.stdout
-    assert "Goals: 2" in result.stdout
-    assert "Attempts: 3" in result.stdout  # user turns: 2 in thread-1, 1 in thread-2 (min=1)
+    assert "Threads: 2" in result.stdout
+    assert "Sessions: 3" in result.stdout
+    assert "Attempts" not in result.stdout
     # rollout-3 gains a user message: +1 timeline event, +1 message fact
     assert "Timeline events: 11" in result.stdout
-    assert "Retry chains: 2" in result.stdout
+    assert "Retry chains" not in result.stdout
     assert "Message facts: 5" in result.stdout
     assert "Session usage: 3" in result.stdout
     # rollout-1 has token data; rollout-3 and rollout-2 have none → 1/3 covered
@@ -283,7 +284,7 @@ def test_derive_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
     assert first.returncode == 0, first.stderr
     assert second.returncode == 0, second.stderr
     assert "Projects: 2" in second.stdout
-    assert "Goals: 2" in second.stdout
+    assert "Threads: 2" in second.stdout
 
     with sqlite3.connect(warehouse_path) as conn:
         assert conn.execute("SELECT count(*) FROM derived_goals").fetchone()[0] == 2

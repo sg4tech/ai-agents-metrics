@@ -9,13 +9,11 @@
 **Analyze your AI agent work history. Track spending. Optimize your workflow.**
 
 AI is writing more of your code. You still don't know:
-- How many attempts each task actually takes
+- How many sessions each thread contains
 - Where the process breaks down and why
 - Whether your workflow is getting faster or generating more rework
 
-`ai-agents-metrics` extracts these signals from your existing Claude Code or Codex history. Point it at your history files and see what's happening: retry pressure, token cost, and session timeline.
-
-![HTML report preview — 5 charts over 25 goals, 243 practice events, 16 days](docs/images/report-preview.png)
+`ai-agents-metrics` extracts these signals from your existing Claude Code or Codex history. Point it at your history files and see what's happening: sessions per thread, token cost, and session timeline.
 
 > **Running this on 6 months of Claude Code + Codex history (3.85B tokens, 160 threads) surfaced:**
 >
@@ -33,7 +31,7 @@ AI is writing more of your code. You still don't know:
 pipx install ai-agents-metrics
 
 ai-agents-metrics history-update     # reads ~/.codex + ~/.claude by default
-ai-agents-metrics show               # retry pressure, cost, session timeline
+ai-agents-metrics show               # sessions per thread, cost, session timeline
 ai-agents-metrics render-html        # interactive HTML report
 ```
 
@@ -43,8 +41,8 @@ Non-default history paths and the full command list: [CLI reference](docs/cli-re
 
 ## What you get
 
-- **History extraction** — retry pressure, token cost, model usage from existing session files. No setup.
-- **HTML report** — one self-contained file, summary strip + 5 trend charts, opens in any browser.
+- **History extraction** — sessions per thread, token cost, and model usage from existing session files. No setup.
+- **HTML report** — one self-contained file with four trend charts, opens in any browser.
 
 Not a benchmark, not an eval framework, not a model comparison tool. It is a local analysis tool for real engineering work done with AI.
 

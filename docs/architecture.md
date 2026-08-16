@@ -18,7 +18,7 @@
 
 `ai-agents-metrics` is a CLI tool for analyzing AI agent work history, tracking spending, and optimizing workflows.
 
-**Primary layer — history pipeline:** reads raw session files from `~/.codex` or `~/.claude`, extracts retry pressure, token cost, and session timelines, and stores results in a local SQLite warehouse. No prior instrumentation required.
+**Primary layer — history pipeline:** reads raw session files from `~/.codex` or `~/.claude`, extracts session structure, token cost, and session timelines, and stores results in a local SQLite warehouse. No prior instrumentation required.
 
 There is no database server, no background process, and no network dependency.
 
@@ -31,7 +31,7 @@ Commands (commands/ package)
   ↓  orchestration against a sanctioned runtime surface (CommandRuntime)
 History pipeline (history/*)           ← primary analysis layer
   ↓  ingest → normalize → derive from ~/.codex or ~/.claude
-  ↓  SQLite warehouse: retry pressure, token cost, session timeline
+  ↓  SQLite warehouse: session structure, token cost, session timeline
 Reporting (report/)
   ↓  aggregates warehouse signals and renders a self-contained HTML report
 ```

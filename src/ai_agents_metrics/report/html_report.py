@@ -14,6 +14,7 @@ import sqlite3
 from typing import TYPE_CHECKING, Any
 
 from .aggregation import (
+    TokenReportRow,
     aggregate_report_data,
 )
 from .template import _HTML_TEMPLATE
@@ -21,7 +22,12 @@ from .template import _HTML_TEMPLATE
 if TYPE_CHECKING:
     from pathlib import Path
 
-__all__ = ["aggregate_report_data", "render_html_report", "check_warehouse_state"]
+__all__ = [
+    "TokenReportRow",
+    "aggregate_report_data",
+    "render_html_report",
+    "check_warehouse_state",
+]
 
 
 # Table that is expected in an up-to-date warehouse; used as a proxy for schema

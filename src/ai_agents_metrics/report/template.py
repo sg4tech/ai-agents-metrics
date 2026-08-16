@@ -35,36 +35,6 @@ _HTML_TEMPLATE = """\
   }
   header p { font-size: 13px; color: #64748b; }
 
-  /* summary strip */
-  .summary-strip {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-  }
-  .stat-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.07);
-    padding: 14px 20px;
-    min-width: 140px;
-    flex: 1;
-  }
-  .stat-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.2;
-    margin-bottom: 2px;
-    white-space: nowrap;
-  }
-  .stat-label {
-    font-size: 11px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-
   /* charts grid */
   .grid {
     display: grid;
@@ -168,8 +138,6 @@ _HTML_TEMPLATE = """\
   <p>Generated {GENERATED_AT} &nbsp;·&nbsp; {GRANULARITY_LABEL}</p>
 </header>
 
-<div class="summary-strip" id="summary-strip"></div>
-
 <div id="sh-activity" class="section-header"></div>
 <div class="grid">
 
@@ -180,12 +148,6 @@ _HTML_TEMPLATE = """\
     <div class="legend" id="c1-legend"></div>
   </div>
 
-  <div class="card" style="display:none">
-    <h2>Cost per Successful Task</h2>
-    <p class="subtitle">USD · avg cost per success per {GRAN_NOUN} · outliers clipped</p>
-    <canvas id="c4" height="240"></canvas>
-  </div>
-
 </div>
 
 <div id="sh-history" class="section-header"></div>
@@ -193,7 +155,7 @@ _HTML_TEMPLATE = """\
 <div class="grid">
 
   <div class="card">
-    <h2>Retry Pressure</h2>
+    <h2>Sessions per Thread</h2>
     <p class="subtitle" id="c2-subtitle"></p>
     <canvas id="c2" height="240"></canvas>
     <div class="legend" id="c2-legend"></div>
@@ -227,7 +189,7 @@ const DATA = {DATA_JSON};
 
 // Chart 3's series count depends on how many distinct models appear in the
 // data, so c3 toggles are initialized dynamically in render().
-const seriesToggles = { c1: [true, true, true], c3: [] };
+const seriesToggles = { c1: [true], c3: [] };
 
 function toggleSeries(chartId, idx) {
   const t = seriesToggles[chartId];
@@ -241,8 +203,8 @@ function redrawStackedChart(chartId) {
   const d = DATA;
   if (chartId === 'c1') {
     renderC1Legend();
-    drawStackedBar('c1', d.buckets, [d.chart1_product, d.chart1_meta, d.chart1_retro],
-      ['#22c55e', '#94a3b8', '#f59e0b'], false, '', seriesToggles.c1);
+    drawStackedBar('c1', d.buckets, [d.chart1_threads],
+      ['#22c55e'], false, '', seriesToggles.c1);
   } else if (chartId === 'c3') {
     renderC3Legend();
     const pfx = d.chart3_mode === 'cost' ? '$' : '';
@@ -447,12 +409,11 @@ function drawStackedBar(id, labels, series, colors, useSmartMax, labelPrefix, to
 function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppressNoRetriesMessage) {
   const { ctx, w, h } = setupCanvas(id);
   // Only treat an empty-label or no-non-null-line case as "No data available".
-  // An all-zero retry signal is real data (every thread completed without a
-  // retry) and must render so the green "no retries" plaque can appear.
+  // An all-zero session signal is valid warehouse data and must still render.
   const lineHasData = lineValues.some(v => v !== null);
   if (!labels.length || !lineHasData) { drawEmpty(ctx, w, h); return; }
   // Only surface the "No retries" green message when the warehouse is current
-  // and all retry bars are empty.
+  // and all session bars are empty.
   const noRetries = !suppressNoRetriesMessage && barValues.every(v => !v);
 
   const ML = 48, MR = 48, MT = 12, MB = 68;
@@ -550,164 +511,6 @@ function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppr
 }
 
 
-// ── chart 4: line with outlier clipping ──────────────────────────────────────
-
-function drawLine(id, labels, values, color) {
-  const { ctx, w, h } = setupCanvas(id);
-  if (!labels.length || values.every(v => v === null)) { drawEmpty(ctx, w, h); return; }
-
-  const { max: maxVal, clipped, threshold } = smartMax(values);
-
-  // When clipped, reserve extra top margin so outlier labels can stack up
-  // to 3 rows without being cut off by the canvas edge (MT - 2*12 = MT-24).
-  const ML = 56, MR = 16, MB = 68;
-  const MT = clipped ? 36 : 20;
-  const cw = w - ML - MR, ch = h - MT - MB;
-  const n = labels.length;
-  const gap = cw / n;
-  const step = Math.max(1, Math.ceil(n / 12));
-
-  drawYGrid(ctx, ML, MT, cw, ch, maxVal, 4);
-  drawAxes(ctx, ML, MT, cw, ch);
-
-  // Clip line
-  if (clipped) {
-    ctx.strokeStyle = '#fca5a5';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 3]);
-    ctx.beginPath();
-    ctx.moveTo(ML, MT);
-    ctx.lineTo(ML + cw, MT);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#fca5a5';
-    ctx.font = '10px system-ui';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText('clipped', ML + 4, MT - 2);
-  }
-
-  // Area fill (only for non-clipped values)
-  ctx.fillStyle = color + '18';
-  ctx.beginPath();
-  let areaStarted = false;
-  let lastX = 0;
-  for (let i = 0; i < n; i++) {
-    const v = values[i];
-    if (v === null) continue;
-    const clamped = Math.min(v, maxVal);
-    const x = ML + i * gap + gap / 2;
-    const y = MT + ch - (clamped / maxVal) * ch;
-    if (!areaStarted) { ctx.moveTo(x, MT + ch); ctx.lineTo(x, y); areaStarted = true; }
-    else ctx.lineTo(x, y);
-    lastX = x;
-  }
-  if (areaStarted) { ctx.lineTo(lastX, MT + ch); ctx.closePath(); ctx.fill(); }
-
-  // Line
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  let started = false;
-  for (let i = 0; i < n; i++) {
-    const v = values[i];
-    if (v === null) { started = false; continue; }
-    const clamped = Math.min(v, maxVal);
-    const x = ML + i * gap + gap / 2;
-    const y = MT + ch - (clamped / maxVal) * ch;
-    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-
-  // Dots + labels — outlier labels stack across up to 3 vertical rows when
-  // adjacent outliers would otherwise overlap horizontally. Diamonds stay
-  // anchored at the clip line regardless of label stacking level.
-  const outlierRowEdges = []; // per-level right-edge of last-drawn label
-  const OUTLIER_LABEL_LINE_HEIGHT = 12;
-  const OUTLIER_LABEL_MAX_LEVELS = 3;
-  // Set font once so measureText() below uses the same metrics as fillText().
-  ctx.font = 'bold 10px system-ui';
-  for (let i = 0; i < n; i++) {
-    const v = values[i];
-    if (v === null) continue;
-    const isOutlier = clipped && v > threshold;
-    const clamped = Math.min(v, maxVal);
-    const x = ML + i * gap + gap / 2;
-    const y = MT + ch - (clamped / maxVal) * ch;
-
-    if (isOutlier) {
-      const label = '$' + fmt(v);
-      const labelW = ctx.measureText(label).width;
-      const labelLeft = x - labelW / 2;
-      let L = 0;
-      while (L < outlierRowEdges.length && outlierRowEdges[L] > labelLeft) L++;
-      // Cap levels: beyond the canvas-safe maximum, wrap back to level 0 and
-      // accept some overlap rather than drawing off-canvas.
-      if (L >= OUTLIER_LABEL_MAX_LEVELS) L = 0;
-      if (L === outlierRowEdges.length) outlierRowEdges.push(0);
-      outlierRowEdges[L] = x + labelW / 2 + 4; // 4px horizontal padding
-      const labelY = MT - L * OUTLIER_LABEL_LINE_HEIGHT;
-
-      // Diamond marker — anchored to the clip line, unaffected by stacking.
-      ctx.fillStyle = '#fca5a5';
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(x, MT + 2); ctx.lineTo(x + 5, MT + 8);
-      ctx.lineTo(x, MT + 14); ctx.lineTo(x - 5, MT + 8);
-      ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#dc2626';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(label, x, labelY);
-    } else {
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = color;
-      ctx.font = 'bold 10px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText('$' + fmt(v), x, y - 7);
-    }
-  }
-
-  drawXLabels(ctx, labels, ML, MT, cw, ch, step);
-}
-
-// ── summary strip ─────────────────────────────────────────────────────────────
-
-function renderSummary() {
-  const s = DATA.summary;
-  const strip = document.getElementById('summary-strip');
-  if (!s || !strip) return;
-
-  const trendMap = { improving: ['↓ improving', '#16a34a'], worsening: ['↑ worsening', '#dc2626'], stable: ['→ stable', '#64748b'] };
-  const [trendText, trendColor] = trendMap[s.cost_trend] || ['n/a', '#94a3b8'];
-
-  const stats = [
-    { value: s.total_closed,                                       label: 'Goals closed' },
-    { value: s.success_count + ' (' + s.success_rate_pct + '%)',   label: 'Successes' },
-    { value: s.total_cost_usd != null ? '$' + s.total_cost_usd : 'n/a', label: 'Total cost' },
-    { value: s.avg_cost_usd != null ? '$' + s.avg_cost_usd : 'n/a', label: 'Avg cost / success' },
-    { value: trendText, label: 'Cost trend', color: trendColor },
-  ];
-
-  strip.innerHTML = stats.map(st =>
-    '<div class="stat-card">' +
-      '<div class="stat-value"' + (st.color ? ' style="color:' + st.color + '"' : '') + '>' + st.value + '</div>' +
-      '<div class="stat-label">' + st.label + '</div>' +
-    '</div>'
-  ).join('');
-}
-
 // ── section headers ──────────────────────────────────────────────────────────
 
 function renderSectionHeaders() {
@@ -721,7 +524,7 @@ function renderSectionHeaders() {
   const activityEl = document.getElementById('sh-activity');
   if (activityEl) {
     const range = dateRange(d.history_date_from, d.history_date_to);
-    const count = d.summary ? ' \u00b7 ' + d.summary.total_closed + ' threads' : '';
+    const count = d.summary ? ' \u00b7 ' + d.summary.total_threads + ' threads' : '';
     activityEl.innerHTML =
       '<h3>Agent Activity</h3>' +
       '<span class="src-badge history">warehouse</span>' +
@@ -858,10 +661,10 @@ function renderWarehouseCallout() {
 function renderChart2Meta() {
   const sub = document.getElementById('c2-subtitle');
   const leg = document.getElementById('c2-legend');
-  if (sub) sub.textContent = 'Threads needing >1 main-agent session (bars) \u00b7 retry rate % (line) \u00b7 subagent spawns excluded \u00b7 source: history';
+  if (sub) sub.textContent = 'Sessions (bars) \u00b7 average sessions per thread (line) \u00b7 source: history';
   if (leg) leg.innerHTML =
-    '<div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Main-agent retry threads</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div>Retry rate % (line)</div>';
+    '<div class="legend-item"><div class="legend-dot" style="background:#f97316"></div>Sessions</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:#ef4444;border-radius:50%"></div>Sessions per thread (line)</div>';
 }
 
 function render() {
@@ -872,20 +675,18 @@ function render() {
   if (seriesToggles.c3.length !== c3Len) {
     seriesToggles.c3 = new Array(c3Len).fill(true);
   }
-  renderSummary();
   renderSectionHeaders();
   renderWarehouseCallout();
   renderChart2Meta();
   renderChart3Meta();
   renderC1Legend();
-  drawStackedBar('c1', d.buckets, [d.chart1_product, d.chart1_meta, d.chart1_retro], ['#22c55e', '#94a3b8', '#f59e0b'], false, '', seriesToggles.c1);
+  drawStackedBar('c1', d.buckets, [d.chart1_threads], ['#22c55e'], false, '', seriesToggles.c1);
   const whStatus = (d.warehouse_state && d.warehouse_state.status) || 'ok';
   drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', whStatus !== 'ok');
   const c3Prefix = d.chart3_mode === 'cost' ? '$' : '';
   const c3Values = (d.chart3_series || []).map(s => s.values);
   const c3Colors = (d.chart3_series || []).map(s => s.color);
   drawStackedBar('c3', d.buckets, c3Values, c3Colors, true, c3Prefix, seriesToggles.c3);
-  drawLine('c4', d.chart4_buckets, d.chart4_values, '#8b5cf6');
   renderChart5();
 }
 

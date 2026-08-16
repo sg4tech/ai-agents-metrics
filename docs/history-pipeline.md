@@ -1,8 +1,8 @@
 # History Pipeline
 
-**What this document is:** How `ai-agents-metrics` extracts metrics from raw AI agent session data. The history pipeline reads existing conversation history files and produces retry pressure, token cost, and session timelines. This document describes the current adapters and the pipeline stages.
+**What this document is:** How `ai-agents-metrics` extracts metrics from raw AI agent session data. The history pipeline reads existing conversation history files and produces session structure, token cost, and session timelines. This document describes the current adapters and the pipeline stages.
 
-**Retry pressure definition:** `retry_count` is the number of user messages sent after the first one in a thread — each additional user message represents a clarifying or corrective input that the agent required before completing the task. `has_retry_pressure = retry_count > 0`. This definition is source-agnostic and works identically for Codex and Claude sessions.
+**Session density definition:** session count is the number of session files associated with a thread. Sessions per thread is `session_count / thread_count`. This is a structural metric: multiple sessions can represent continuation, delegation, or provider-specific storage behavior and do not prove that work was retried.
 
 **When to read this:**
 - Working on history ingestion or transcript analysis
@@ -23,11 +23,11 @@ This pipeline supports three `--source` values:
 - **Codex** (`--source codex`): reads from `~/.codex` only — full transcript, token usage, and thread metadata.
 - **Claude Code** (`--source claude`): reads from `~/.claude/projects/` only — full transcript and token usage from session JSONL files, including subagent sessions.
 
-Both sources feed the same ingest → normalize → derive pipeline and produce the same warehouse table shapes. The history pipeline is the product flow — run it to get retry pressure, token cost, and session timelines from existing history files with no prior setup.
+Both sources feed the same ingest → normalize → derive pipeline and produce the same warehouse table shapes. The history pipeline is the product flow — run it to get session structure, token cost, and session timelines from existing history files with no prior setup.
 
-**Note on Codex vs Claude:** For Codex, each session file maps 1:1 to a thread — there is no multi-session threading. Retry pressure is still measured correctly for Codex through user message counts, not session counts.
+**Note on Codex vs Claude:** Session and thread relationships are provider-specific. The pipeline reports their observed structure without interpreting additional sessions as retries.
 
-The product model (goals, attempts, outcomes, cost) is source-agnostic. New sources would follow the same pattern but with different raw tables and source readers.
+The product model (threads, sessions, messages, and cost) is source-agnostic. New sources follow the same pattern with different raw tables and source readers.
 
 ---
 
@@ -231,6 +231,10 @@ Token usage rows after normalization.
 
 - Primary key: `usage_event_id`
 - Use for: stable usage accounting before derived aggregation
+- Provider token categories are not directly additive across sources. OpenAI cached input is a
+  subset of input tokens, while Claude reports uncached input, cache creation, and cache reads as
+  separate categories. Use `total_tokens` for cross-provider token volume and provider-aware
+  pricing for cost; do not sum `input_tokens + cached_input_tokens` across providers.
 
 ### `normalized_logs`
 
@@ -260,11 +264,11 @@ One row per thread/goal.
 
 ### `derived_attempts`
 
-One row per session attempt inside a thread.
+One row per session inside a thread. The table name is retained for warehouse compatibility.
 
 - Primary key: `attempt_id`
 - Join keys: `thread_id`, `session_path`
-- Use for: retry analysis and session-level comparison
+- Use for: session-level comparison
 
 ### `derived_timeline_events`
 
@@ -283,14 +287,14 @@ Message-level OLAP fact table with token usage attributed to the nearest assista
 
 ### `derived_retry_chains`
 
-Retry-chain summary per thread.
+Legacy structural summary per thread. The table name and columns are retained for warehouse compatibility; they describe session multiplicity and must not be interpreted as observed user retries.
 
 - Primary key: `thread_id`
 - Key fields: `retry_count`, `has_retry_pressure`, `attempt_count`
-- **`retry_count`**: number of user messages after the first one — each is a clarifying or corrective input the user had to add before the task was done
-- **`has_retry_pressure`**: 1 if `retry_count > 0`, else 0
-- **`attempt_count`**: `retry_count + 1` — total user turns in the thread
-- Use for: whether the thread required clarification and how many rounds it took
+- **`retry_count`**: legacy name for additional sessions after the first
+- **`has_retry_pressure`**: legacy name for whether a thread contains multiple sessions
+- **`attempt_count`**: legacy name for the session count
+- Use for: compatibility with existing warehouses; prefer session counts for new analysis
 
 ### `derived_session_usage`
 
@@ -305,7 +309,7 @@ Session-level usage aggregates.
 Project-level aggregate after derivation.
 
 - Primary key: `project_cwd`
-- Use for: project comparison across threads, attempts, tokens, and timeline volume
+- Use for: project comparison across threads, sessions, tokens, and timeline volume
 
 ---
 
