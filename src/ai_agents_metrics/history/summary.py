@@ -19,9 +19,8 @@ class SummaryScope:
 @dataclass(frozen=True)
 class ActivitySummary:
     threads: int
-    attempts: int
-    retry_threads: int
-    retry_rate: float
+    sessions: int
+    sessions_per_thread: float
     messages: int
     usage_events: int
 
@@ -57,7 +56,6 @@ _SUMMARY_QUERY = """
         SELECT
             coalesce(sum(thread_count), 0),
             coalesce(sum(attempt_count), 0),
-            coalesce(sum(retry_thread_count), 0),
             coalesce(sum(message_count), 0),
             coalesce(sum(usage_event_count), 0),
             sum(input_tokens),
@@ -99,23 +97,23 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
     if row is None:
         raise ValueError("History warehouse has no derived project data; run history-update first")
     threads = int(row[0])
-    attempts = int(row[1])
-    retry_threads = int(row[2])
-    covered_threads = int(row[10])
+    sessions = int(row[1])
+    covered_sessions = int(row[9])
     return WarehouseSummary(
-        schema_version=1,
+        schema_version=2,
         scope=SummaryScope(project_cwd=resolved_cwd, is_all_projects=is_all_projects),
         activity=ActivitySummary(
-            threads=threads, attempts=attempts, retry_threads=retry_threads,
-            retry_rate=(retry_threads / threads) if threads else 0.0,
-            messages=int(row[3]), usage_events=int(row[4]),
+            threads=threads,
+            sessions=sessions,
+            sessions_per_thread=(sessions / threads) if threads else 0.0,
+            messages=int(row[2]), usage_events=int(row[3]),
         ),
         tokens=TokenSummary(
-            input_tokens=row[5], cache_creation_input_tokens=row[6], cached_input_tokens=row[7],
-            output_tokens=row[8], total_tokens=row[9],
-            coverage=(covered_threads / attempts) if attempts else None,
+            input_tokens=row[4], cache_creation_input_tokens=row[5], cached_input_tokens=row[6],
+            output_tokens=row[7], total_tokens=row[8],
+            coverage=(covered_sessions / sessions) if sessions else None,
         ),
-        window=HistoryWindow(first_seen_at=row[11], last_seen_at=row[12]),
+        window=HistoryWindow(first_seen_at=row[10], last_seen_at=row[11]),
     )
 
 
@@ -131,13 +129,12 @@ def render_warehouse_summary(summary: WarehouseSummary) -> str:
             "AI Agents Metrics — History Summary",
             f"Scope: {scope}",
             f"Threads: {summary.activity.threads}",
-            f"Attempts: {summary.activity.attempts}",
-            f"Retry pressure: {summary.activity.retry_threads}/{summary.activity.threads} "
-            f"({summary.activity.retry_rate:.2%})",
+            f"Sessions: {summary.activity.sessions}",
+            f"Sessions per thread: {summary.activity.sessions_per_thread:.2f}",
             f"Messages: {summary.activity.messages}",
-            f"Usage events: {summary.activity.usage_events}",
-            f"Tokens: input={summary.tokens.input_tokens or 0}, cached={summary.tokens.cached_input_tokens or 0}, "
-            f"output={summary.tokens.output_tokens or 0}, total={summary.tokens.total_tokens or 0}",
+            f"Tokens: total={summary.tokens.total_tokens or 0}, output={summary.tokens.output_tokens or 0}",
+            f"Cache activity: read={summary.tokens.cached_input_tokens or 0}, "
+            f"created={summary.tokens.cache_creation_input_tokens or 0}",
             f"Token coverage: {coverage}",
             f"History window: {summary.window.first_seen_at or 'n/a'} — {summary.window.last_seen_at or 'n/a'}",
         )

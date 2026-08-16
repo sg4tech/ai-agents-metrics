@@ -51,9 +51,10 @@ def test_load_warehouse_summary_reads_current_project(tmp_path: Path) -> None:
 
     summary = load_warehouse_summary(warehouse, project)
 
-    assert summary.schema_version == 1
+    assert summary.schema_version == 2
     assert summary.activity.threads == 4
-    assert summary.activity.retry_rate == 0.25
+    assert summary.activity.sessions == 5
+    assert summary.activity.sessions_per_thread == 1.25
     assert summary.tokens.total_tokens == 185
     assert summary.tokens.coverage == 0.6
     assert not summary.scope.is_all_projects
@@ -68,7 +69,8 @@ def test_load_warehouse_summary_falls_back_to_all_projects(tmp_path: Path) -> No
     summary = load_warehouse_summary(warehouse, tmp_path / "missing-project")
 
     assert summary.activity.threads == 2
-    assert summary.activity.retry_rate == 0.5
+    assert summary.activity.sessions == 5
+    assert summary.activity.sessions_per_thread == 2.5
     assert summary.scope.is_all_projects
 
 

@@ -2,7 +2,11 @@
 
 **Priority:** high
 **Complexity:** medium
-**Status:** done
+**Status:** superseded
+
+The history-only report no longer has manual outcome tracking, success summaries, or a
+cost-per-success chart. This document is retained as a record of the earlier design investigation;
+current report behavior is described in `docs/history-pipeline.md`.
 
 ## Problem
 

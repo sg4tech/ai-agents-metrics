@@ -16,7 +16,7 @@ Runs ingest, normalization, classification, and derivation for local agent histo
 
 ### `show`
 
-Prints a warehouse-native summary of threads, attempts, retry pressure, messages,
+Prints a warehouse-native summary of threads, sessions, sessions per thread, messages,
 token usage, coverage, and the observed time window. Pass `--json` for the stable,
 versioned machine-readable output or `--warehouse-path` to select a warehouse.
 

@@ -113,7 +113,7 @@ def _add_history_parsers(subparsers: Any) -> None:
             "Read the normalized warehouse populated by history-normalize and write "
             "derived_session_kinds — a deterministic, filename-based classification of "
             "each session file as 'main' or 'subagent'. Required before history-derive "
-            "to avoid subagent-aliased retry counts (see oss/docs/findings/F-001)."
+            "so session structure can distinguish main and delegated work."
         ),
     )
     classify_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path that already contains normalized agent history")
@@ -124,18 +124,17 @@ def _add_history_parsers(subparsers: Any) -> None:
         help="Derive analysis marts from normalized agent history",
         description=(
             "Read the normalized warehouse populated by history-normalize and build reusable "
-            "analysis marts for goals, attempts, timelines, retry chains, and session usage."
+            "analysis marts for threads, sessions, timelines, and session usage."
         ),
     )
     derive_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path that already contains normalized agent history")
 
     history_update_parser = subparsers.add_parser(
         "history-update",
-        help="Run the full history pipeline: ingest → normalize → derive",
+        help="Run the full history pipeline: ingest → normalize → classify → derive",
         description=(
-            "Run all three history pipeline stages in sequence: history-ingest, history-normalize, "
-            "history-derive. Use this for the initial setup or to refresh the warehouse after new "
-            "agent sessions. Equivalent to running the three stages separately."
+            "Run ingest, normalize, classify, and derive in sequence. Use this for the initial "
+            "setup or to refresh the warehouse after new agent sessions."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
@@ -146,7 +145,7 @@ def _add_history_parsers(subparsers: Any) -> None:
         help="Override the agent history root directory (implies --source codex unless --source is set; incompatible with --source all)",
     )
     history_update_parser.add_argument("--warehouse-path", default=str(RAW_WAREHOUSE_PATH), help="SQLite warehouse path")
-    history_update_parser.add_argument("--json", action="store_true", default=False, help="Output all three stage summaries as a single JSON object")
+    history_update_parser.add_argument("--json", action="store_true", default=False, help="Output all four stage summaries as a single JSON object")
 
 
 
@@ -154,7 +153,7 @@ def _add_sync_and_render_parsers(subparsers: Any) -> None:
     show_parser = subparsers.add_parser(
         "show",
         help="Print a history-derived warehouse summary",
-        description="Print retry, usage, token, and timeline metrics from the history warehouse.",
+        description="Print threads, sessions per thread, tokens, and history coverage from the warehouse.",
     )
     show_parser.add_argument(
         "--warehouse-path",
@@ -231,7 +230,7 @@ def _hide_advanced_commands_from_help(subparsers: argparse._SubParsersAction[arg
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=_detect_module_prog(),
-        description="Analyze your AI agent work history, track spending, and optimize your workflow. Point it at your history files and see retry pressure, token cost, and session timeline — no manual setup required.",
+        description="Analyze your AI agent work history, track spending, and optimize your workflow. Point it at your history files and see sessions per thread, token cost, and session timeline — no manual setup required.",
         epilog=(
             "Additional commands (run `<command> --help` for details):\n"
             "  History pipeline:  history-ingest, history-normalize, history-classify,\n"

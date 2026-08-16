@@ -33,6 +33,12 @@ def _command_choices() -> set[str]:
     return set(subparsers_action.choices)
 
 
+def _command_help(command: str) -> str:
+    parser = build_parser()
+    subparsers_action = next(action for action in parser._actions if action.dest == "command")
+    return subparsers_action.choices[command].format_help()
+
+
 def test_manual_tracking_commands_are_removed() -> None:
     assert REMOVED_MANUAL_COMMANDS.isdisjoint(_command_choices())
     assert not hasattr(runtime_facade, "bootstrap_project")
@@ -48,6 +54,17 @@ def test_help_describes_history_only_workflow(capsys) -> None:
     assert "history-update" in help_text
     assert "start-task" not in help_text
     assert "Manual tracking" not in help_text
+
+
+def test_command_help_uses_current_history_terms() -> None:
+    show_help = _command_help("show")
+    update_help = _command_help("history-update")
+    render_help = _command_help("render-html")
+
+    assert "retry" not in show_help.lower()
+    assert "sessions per thread" in show_help.lower()
+    assert "ingest, normalize, classify, and derive" in update_help
+    assert "four trend charts" in render_help
 
 
 def test_cli_does_not_create_an_observability_store(tmp_path: Path) -> None:
