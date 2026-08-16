@@ -140,12 +140,23 @@ def aggregate_report_data(  # pylint: disable=too-many-locals
         if bucket in threads:
             threads[bucket] += values.get("threads", 0)
             sessions[bucket] += values.get("sessions", 0)
+    effective_pricing = pricing or None
+    if effective_pricing is not None:
+        for row in token_rows:
+            if (dt := _parse_utc(row.timestamp)) is None:
+                continue
+            if _bucket_key(dt, granularity) not in threads:
+                continue
+            if _apply_token_pricing(row, effective_pricing) is None:
+                effective_pricing = None
+                break
+
     by_model: dict[str, dict[str, float]] = {}
     for row in token_rows:
         if (dt := _parse_utc(row.timestamp)) is None:
             continue
         bucket = _bucket_key(dt, granularity)
-        value = _apply_token_pricing(row, pricing)
+        value = _apply_token_pricing(row, effective_pricing)
         if bucket not in threads or value is None:
             continue
         by_model.setdefault(
@@ -166,7 +177,7 @@ def aggregate_report_data(  # pylint: disable=too-many-locals
         "chart1_threads": [threads[b] for b in buckets],
         "chart2_bar": [sessions[b] for b in buckets],
         "chart2_line": [round(sessions[b] / threads[b], 2) if threads[b] else None for b in buckets],
-        "chart3_mode": "cost" if pricing else "tokens", "chart3_series": series,
+        "chart3_mode": "cost" if effective_pricing else "tokens", "chart3_series": series,
         "chart5": practice,
         "history_date_from": earliest.strftime("%Y-%m-%d"), "history_date_to": latest.strftime("%Y-%m-%d"),
         "warehouse_state": state,

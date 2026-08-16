@@ -38,7 +38,7 @@ _HTML_TEMPLATE = """\
   /* charts grid */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr));
     gap: 24px;
   }
   .card {
@@ -406,15 +406,12 @@ function drawStackedBar(id, labels, series, colors, useSmartMax, labelPrefix, to
 
 // ── chart 2: combo bar + line ────────────────────────────────────────────────
 
-function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppressNoRetriesMessage) {
+function drawCombo(id, labels, barValues, lineValues, barColor, lineColor) {
   const { ctx, w, h } = setupCanvas(id);
   // Only treat an empty-label or no-non-null-line case as "No data available".
   // An all-zero session signal is valid warehouse data and must still render.
   const lineHasData = lineValues.some(v => v !== null);
   if (!labels.length || !lineHasData) { drawEmpty(ctx, w, h); return; }
-  // Only surface the "No retries" green message when the warehouse is current
-  // and all session bars are empty.
-  const noRetries = !suppressNoRetriesMessage && barValues.every(v => !v);
 
   const ML = 48, MR = 48, MT = 12, MB = 68;
   const cw = w - ML - MR, ch = h - MT - MB;
@@ -438,7 +435,7 @@ function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppr
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const val = (i / 4) * maxLine;
-    ctx.fillText(fmt(val) + '%', ML + cw + 6, y);
+    ctx.fillText(fmt(val), ML + cw + 6, y);
   }
 
   // Bars
@@ -492,22 +489,6 @@ function drawCombo(id, labels, barValues, lineValues, barColor, lineColor, suppr
 
   drawXLabels(ctx, labels, ML, MT, cw, ch, step);
 
-  if (noRetries) {
-    // "Main session" disambiguates retries from subagent spawns filtered upstream.
-    const msg = 'No main-agent retries \u2014 every task completed in a single main session';
-    ctx.font = '11px system-ui';
-    const msgW = ctx.measureText(msg).width;
-    const px = ML + cw / 2 - msgW / 2 - 8;
-    const py = MT + 10;
-    ctx.fillStyle = '#f0fdf4';
-    ctx.beginPath();
-    ctx.roundRect(px, py, msgW + 16, 22, 4);
-    ctx.fill();
-    ctx.fillStyle = '#16a34a';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(msg, px + 8, py + 11);
-  }
 }
 
 
@@ -682,7 +663,7 @@ function render() {
   renderC1Legend();
   drawStackedBar('c1', d.buckets, [d.chart1_threads], ['#22c55e'], false, '', seriesToggles.c1);
   const whStatus = (d.warehouse_state && d.warehouse_state.status) || 'ok';
-  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444', whStatus !== 'ok');
+  drawCombo('c2', d.buckets, d.chart2_bar, d.chart2_line, '#f97316', '#ef4444');
   const c3Prefix = d.chart3_mode === 'cost' ? '$' : '';
   const c3Values = (d.chart3_series || []).map(s => s.values);
   const c3Colors = (d.chart3_series || []).map(s => s.color);
