@@ -27,6 +27,10 @@ versioned machine-readable output or `--warehouse-path` to select a warehouse.
 Generates a self-contained HTML report from the warehouse. `--output` selects the destination,
 `--days N` limits the time window, and `--cwd PATH` selects a project in a shared warehouse.
 The project scope includes agent worktrees attributed to that parent checkout, matching `show`.
+The generated report also has in-page selectors for one warehouse project or all projects together
+and for the trend period. The period can cover the full available history, a recent preset, or a
+custom date range. When `--days` is used, that CLI window remains the maximum range available to
+the period selector.
 
 ## Pipeline stages
 

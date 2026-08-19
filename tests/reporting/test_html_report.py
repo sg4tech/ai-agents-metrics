@@ -1,10 +1,21 @@
 """Tests for warehouse-only HTML report aggregation and rendering."""
+
 from __future__ import annotations
 
+import json
 import sqlite3
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.commands.report import _load_render_html_warehouse_rows
+import pytest
+
+from ai_agents_metrics.commands.report import (
+    _aggregate_project_report,
+    _all_projects_warehouse_state,
+    _load_render_html_warehouse_rows,
+    _report_project_cwd,
+    _select_chart_data,
+    _WarehouseRenderRows,
+)
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
     aggregate_report_data,
@@ -199,6 +210,150 @@ def test_render_html_report_embeds_warehouse_data() -> None:
     assert "2026-01-02 00:00 UTC" in html
 
 
+def test_render_html_report_includes_interactive_period_controls() -> None:
+    data = aggregate_report_data(
+        warehouse_sessions={
+            "2025-01-01": {"threads": 1, "sessions": 1},
+            "2026-01-01": {"threads": 2, "sessions": 3},
+        },
+        warehouse_tokens=[],
+    )
+
+    html = render_html_report(data, "2026-01-02 00:00 UTC")
+
+    assert 'id="period-preset"' in html
+    assert '<option value="all">All time</option>' in html
+    assert '<option value="365">Last year</option>' in html
+    assert 'id="period-from"' in html
+    assert 'id="period-to"' in html
+    assert "function applyPeriodFilter()" in html
+    assert "PROJECT_DATA.daily_filter_data" in html
+
+
+def test_project_report_preserves_daily_data_for_exact_period_filtering() -> None:
+    rows = _WarehouseRenderRows(
+        sessions={
+            "2026-01-01": {"threads": 1, "sessions": 1},
+            "2026-03-01": {"threads": 2, "sessions": 3},
+        }
+    )
+
+    report = _aggregate_project_report(
+        rows,
+        days=None,
+        pricing=None,
+        state={"status": "ok"},
+    )
+
+    daily = report["daily_filter_data"]
+    assert report["granularity"] == "week"
+    assert daily["granularity"] == "day"
+    assert daily["history_date_from"] == "2026-01-01"
+    assert daily["history_date_to"] == "2026-03-01"
+    assert sum(daily["chart1_threads"]) == 3
+
+
+def test_render_html_report_includes_project_selector() -> None:
+    first = aggregate_report_data(
+        warehouse_sessions={"2025-01-01": {"threads": 1, "sessions": 1}},
+        warehouse_tokens=[],
+    )
+    second = aggregate_report_data(
+        warehouse_sessions={"2026-01-01": {"threads": 2, "sessions": 3}},
+        warehouse_tokens=[],
+    )
+    first["project_reports"] = {"/projects/first": first.copy(), "/projects/second": second}
+    first["selected_project"] = "/projects/first"
+
+    html = render_html_report(first, "2026-01-02 00:00 UTC")
+
+    assert 'id="project-select"' in html
+    assert "function applyProjectSelection()" in html
+    assert "'All projects'" in html
+    assert '"/projects/second"' in html
+
+
+def test_load_render_html_warehouse_rows_groups_projects_and_all_projects(
+    tmp_path: Path,
+) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as conn:
+        conn.execute(
+            "CREATE TABLE derived_goals ("
+            "thread_id TEXT, cwd TEXT, last_seen_at TEXT, session_count INTEGER, "
+            "model TEXT, model_provider TEXT)"
+        )
+        conn.execute("CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_session_usage ("
+            "thread_id TEXT, input_tokens INTEGER, cache_creation_input_tokens INTEGER, "
+            "cached_input_tokens INTEGER, output_tokens INTEGER, total_tokens INTEGER)"
+        )
+        conn.execute(
+            "CREATE TABLE derived_practice_events ("
+            "thread_id TEXT, practice_name TEXT, source_kind TEXT)"
+        )
+        conn.executemany(
+            "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("one", "/projects/first", "2026-01-01", 1, "model", "openai"),
+                ("two", "/projects/second", "2026-01-02", 2, "model", "openai"),
+                ("three", "/projects/second", "2026-01-02", 3, "model", "openai"),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("one", 10, 0, 2, 3, 15),
+                ("two", 20, 0, 4, 6, 30),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO derived_practice_events VALUES (?, ?, ?)",
+            [("one", "Explore", "Agent"), ("two", "Explore", "Agent")],
+        )
+
+    rows = _load_render_html_warehouse_rows(warehouse)
+
+    assert rows.project_cwds == [
+        "/projects/second",
+        "/projects/first",
+    ]
+    assert rows.by_project["/projects/second"].sessions["2026-01-02"] == {
+        "threads": 2,
+        "sessions": 5,
+    }
+    assert rows.all_projects.sessions == {
+        "2026-01-01": {"threads": 1, "sessions": 1},
+        "2026-01-02": {"threads": 2, "sessions": 5},
+    }
+    assert sum(row.total_tokens for row in rows.all_projects.tokens) == 45
+    assert rows.all_projects.practice == [("Explore", "Agent", 2)]
+
+
+@pytest.mark.parametrize(
+    ("selected_state", "projects", "expected"),
+    [
+        ({"status": "missing_file"}, [], {"status": "missing_file"}),
+        ({"status": "schema_outdated"}, [], {"status": "schema_outdated"}),
+        ({"status": "empty_for_cwd"}, ["/project"], {"status": "ok"}),
+        ({"status": "empty_for_cwd"}, [], {"status": "empty_for_cwd"}),
+    ],
+)
+def test_all_projects_warehouse_state(
+    selected_state: dict[str, str], projects: list[str], expected: dict[str, str]
+) -> None:
+    assert _all_projects_warehouse_state(selected_state, projects) == expected
+
+
+def test_select_chart_data_is_json_serializable() -> None:
+    project_reports = {"/projects/first": {"buckets": ["2026-01-01"]}}
+
+    chart_data = _select_chart_data(project_reports, "/projects/first")
+
+    assert json.loads(json.dumps(chart_data))["selected_project"] == "/projects/first"
+
+
 def test_check_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:
     path = tmp_path / "warehouse.db"
     assert check_warehouse_state(path, "/repo") == {"status": "missing_file"}
@@ -287,14 +442,15 @@ def test_load_render_html_rows_includes_child_worktree(tmp_path: Path) -> None:
             """
         )
 
-    rows = _load_render_html_warehouse_rows(path, "/repo")
+    rows = _load_render_html_warehouse_rows(path)
+    project_rows = rows.by_project["/repo"]
 
-    assert rows.sessions == {
+    assert rows.project_cwds == ["/repo"]
+    assert project_rows.sessions == {
         "2026-01-01": {"threads": 1, "sessions": 1},
         "2026-01-02": {"threads": 1, "sessions": 2},
     }
-    assert rows.tokens is not None
-    assert sum(row.total_tokens for row in rows.tokens) == 33
+    assert sum(row.total_tokens for row in project_rows.tokens) == 33
 
 
 def test_load_render_html_rows_resolves_relative_cwd(
@@ -332,6 +488,9 @@ def test_load_render_html_rows_resolves_relative_cwd(
         )
     monkeypatch.chdir(project)
 
-    rows = _load_render_html_warehouse_rows(path, ".")
+    rows = _load_render_html_warehouse_rows(path)
 
-    assert rows.sessions == {"2026-01-01": {"threads": 1, "sessions": 1}}
+    assert _report_project_cwd(".") == str(project.resolve())
+    assert rows.by_project[str(project.resolve())].sessions == {
+        "2026-01-01": {"threads": 1, "sessions": 1}
+    }
