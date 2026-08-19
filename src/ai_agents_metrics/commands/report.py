@@ -192,7 +192,7 @@ def _aggregate_project_report(
     pricing: dict[str, dict[str, float | None]] | None,
     state: dict[str, str],
 ) -> dict[str, Any]:
-    return aggregate_report_data(
+    report = aggregate_report_data(
         days=days,
         warehouse_sessions=rows.sessions,
         warehouse_tokens=rows.tokens,
@@ -200,6 +200,17 @@ def _aggregate_project_report(
         warehouse_practice=rows.practice,
         warehouse_state=state,
     )
+    if report["granularity"] == "week":
+        report["daily_filter_data"] = aggregate_report_data(
+            days=days,
+            warehouse_sessions=rows.sessions,
+            warehouse_tokens=rows.tokens,
+            pricing=pricing,
+            warehouse_practice=rows.practice,
+            warehouse_state=state,
+            bucket_granularity="day",
+        )
+    return report
 
 
 def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:

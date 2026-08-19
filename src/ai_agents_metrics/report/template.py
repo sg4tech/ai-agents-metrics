@@ -212,18 +212,19 @@ function shiftedDate(dateText, days) {
 }
 
 function filteredReportData(from, to) {
+  const source = PROJECT_DATA.daily_filter_data || PROJECT_DATA;
   const indices = [];
-  for (let i = 0; i < (PROJECT_DATA.buckets || []).length; i++) {
-    const bucket = PROJECT_DATA.buckets[i];
+  for (let i = 0; i < (source.buckets || []).length; i++) {
+    const bucket = source.buckets[i];
     if ((!from || bucket >= from) && (!to || bucket <= to)) indices.push(i);
   }
   const select = values => indices.map(i => values[i]);
-  const data = Object.assign({}, PROJECT_DATA, {
-    buckets: select(PROJECT_DATA.buckets || []),
-    chart1_threads: select(PROJECT_DATA.chart1_threads || []),
-    chart2_bar: select(PROJECT_DATA.chart2_bar || []),
-    chart2_line: select(PROJECT_DATA.chart2_line || []),
-    chart3_series: (PROJECT_DATA.chart3_series || []).map(series =>
+  const data = Object.assign({}, source, {
+    buckets: select(source.buckets || []),
+    chart1_threads: select(source.chart1_threads || []),
+    chart2_bar: select(source.chart2_bar || []),
+    chart2_line: select(source.chart2_line || []),
+    chart3_series: (source.chart3_series || []).map(series =>
       Object.assign({}, series, { values: select(series.values || []) })),
   });
   data.history_date_from = data.buckets.length ? data.buckets[0] : null;

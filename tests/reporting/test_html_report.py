@@ -9,9 +9,11 @@ from typing import TYPE_CHECKING
 import pytest
 
 from ai_agents_metrics.commands.report import (
+    _aggregate_project_report,
     _all_projects_warehouse_state,
     _load_render_html_warehouse_rows,
     _select_chart_data,
+    _WarehouseRenderRows,
 )
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
@@ -222,6 +224,30 @@ def test_render_html_report_includes_interactive_period_controls() -> None:
     assert 'id="period-from"' in html
     assert 'id="period-to"' in html
     assert "function applyPeriodFilter()" in html
+    assert "PROJECT_DATA.daily_filter_data" in html
+
+
+def test_project_report_preserves_daily_data_for_exact_period_filtering() -> None:
+    rows = _WarehouseRenderRows(
+        sessions={
+            "2026-01-01": {"threads": 1, "sessions": 1},
+            "2026-03-01": {"threads": 2, "sessions": 3},
+        }
+    )
+
+    report = _aggregate_project_report(
+        rows,
+        days=None,
+        pricing=None,
+        state={"status": "ok"},
+    )
+
+    daily = report["daily_filter_data"]
+    assert report["granularity"] == "week"
+    assert daily["granularity"] == "day"
+    assert daily["history_date_from"] == "2026-01-01"
+    assert daily["history_date_to"] == "2026-03-01"
+    assert sum(daily["chart1_threads"]) == 3
 
 
 def test_render_html_report_includes_project_selector() -> None:
