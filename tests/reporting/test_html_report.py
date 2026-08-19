@@ -103,6 +103,67 @@ def test_aggregate_report_data_prices_anthropic_cache_categories_separately() ->
     assert data["chart3_series"][0]["values"] == [2.375]
 
 
+def test_aggregate_report_data_falls_back_to_tokens_when_model_is_unpriced() -> None:
+    data = aggregate_report_data(
+        warehouse_sessions={"2026-01-01": {"threads": 1, "sessions": 1}},
+        warehouse_tokens=[
+            TokenReportRow(
+                timestamp="2026-01-01T00:00:00+00:00",
+                model="unpriced-model",
+                model_provider="openai",
+                input_tokens=100,
+                cache_creation_input_tokens=0,
+                cached_input_tokens=20,
+                output_tokens=30,
+                total_tokens=130,
+            )
+        ],
+        pricing={
+            "another-model": {
+                "input_per_million_usd": 2.0,
+                "cached_input_per_million_usd": 0.5,
+            }
+        },
+    )
+
+    assert data["chart3_mode"] == "tokens"
+    assert data["chart3_series"][0]["name"] == "unpriced-model"
+    assert data["chart3_series"][0]["values"] == [130.0]
+
+
+def test_aggregate_report_data_does_not_show_partial_cost_for_mixed_models() -> None:
+    rows = [
+        TokenReportRow(
+            timestamp="2026-01-01T00:00:00+00:00",
+            model=model,
+            model_provider="openai",
+            input_tokens=100,
+            cache_creation_input_tokens=0,
+            cached_input_tokens=0,
+            output_tokens=0,
+            total_tokens=100,
+        )
+        for model in ("priced-model", "unpriced-model")
+    ]
+
+    data = aggregate_report_data(
+        warehouse_sessions={"2026-01-01": {"threads": 1, "sessions": 1}},
+        warehouse_tokens=rows,
+        pricing={
+            "priced-model": {
+                "input_per_million_usd": 2.0,
+                "cached_input_per_million_usd": 0.5,
+            }
+        },
+    )
+
+    assert data["chart3_mode"] == "tokens"
+    assert {series["name"] for series in data["chart3_series"]} == {
+        "priced-model",
+        "unpriced-model",
+    }
+
+
 def test_render_html_report_embeds_warehouse_data() -> None:
     data = aggregate_report_data(
         warehouse_sessions={"2026-01-01": {"threads": 1, "sessions": 1}},
@@ -124,6 +185,10 @@ def test_render_html_report_embeds_warehouse_data() -> None:
     assert "ledger" not in html.lower()
     assert "Sessions per Thread" in html
     assert "Retry Pressure" not in html
+    assert "main-agent retries" not in html
+    assert "noRetries" not in html
+    assert "fmt(val) + '%'" not in html
+    assert "minmax(min(480px, 100%), 1fr)" in html
     assert "Goals closed" not in html
     assert "Successes" not in html
     assert "Cost per Successful Task" not in html
