@@ -95,3 +95,12 @@ def test_load_warehouse_summary_requires_derived_data(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="run history-update first"):
         load_warehouse_summary(warehouse, tmp_path)
+
+
+def test_load_warehouse_summary_rejects_outdated_project_schema(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as conn:
+        conn.execute("CREATE TABLE derived_projects (project_cwd TEXT, thread_count INTEGER)")
+
+    with pytest.raises(ValueError, match="run history-update first"):
+        load_warehouse_summary(warehouse, tmp_path)

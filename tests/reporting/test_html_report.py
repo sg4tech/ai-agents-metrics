@@ -205,8 +205,21 @@ def test_check_warehouse_state_reports_missing_and_current(tmp_path: Path) -> No
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
         conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
+        )
         conn.execute("INSERT INTO derived_goals VALUES ('/repo')")
     assert check_warehouse_state(path, "/repo") == {"status": "ok"}
+
+
+def test_check_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None:
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
+
+    assert check_warehouse_state(path, "/repo") == {"status": "schema_outdated"}
 
 
 def test_check_warehouse_state_includes_child_worktree(tmp_path: Path) -> None:

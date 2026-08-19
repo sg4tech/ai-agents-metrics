@@ -62,7 +62,12 @@ def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 )
             }
-            if "derived_goals" not in tables or _SCHEMA_FRESHNESS_TABLE not in tables:
+            if not {"derived_goals", "derived_projects", _SCHEMA_FRESHNESS_TABLE} <= tables:
+                return {"status": "schema_outdated"}
+            project_columns = {
+                row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")
+            }
+            if "parent_project_cwd" not in project_columns:
                 return {"status": "schema_outdated"}
             project_scope = resolve_project_scope(conn, cwd)
             count = conn.execute(

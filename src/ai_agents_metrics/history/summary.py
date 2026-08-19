@@ -71,7 +71,6 @@ _SUMMARY_QUERY = """
         FROM derived_projects
     """
 _PARENT_PROJECT_SUMMARY_QUERY = _SUMMARY_QUERY + " WHERE parent_project_cwd = ?"
-_PROJECT_SUMMARY_QUERY = _SUMMARY_QUERY + " WHERE project_cwd = ?"
 
 
 def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> WarehouseSummary:
@@ -83,12 +82,12 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
         with sqlite3.connect(warehouse_path) as conn:
             project_scope = resolve_project_scope(conn, project_cwd)
             columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")}
-            if not columns:
+            if "parent_project_cwd" not in columns:
                 raise ValueError("History warehouse has no derived project data; run history-update first")
-            scoped_query = (
-                _PARENT_PROJECT_SUMMARY_QUERY if "parent_project_cwd" in columns else _PROJECT_SUMMARY_QUERY
-            )
-            row = conn.execute(scoped_query, (project_scope.project_cwd,)).fetchone()
+            row = conn.execute(
+                _PARENT_PROJECT_SUMMARY_QUERY,
+                (project_scope.project_cwd,),
+            ).fetchone()
             is_all_projects = False
             if row is None or int(row[0]) == 0:
                 row = conn.execute(_SUMMARY_QUERY).fetchone()
