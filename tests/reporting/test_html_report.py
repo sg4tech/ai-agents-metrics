@@ -6,8 +6,11 @@ import json
 import sqlite3
 from typing import TYPE_CHECKING
 
+import pytest
+
 from ai_agents_metrics.commands.report import (
-    _load_render_html_project_cwds,
+    _all_projects_warehouse_state,
+    _load_render_html_warehouse_rows,
     _select_chart_data,
 )
 from ai_agents_metrics.report.html_report import (
@@ -241,19 +244,77 @@ def test_render_html_report_includes_project_selector() -> None:
     assert '"/projects/second"' in html
 
 
-def test_load_render_html_project_cwds_lists_projects_with_goals(tmp_path: Path) -> None:
+def test_load_render_html_warehouse_rows_groups_projects_and_all_projects(
+    tmp_path: Path,
+) -> None:
     warehouse = tmp_path / "warehouse.db"
     with sqlite3.connect(warehouse) as conn:
-        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_goals ("
+            "thread_id TEXT, cwd TEXT, last_seen_at TEXT, session_count INTEGER, "
+            "model TEXT, model_provider TEXT)"
+        )
+        conn.execute("CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_session_usage ("
+            "thread_id TEXT, input_tokens INTEGER, cache_creation_input_tokens INTEGER, "
+            "cached_input_tokens INTEGER, output_tokens INTEGER, total_tokens INTEGER)"
+        )
+        conn.execute(
+            "CREATE TABLE derived_practice_events ("
+            "thread_id TEXT, practice_name TEXT, source_kind TEXT)"
+        )
         conn.executemany(
-            "INSERT INTO derived_goals VALUES (?)",
-            [("/projects/second",), ("/projects/first",), ("/projects/second",), (None,)],
+            "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("one", "/projects/first", "2026-01-01", 1, "model", "openai"),
+                ("two", "/projects/second", "2026-01-02", 2, "model", "openai"),
+                ("three", "/projects/second", "2026-01-02", 3, "model", "openai"),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?)",
+            [
+                ("one", 10, 0, 2, 3, 15),
+                ("two", 20, 0, 4, 6, 30),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO derived_practice_events VALUES (?, ?, ?)",
+            [("one", "Explore", "Agent"), ("two", "Explore", "Agent")],
         )
 
-    assert _load_render_html_project_cwds(warehouse) == [
+    rows = _load_render_html_warehouse_rows(warehouse)
+
+    assert rows.project_cwds == [
         "/projects/second",
         "/projects/first",
     ]
+    assert rows.by_project["/projects/second"].sessions["2026-01-02"] == {
+        "threads": 2,
+        "sessions": 5,
+    }
+    assert rows.all_projects.sessions == {
+        "2026-01-01": {"threads": 1, "sessions": 1},
+        "2026-01-02": {"threads": 2, "sessions": 5},
+    }
+    assert sum(row.total_tokens for row in rows.all_projects.tokens) == 45
+    assert rows.all_projects.practice == [("Explore", "Agent", 2)]
+
+
+@pytest.mark.parametrize(
+    ("selected_state", "projects", "expected"),
+    [
+        ({"status": "missing_file"}, [], {"status": "missing_file"}),
+        ({"status": "schema_outdated"}, [], {"status": "schema_outdated"}),
+        ({"status": "empty_for_cwd"}, ["/project"], {"status": "ok"}),
+        ({"status": "empty_for_cwd"}, [], {"status": "empty_for_cwd"}),
+    ],
+)
+def test_all_projects_warehouse_state(
+    selected_state: dict[str, str], projects: list[str], expected: dict[str, str]
+) -> None:
+    assert _all_projects_warehouse_state(selected_state, projects) == expected
 
 
 def test_select_chart_data_is_json_serializable() -> None:
