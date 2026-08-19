@@ -1,12 +1,14 @@
 """CLI handler for rendering the warehouse-backed HTML report."""
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ai_agents_metrics.history.project_scope import resolve_project_scope
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
     aggregate_report_data,
@@ -32,17 +34,20 @@ def _load_render_html_warehouse_rows(
 ) -> _WarehouseRenderRows:
     """Read session/token/practice rows from the warehouse; return empty values on error.
 
-    The queries pin to the given cwd so cross-repo rows don't bleed in. See
+    The queries use the resolved project scope so cross-repo rows don't bleed in. See
     `handle_render_html` for the warehouse-only rendering.
     """
     try:
         with sqlite3.connect(warehouse_path) as conn:
+            project_scope = resolve_project_scope(conn, cwd)
+            project_cwds_json = json.dumps(project_scope.member_cwds)
             session_rows = conn.execute(
                 "SELECT last_seen_at, "
                 "  session_count "
                 "FROM derived_goals "
-                "WHERE cwd = ? AND last_seen_at IS NOT NULL",
-                (cwd,),
+                "WHERE cwd IN (SELECT value FROM json_each(?)) "
+                "  AND last_seen_at IS NOT NULL",
+                (project_cwds_json,),
             ).fetchall()
             token_rows = conn.execute(
                 "SELECT dg.last_seen_at, "
@@ -61,9 +66,10 @@ def _load_render_html_warehouse_rows(
                 "  COALESCE(SUM(dsu.total_tokens), 0) "
                 "FROM derived_goals dg "
                 "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
-                "WHERE dg.cwd = ? AND dg.last_seen_at IS NOT NULL "
+                "WHERE dg.cwd IN (SELECT value FROM json_each(?)) "
+                "  AND dg.last_seen_at IS NOT NULL "
                 "GROUP BY dg.thread_id",
-                (cwd,),
+                (project_cwds_json,),
             ).fetchall()
             # Practice-event distribution, scoped to the current cwd via
             # the goals table so foreign repos' events don't bleed in.
@@ -71,9 +77,9 @@ def _load_render_html_warehouse_rows(
                 "SELECT pe.practice_name, pe.source_kind, COUNT(*) "
                 "FROM derived_practice_events pe "
                 "JOIN derived_goals dg ON dg.thread_id = pe.thread_id "
-                "WHERE dg.cwd = ? "
+                "WHERE dg.cwd IN (SELECT value FROM json_each(?)) "
                 "GROUP BY pe.practice_name, pe.source_kind",
-                (cwd,),
+                (project_cwds_json,),
             ).fetchall()
     except (sqlite3.Error, OSError):
         return _WarehouseRenderRows()

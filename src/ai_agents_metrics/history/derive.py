@@ -16,7 +16,6 @@ from ai_agents_metrics.history.derive_build import (
     _fetch_normalized_threads,
     _fetch_normalized_usage_events,
     _normalize_timestamp,
-    _parent_project_cwd,
     _pick_earliest_timestamp,
     _pick_latest_timestamp,
 )
@@ -31,6 +30,7 @@ from ai_agents_metrics.history.derive_schema import (
     _clear_derived_tables,
     _ensure_schema,
 )
+from ai_agents_metrics.history.project_paths import parent_project_cwd
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -189,7 +189,7 @@ def _process_thread(
     counters: _DeriveCounters,
 ) -> None:
     thread_id = thread_row["thread_id"]
-    project_cwd = _parent_project_cwd(thread_row["cwd"])
+    project_cwd = parent_project_cwd(thread_row["cwd"])
     thread_sessions = indexes.sessions_by_thread.get(thread_id, [])
     thread_messages = indexes.messages_by_thread.get(thread_id, [])
     thread_usage_events = indexes.usage_events_by_thread.get(thread_id, [])

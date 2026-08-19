@@ -24,6 +24,7 @@ versioned machine-readable output or `--warehouse-path` to select a warehouse.
 
 Generates a self-contained HTML report from the warehouse. `--output` selects the destination,
 `--days N` limits the time window, and `--cwd PATH` selects a project in a shared warehouse.
+The project scope includes agent worktrees attributed to that parent checkout, matching `show`.
 
 ## Pipeline stages
 

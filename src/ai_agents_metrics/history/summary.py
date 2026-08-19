@@ -6,6 +6,8 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
+from ai_agents_metrics.history.project_scope import resolve_project_scope
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -77,16 +79,16 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
     if not warehouse_path.is_file():
         raise ValueError(f"History warehouse does not exist: {warehouse_path}")
 
-    resolved_cwd = str(project_cwd.resolve())
     try:
         with sqlite3.connect(warehouse_path) as conn:
+            project_scope = resolve_project_scope(conn, project_cwd)
             columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")}
             if not columns:
                 raise ValueError("History warehouse has no derived project data; run history-update first")
             scoped_query = (
                 _PARENT_PROJECT_SUMMARY_QUERY if "parent_project_cwd" in columns else _PROJECT_SUMMARY_QUERY
             )
-            row = conn.execute(scoped_query, (resolved_cwd,)).fetchone()
+            row = conn.execute(scoped_query, (project_scope.project_cwd,)).fetchone()
             is_all_projects = False
             if row is None or int(row[0]) == 0:
                 row = conn.execute(_SUMMARY_QUERY).fetchone()
@@ -101,7 +103,10 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
     covered_sessions = int(row[9])
     return WarehouseSummary(
         schema_version=2,
-        scope=SummaryScope(project_cwd=resolved_cwd, is_all_projects=is_all_projects),
+        scope=SummaryScope(
+            project_cwd=project_scope.project_cwd,
+            is_all_projects=is_all_projects,
+        ),
         activity=ActivitySummary(
             threads=threads,
             sessions=sessions,

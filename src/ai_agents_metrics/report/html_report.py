@@ -13,6 +13,8 @@ import json
 import sqlite3
 from typing import TYPE_CHECKING, Any
 
+from ai_agents_metrics.history.project_scope import resolve_project_scope
+
 from .aggregation import (
     TokenReportRow,
     aggregate_report_data,
@@ -62,9 +64,11 @@ def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
             }
             if "derived_goals" not in tables or _SCHEMA_FRESHNESS_TABLE not in tables:
                 return {"status": "schema_outdated"}
+            project_scope = resolve_project_scope(conn, cwd)
             count = conn.execute(
-                "SELECT COUNT(*) FROM derived_goals WHERE cwd = ?",
-                (cwd,),
+                "SELECT COUNT(*) FROM derived_goals "
+                "WHERE cwd IN (SELECT value FROM json_each(?))",
+                (json.dumps(project_scope.member_cwds),),
             ).fetchone()[0]
             if count == 0:
                 return {"status": "empty_for_cwd"}

@@ -582,35 +582,35 @@ def test_derive_claude_history_populates_cache_creation_tokens(repo: Path) -> No
 
 
 # ---------------------------------------------------------------------------
-# _parent_project_cwd
+# parent_project_cwd
 # ---------------------------------------------------------------------------
 
 def test_parent_project_cwd_plain_path() -> None:
-    from ai_agents_metrics.history.derive import _parent_project_cwd
-    assert _parent_project_cwd("/Users/viktor/myproject") == "/Users/viktor/myproject"
+    from ai_agents_metrics.history.project_paths import parent_project_cwd
+    assert parent_project_cwd("/Users/viktor/myproject") == "/Users/viktor/myproject"
 
 
 def test_parent_project_cwd_worktree_path() -> None:
-    from ai_agents_metrics.history.derive import _parent_project_cwd
-    result = _parent_project_cwd("/Users/viktor/myproject/.claude/worktrees/eloquent-rhodes")
+    from ai_agents_metrics.history.project_paths import parent_project_cwd
+    result = parent_project_cwd("/Users/viktor/myproject/.claude/worktrees/eloquent-rhodes")
     assert result == "/Users/viktor/myproject"
 
 
 def test_parent_project_cwd_nested_worktree() -> None:
-    from ai_agents_metrics.history.derive import _parent_project_cwd
-    result = _parent_project_cwd("/a/b/.claude/worktrees/foo/.claude/worktrees/bar")
+    from ai_agents_metrics.history.project_paths import parent_project_cwd
+    result = parent_project_cwd("/a/b/.claude/worktrees/foo/.claude/worktrees/bar")
     # Only the first marker is stripped
     assert result == "/a/b"
 
 
 def test_parent_project_cwd_none_input() -> None:
-    from ai_agents_metrics.history.derive import _parent_project_cwd
-    assert _parent_project_cwd(None) is None
+    from ai_agents_metrics.history.project_paths import parent_project_cwd
+    assert parent_project_cwd(None) is None
 
 
 def test_parent_project_cwd_empty_string() -> None:
-    from ai_agents_metrics.history.derive import _parent_project_cwd
-    assert _parent_project_cwd("") is None
+    from ai_agents_metrics.history.project_paths import parent_project_cwd
+    assert parent_project_cwd("") is None
 
 
 def test_derive_merges_worktree_into_parent_project(repo: Path) -> None:
