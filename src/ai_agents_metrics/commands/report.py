@@ -1,11 +1,12 @@
 """CLI handler for rendering the warehouse-backed HTML report."""
+
 from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
@@ -13,6 +14,8 @@ from ai_agents_metrics.report.html_report import (
     check_warehouse_state,
     render_html_report,
 )
+
+_ALL_PROJECTS_KEY = "__all_projects__"
 
 if TYPE_CHECKING:
     from argparse import Namespace
@@ -27,22 +30,34 @@ class _WarehouseRenderRows:
     practice: list[tuple[str, str, int]] | None = None
 
 
-def _load_render_html_warehouse_rows(
-    warehouse_path: Path, cwd: str
-) -> _WarehouseRenderRows:
+def _load_render_html_project_cwds(warehouse_path: Path) -> list[str]:
+    """Return warehouse projects ordered by activity volume, then path."""
+    try:
+        with sqlite3.connect(warehouse_path) as conn:
+            rows = conn.execute(
+                "SELECT cwd FROM derived_goals "
+                "WHERE cwd IS NOT NULL AND cwd != '' "
+                "GROUP BY cwd ORDER BY COUNT(*) DESC, cwd"
+            ).fetchall()
+    except sqlite3.Error, OSError:
+        return []
+    return [str(row[0]) for row in rows]
+
+
+def _load_render_html_warehouse_rows(warehouse_path: Path, cwd: str | None) -> _WarehouseRenderRows:
     """Read session/token/practice rows from the warehouse; return empty values on error.
 
-    The queries pin to the given cwd so cross-repo rows don't bleed in. See
-    `handle_render_html` for the warehouse-only rendering.
+    A concrete cwd scopes rows to one project; ``None`` loads the whole warehouse.
     """
+    params = (cwd, cwd)
     try:
         with sqlite3.connect(warehouse_path) as conn:
             session_rows = conn.execute(
                 "SELECT last_seen_at, "
                 "  session_count "
                 "FROM derived_goals "
-                "WHERE cwd = ? AND last_seen_at IS NOT NULL",
-                (cwd,),
+                "WHERE last_seen_at IS NOT NULL AND (? IS NULL OR cwd = ?)",
+                params,
             ).fetchall()
             token_rows = conn.execute(
                 "SELECT dg.last_seen_at, "
@@ -61,9 +76,9 @@ def _load_render_html_warehouse_rows(
                 "  COALESCE(SUM(dsu.total_tokens), 0) "
                 "FROM derived_goals dg "
                 "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
-                "WHERE dg.cwd = ? AND dg.last_seen_at IS NOT NULL "
+                "WHERE dg.last_seen_at IS NOT NULL AND (? IS NULL OR dg.cwd = ?) "
                 "GROUP BY dg.thread_id",
-                (cwd,),
+                params,
             ).fetchall()
             # Practice-event distribution, scoped to the current cwd via
             # the goals table so foreign repos' events don't bleed in.
@@ -71,11 +86,11 @@ def _load_render_html_warehouse_rows(
                 "SELECT pe.practice_name, pe.source_kind, COUNT(*) "
                 "FROM derived_practice_events pe "
                 "JOIN derived_goals dg ON dg.thread_id = pe.thread_id "
-                "WHERE dg.cwd = ? "
+                "WHERE (? IS NULL OR dg.cwd = ?) "
                 "GROUP BY pe.practice_name, pe.source_kind",
-                (cwd,),
+                params,
             ).fetchall()
-    except (sqlite3.Error, OSError):
+    except sqlite3.Error, OSError:
         return _WarehouseRenderRows()
 
     by_day: dict[str, dict[str, int]] = {}
@@ -97,44 +112,69 @@ def _safe_load_effective_pricing(
 ) -> dict[str, dict[str, float | None]] | None:
     try:
         return cli_module.load_effective_pricing(cwd=Path.cwd())
-    except (OSError, ValueError):
+    except OSError, ValueError:
         return None
+
+
+def _select_chart_data(
+    project_reports: dict[str, dict[str, Any]], selected_project: str
+) -> dict[str, Any]:
+    chart_data = project_reports[selected_project].copy()
+    chart_data["project_reports"] = project_reports
+    chart_data["selected_project"] = selected_project
+    return chart_data
 
 
 def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     output_path = Path(args.output)
     cwd = getattr(args, "cwd", "") or str(Path.cwd())
     warehouse_path = Path(args.warehouse_path).expanduser()
-    warehouse_state = check_warehouse_state(warehouse_path, cwd)
-    # Only query warehouse when it will actually yield usable rows. An empty
-    # empty_for_cwd path would otherwise produce "warehouse-source" charts
-    # with all-zero values, conflicting with the warehouse-only badge and
-    # callout shown to the user.
-    warehouse_rows = (
-        _load_render_html_warehouse_rows(warehouse_path, cwd)
-        if warehouse_state.get("status") == "ok" and warehouse_path.is_file()
-        else _WarehouseRenderRows()
-    )
-
-    chart_data = aggregate_report_data(
+    project_cwds = _load_render_html_project_cwds(warehouse_path)
+    if cwd not in project_cwds:
+        project_cwds.insert(0, cwd)
+    pricing = _safe_load_effective_pricing(_cli_module)
+    project_reports: dict[str, dict[str, Any]] = {}
+    selected_rows = _WarehouseRenderRows()
+    selected_state = check_warehouse_state(warehouse_path, cwd)
+    all_rows = _load_render_html_warehouse_rows(warehouse_path, None)
+    project_reports[_ALL_PROJECTS_KEY] = aggregate_report_data(
         days=args.days,
-        warehouse_sessions=warehouse_rows.sessions or {},
-        warehouse_tokens=warehouse_rows.tokens or [],
-        pricing=_safe_load_effective_pricing(_cli_module),
-        warehouse_practice=warehouse_rows.practice,
-        warehouse_state=warehouse_state,
+        warehouse_sessions=all_rows.sessions or {},
+        warehouse_tokens=all_rows.tokens or [],
+        pricing=pricing,
+        warehouse_practice=all_rows.practice,
+        warehouse_state={"status": "ok"} if project_cwds else selected_state,
     )
-    html = render_html_report(
-        chart_data, datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")
-    )
+    for project_cwd in project_cwds:
+        project_state = check_warehouse_state(warehouse_path, project_cwd)
+        project_rows = (
+            _load_render_html_warehouse_rows(warehouse_path, project_cwd)
+            if project_state.get("status") == "ok" and warehouse_path.is_file()
+            else _WarehouseRenderRows()
+        )
+        project_reports[project_cwd] = aggregate_report_data(
+            days=args.days,
+            warehouse_sessions=project_rows.sessions or {},
+            warehouse_tokens=project_rows.tokens or [],
+            pricing=pricing,
+            warehouse_practice=project_rows.practice,
+            warehouse_state=project_state,
+        )
+        if project_cwd == cwd:
+            selected_rows = project_rows
+            selected_state = project_state
+    chart_data = _select_chart_data(project_reports, cwd)
+    html = render_html_report(chart_data, datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(html, encoding="utf-8")
-    print(_render_html_source_message(
-        output_path,
-        warehouse_practice=warehouse_rows.practice,
-        warehouse_state=warehouse_state,
-    ))
+    print(
+        _render_html_source_message(
+            output_path,
+            warehouse_practice=selected_rows.practice,
+            warehouse_state=selected_state,
+        )
+    )
     return 0
 
 

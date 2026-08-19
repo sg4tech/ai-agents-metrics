@@ -1,9 +1,15 @@
 """Tests for warehouse-only HTML report aggregation and rendering."""
+
 from __future__ import annotations
 
+import json
 import sqlite3
 from typing import TYPE_CHECKING
 
+from ai_agents_metrics.commands.report import (
+    _load_render_html_project_cwds,
+    _select_chart_data,
+)
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
     aggregate_report_data,
@@ -194,6 +200,68 @@ def test_render_html_report_embeds_warehouse_data() -> None:
     assert "Cost per Successful Task" not in html
     assert "Avg cost / success" not in html
     assert "2026-01-02 00:00 UTC" in html
+
+
+def test_render_html_report_includes_interactive_period_controls() -> None:
+    data = aggregate_report_data(
+        warehouse_sessions={
+            "2025-01-01": {"threads": 1, "sessions": 1},
+            "2026-01-01": {"threads": 2, "sessions": 3},
+        },
+        warehouse_tokens=[],
+    )
+
+    html = render_html_report(data, "2026-01-02 00:00 UTC")
+
+    assert 'id="period-preset"' in html
+    assert '<option value="all">All time</option>' in html
+    assert '<option value="365">Last year</option>' in html
+    assert 'id="period-from"' in html
+    assert 'id="period-to"' in html
+    assert "function applyPeriodFilter()" in html
+
+
+def test_render_html_report_includes_project_selector() -> None:
+    first = aggregate_report_data(
+        warehouse_sessions={"2025-01-01": {"threads": 1, "sessions": 1}},
+        warehouse_tokens=[],
+    )
+    second = aggregate_report_data(
+        warehouse_sessions={"2026-01-01": {"threads": 2, "sessions": 3}},
+        warehouse_tokens=[],
+    )
+    first["project_reports"] = {"/projects/first": first.copy(), "/projects/second": second}
+    first["selected_project"] = "/projects/first"
+
+    html = render_html_report(first, "2026-01-02 00:00 UTC")
+
+    assert 'id="project-select"' in html
+    assert "function applyProjectSelection()" in html
+    assert "'All projects'" in html
+    assert '"/projects/second"' in html
+
+
+def test_load_render_html_project_cwds_lists_projects_with_goals(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as conn:
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.executemany(
+            "INSERT INTO derived_goals VALUES (?)",
+            [("/projects/second",), ("/projects/first",), ("/projects/second",), (None,)],
+        )
+
+    assert _load_render_html_project_cwds(warehouse) == [
+        "/projects/second",
+        "/projects/first",
+    ]
+
+
+def test_select_chart_data_is_json_serializable() -> None:
+    project_reports = {"/projects/first": {"buckets": ["2026-01-01"]}}
+
+    chart_data = _select_chart_data(project_reports, "/projects/first")
+
+    assert json.loads(json.dumps(chart_data))["selected_project"] == "/projects/first"
 
 
 def test_check_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:

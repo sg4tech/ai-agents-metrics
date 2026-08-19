@@ -34,6 +34,14 @@ _HTML_TEMPLATE = """\
     margin-bottom: 4px;
   }
   header p { font-size: 13px; color: #64748b; }
+  .report-controls { display:flex; align-items:end; gap:10px; flex-wrap:wrap; margin:16px 0 20px; }
+  .report-field { display:flex; flex-direction:column; gap:4px; }
+  .report-field label { font-size:10px; font-weight:700; color:#64748b; text-transform:uppercase; }
+  .report-field select, .report-field input {
+    height:36px; border:1px solid #cbd5e1; border-radius:7px;
+    background:#fff; color:#1e293b; padding:0 10px; font:inherit; font-size:13px;
+  }
+  .report-field input:disabled { opacity:.5; background:#f1f5f9; }
 
   /* charts grid */
   .grid {
@@ -138,6 +146,16 @@ _HTML_TEMPLATE = """\
   <p>Generated {GENERATED_AT} &nbsp;·&nbsp; {GRANULARITY_LABEL}</p>
 </header>
 
+<div class="report-controls" aria-label="Report filters">
+  <div class="report-field"><label for="project-select">Project</label><select id="project-select"></select></div>
+  <div class="report-field"><label for="period-preset">Trend period</label>
+    <select id="period-preset"><option value="all">All time</option>
+      <option value="30">Last 30 days</option><option value="90">Last 90 days</option>
+      <option value="365">Last year</option><option value="custom">Custom dates</option></select></div>
+  <div class="report-field"><label for="period-from">From</label><input id="period-from" type="date" disabled></div>
+  <div class="report-field"><label for="period-to">To</label><input id="period-to" type="date" disabled></div>
+</div>
+
 <div id="sh-activity" class="section-header"></div>
 <div class="grid">
 
@@ -183,7 +201,79 @@ _HTML_TEMPLATE = """\
 </div>
 
 <script>
-const DATA = {DATA_JSON};
+const FULL_DATA = {DATA_JSON};
+const PROJECT_REPORTS = FULL_DATA.project_reports || { current: FULL_DATA };
+let PROJECT_DATA = PROJECT_REPORTS[FULL_DATA.selected_project] || FULL_DATA;
+let DATA = PROJECT_DATA;
+
+function shiftedDate(dateText, days) {
+  const date = new Date(dateText + 'T00:00:00Z');
+  date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10);
+}
+
+function filteredReportData(from, to) {
+  const indices = [];
+  for (let i = 0; i < (PROJECT_DATA.buckets || []).length; i++) {
+    const bucket = PROJECT_DATA.buckets[i];
+    if ((!from || bucket >= from) && (!to || bucket <= to)) indices.push(i);
+  }
+  const select = values => indices.map(i => values[i]);
+  const data = Object.assign({}, PROJECT_DATA, {
+    buckets: select(PROJECT_DATA.buckets || []),
+    chart1_threads: select(PROJECT_DATA.chart1_threads || []),
+    chart2_bar: select(PROJECT_DATA.chart2_bar || []),
+    chart2_line: select(PROJECT_DATA.chart2_line || []),
+    chart3_series: (PROJECT_DATA.chart3_series || []).map(series =>
+      Object.assign({}, series, { values: select(series.values || []) })),
+  });
+  data.history_date_from = data.buckets.length ? data.buckets[0] : null;
+  data.history_date_to = data.buckets.length ? data.buckets[data.buckets.length - 1] : null;
+  if (PROJECT_DATA.summary) data.summary = Object.assign({}, PROJECT_DATA.summary, {
+    total_threads: data.chart1_threads.reduce((sum, value) => sum + value, 0),
+    total_sessions: data.chart2_bar.reduce((sum, value) => sum + value, 0),
+    date_from: data.history_date_from, date_to: data.history_date_to,
+  });
+  return data;
+}
+
+function applyPeriodFilter() {
+  const preset = document.getElementById('period-preset');
+  const fromInput = document.getElementById('period-from');
+  const toInput = document.getElementById('period-to');
+  if (!preset || !fromInput || !toInput) return;
+  const custom = preset.value === 'custom'; fromInput.disabled = !custom; toInput.disabled = !custom;
+  if (preset.value === 'all') { DATA = PROJECT_DATA; render(); return; }
+  let from = custom ? fromInput.value : ''; let to = custom ? toInput.value : '';
+  if (!custom && PROJECT_DATA.history_date_to) {
+    to = PROJECT_DATA.history_date_to; from = shiftedDate(to, -(Number(preset.value) - 1));
+  }
+  DATA = filteredReportData(from, to); render();
+}
+
+function applyProjectSelection() {
+  const project = document.getElementById('project-select');
+  if (!project || !PROJECT_REPORTS[project.value]) return;
+  PROJECT_DATA = PROJECT_REPORTS[project.value];
+  document.getElementById('period-preset').value = 'all';
+  document.getElementById('period-from').value = PROJECT_DATA.history_date_from || '';
+  document.getElementById('period-to').value = PROJECT_DATA.history_date_to || '';
+  applyPeriodFilter();
+}
+
+function initializeReportControls() {
+  const project = document.getElementById('project-select');
+  for (const path of Object.keys(PROJECT_REPORTS)) {
+    const option = document.createElement('option'); option.value = path;
+    option.textContent = path === '__all_projects__' ? 'All projects' : path;
+    option.selected = path === FULL_DATA.selected_project; project.appendChild(option);
+  }
+  project.addEventListener('change', applyProjectSelection);
+  document.getElementById('period-from').value = PROJECT_DATA.history_date_from || '';
+  document.getElementById('period-to').value = PROJECT_DATA.history_date_to || '';
+  document.getElementById('period-preset').addEventListener('change', applyPeriodFilter);
+  document.getElementById('period-from').addEventListener('change', applyPeriodFilter);
+  document.getElementById('period-to').addEventListener('change', applyPeriodFilter);
+}
 
 // ── series toggle state ───────────────────────────────────────────────────────
 
@@ -671,7 +761,7 @@ function render() {
   renderChart5();
 }
 
-window.addEventListener('load', render);
+window.addEventListener('load', () => { initializeReportControls(); render(); });
 window.addEventListener('resize', render);
 </script>
 </body>
