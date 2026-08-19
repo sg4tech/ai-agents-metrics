@@ -13,6 +13,8 @@ ai-agents-metrics render-html
 ### `history-update`
 
 Runs ingest, normalization, classification, and derivation for local agent history. Use `--source codex`, `--source claude`, or `--source all`; `--source-root` overrides a source directory and `--warehouse-path` overrides the SQLite warehouse.
+Run this command when another command reports an outdated warehouse schema. The warehouse is
+rebuilt from source history; see the lifecycle policy in [Architecture](architecture.md#data-and-storage).
 
 ### `show`
 
