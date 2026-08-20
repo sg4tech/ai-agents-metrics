@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from ai_agents_metrics.history.project_paths import parent_project_cwd
 from ai_agents_metrics.report.html_report import (
     TokenReportRow,
     aggregate_report_data,
@@ -104,7 +105,9 @@ def _build_warehouse_report_rows(
 ) -> _WarehouseReportRows:
     """Normalize raw SQLite rows into typed per-project report inputs."""
 
-    project_cwds = [str(row[0]) for row in project_rows]
+    project_cwds = list(
+        dict.fromkeys(_report_project_cwd(str(row[0])) for row in project_rows)
+    )
     sessions_by_project: dict[str, dict[str, dict[str, int]]] = {
         project_cwd: {} for project_cwd in project_cwds
     }
@@ -114,17 +117,20 @@ def _build_warehouse_report_rows(
     practice_by_project: dict[str, list[tuple[str, str, int]]] = {
         project_cwd: [] for project_cwd in project_cwds
     }
-    for project_cwd, last_seen_at, session_count in session_rows:
-        by_day = sessions_by_project[str(project_cwd)]
+    for raw_cwd, last_seen_at, session_count in session_rows:
+        project_cwd = _report_project_cwd(str(raw_cwd))
+        by_day = sessions_by_project[project_cwd]
         day = last_seen_at[:10]
         if day not in by_day:
             by_day[day] = {"threads": 0, "sessions": 0}
         by_day[day]["threads"] += 1
         by_day[day]["sessions"] += int(session_count or 0)
     for row in token_rows:
-        tokens_by_project[str(row[0])].append(TokenReportRow(*row[1:]))
-    for project_cwd, name, kind, count in practice_rows:
-        practice_by_project[str(project_cwd)].append((str(name), str(kind), int(count)))
+        project_cwd = _report_project_cwd(str(row[0]))
+        tokens_by_project[project_cwd].append(TokenReportRow(*row[1:]))
+    for raw_cwd, name, kind, count in practice_rows:
+        project_cwd = _report_project_cwd(str(raw_cwd))
+        practice_by_project[project_cwd].append((str(name), str(kind), int(count)))
     by_project = {
         project_cwd: _WarehouseRenderRows(
             sessions=sessions_by_project[project_cwd],
@@ -138,6 +144,11 @@ def _build_warehouse_report_rows(
         by_project=by_project,
         all_projects=_merge_warehouse_rows(by_project.values()),
     )
+
+
+def _report_project_cwd(cwd: str) -> str:
+    """Return the canonical report key for a checkout or agent worktree."""
+    return parent_project_cwd(cwd) or cwd
 
 
 def _merge_warehouse_rows(rows: Iterable[_WarehouseRenderRows]) -> _WarehouseRenderRows:
@@ -216,12 +227,13 @@ def _aggregate_project_report(
 def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
     output_path = Path(args.output)
     cwd = getattr(args, "cwd", "") or str(Path.cwd())
+    selected_project = _report_project_cwd(cwd)
     warehouse_path = Path(args.warehouse_path).expanduser()
     warehouse_rows = _load_render_html_warehouse_rows(warehouse_path)
     project_cwds = list(warehouse_rows.project_cwds)
     warehouse_project_cwds = list(project_cwds)
-    if cwd not in project_cwds:
-        project_cwds.insert(0, cwd)
+    if selected_project not in project_cwds:
+        project_cwds.insert(0, selected_project)
     pricing = _safe_load_effective_pricing(_cli_module)
     project_reports: dict[str, dict[str, Any]] = {}
     selected_rows = _WarehouseRenderRows()
@@ -233,7 +245,7 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
         state=_all_projects_warehouse_state(selected_state, warehouse_project_cwds),
     )
     for project_cwd in project_cwds:
-        project_state = selected_state if project_cwd == cwd else {"status": "ok"}
+        project_state = selected_state if project_cwd == selected_project else {"status": "ok"}
         project_rows = warehouse_rows.by_project.get(project_cwd, _WarehouseRenderRows())
         project_reports[project_cwd] = _aggregate_project_report(
             project_rows,
@@ -241,10 +253,10 @@ def handle_render_html(args: Namespace, _cli_module: CommandRuntime) -> int:
             pricing=pricing,
             state=project_state,
         )
-        if project_cwd == cwd:
+        if project_cwd == selected_project:
             selected_rows = project_rows
             selected_state = project_state
-    chart_data = _select_chart_data(project_reports, cwd)
+    chart_data = _select_chart_data(project_reports, selected_project)
     html = render_html_report(chart_data, datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC"))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)

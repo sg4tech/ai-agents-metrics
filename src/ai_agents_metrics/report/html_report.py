@@ -13,6 +13,8 @@ import json
 import sqlite3
 from typing import TYPE_CHECKING, Any
 
+from ai_agents_metrics.history.project_paths import parent_project_cwd
+
 from .aggregation import (
     TokenReportRow,
     aggregate_report_data,
@@ -60,11 +62,19 @@ def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 )
             }
-            if "derived_goals" not in tables or _SCHEMA_FRESHNESS_TABLE not in tables:
+            if not {"derived_goals", "derived_projects", _SCHEMA_FRESHNESS_TABLE} <= tables:
                 return {"status": "schema_outdated"}
+            project_columns = {
+                row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")
+            }
+            if "parent_project_cwd" not in project_columns:
+                return {"status": "schema_outdated"}
+            project_cwd = parent_project_cwd(cwd)
+            if project_cwd is None:
+                return {"status": "empty_for_cwd"}
             count = conn.execute(
                 "SELECT COUNT(*) FROM derived_goals WHERE cwd = ?",
-                (cwd,),
+                (project_cwd,),
             ).fetchone()[0]
             if count == 0:
                 return {"status": "empty_for_cwd"}

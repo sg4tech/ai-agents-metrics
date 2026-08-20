@@ -12,6 +12,7 @@ from ai_agents_metrics.commands.report import (
     _aggregate_project_report,
     _all_projects_warehouse_state,
     _load_render_html_warehouse_rows,
+    _report_project_cwd,
     _select_chart_data,
     _WarehouseRenderRows,
 )
@@ -24,6 +25,8 @@ from ai_agents_metrics.report.html_report import (
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from pytest import MonkeyPatch
 
 
 def test_aggregate_report_data_uses_only_warehouse_rows() -> None:
@@ -357,5 +360,138 @@ def test_check_warehouse_state_reports_missing_and_current(tmp_path: Path) -> No
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
         conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
+        )
         conn.execute("INSERT INTO derived_goals VALUES ('/repo')")
     assert check_warehouse_state(path, "/repo") == {"status": "ok"}
+
+
+def test_check_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None:
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
+
+    assert check_warehouse_state(path, "/repo") == {"status": "schema_outdated"}
+
+
+@pytest.mark.parametrize("cwd", ["/repo", "/repo/.claude/worktrees/feature"])
+def test_check_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str) -> None:
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
+        )
+        conn.execute("CREATE TABLE normalized_threads (cwd TEXT)")
+        conn.execute("INSERT INTO derived_goals VALUES ('/repo')")
+        conn.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
+        conn.execute(
+            "INSERT INTO normalized_threads VALUES ('/repo/.claude/worktrees/feature')"
+        )
+
+    assert check_warehouse_state(path, cwd) == {"status": "ok"}
+
+
+def test_load_render_html_rows_includes_child_worktree(tmp_path: Path) -> None:
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE derived_projects (
+                project_cwd TEXT,
+                parent_project_cwd TEXT
+            );
+            CREATE TABLE normalized_threads (cwd TEXT);
+            CREATE TABLE derived_goals (
+                thread_id TEXT,
+                cwd TEXT,
+                last_seen_at TEXT,
+                session_count INTEGER,
+                model TEXT,
+                model_provider TEXT
+            );
+            CREATE TABLE derived_session_usage (
+                thread_id TEXT,
+                input_tokens INTEGER,
+                cache_creation_input_tokens INTEGER,
+                cached_input_tokens INTEGER,
+                output_tokens INTEGER,
+                total_tokens INTEGER
+            );
+            CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT);
+            CREATE TABLE derived_practice_events (
+                thread_id TEXT,
+                practice_name TEXT,
+                source_kind TEXT
+            );
+            INSERT INTO derived_projects VALUES
+                ('/repo', '/repo');
+            INSERT INTO normalized_threads VALUES
+                ('/repo'),
+                ('/repo/.claude/worktrees/feature');
+            INSERT INTO derived_goals VALUES
+                ('main', '/repo', '2026-01-01T12:00:00Z', 1, 'model', 'openai'),
+                ('child', '/repo/.claude/worktrees/feature', '2026-01-02T12:00:00Z', 2,
+                 'model', 'openai');
+            INSERT INTO derived_session_usage VALUES
+                ('main', 10, 0, 0, 1, 11),
+                ('child', 20, 0, 0, 2, 22);
+            """
+        )
+
+    rows = _load_render_html_warehouse_rows(path)
+    project_rows = rows.by_project["/repo"]
+
+    assert rows.project_cwds == ["/repo"]
+    assert project_rows.sessions == {
+        "2026-01-01": {"threads": 1, "sessions": 1},
+        "2026-01-02": {"threads": 1, "sessions": 2},
+    }
+    assert sum(row.total_tokens for row in project_rows.tokens) == 33
+
+
+def test_load_render_html_rows_resolves_relative_cwd(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE normalized_threads (cwd TEXT);
+            CREATE TABLE derived_goals (
+                thread_id TEXT, cwd TEXT, last_seen_at TEXT, session_count INTEGER,
+                model TEXT, model_provider TEXT
+            );
+            CREATE TABLE derived_session_usage (
+                thread_id TEXT, input_tokens INTEGER,
+                cache_creation_input_tokens INTEGER, cached_input_tokens INTEGER,
+                output_tokens INTEGER, total_tokens INTEGER
+            );
+            CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT);
+            CREATE TABLE derived_practice_events (
+                thread_id TEXT, practice_name TEXT, source_kind TEXT
+            );
+            """
+        )
+        conn.execute("INSERT INTO normalized_threads VALUES (?)", (str(project),))
+        conn.execute(
+            "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?, ?)",
+            ("thread", str(project), "2026-01-01T12:00:00Z", 1, "model", "openai"),
+        )
+        conn.execute(
+            "INSERT INTO derived_session_usage VALUES ('thread', 10, 0, 0, 1, 11)"
+        )
+    monkeypatch.chdir(project)
+
+    rows = _load_render_html_warehouse_rows(path)
+
+    assert _report_project_cwd(".") == str(project.resolve())
+    assert rows.by_project[str(project.resolve())].sessions == {
+        "2026-01-01": {"threads": 1, "sessions": 1}
+    }
