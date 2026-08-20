@@ -1,4 +1,4 @@
-"""Orchestration facade: the concrete ``CommandRuntime`` used by CLI command handlers.
+"""Concrete runtime capabilities composed for CLI command handlers.
 
 The facade is layered into submodules by concern:
   - ``orchestration`` — path constants and history-pipeline wrappers
@@ -8,6 +8,7 @@ This ``__init__`` re-exports the full public surface so ``from ai_agents_metrics
 import runtime_facade`` and ``runtime_facade.X`` continue to resolve every
 symbol without callers knowing about the submodule layout.
 """
+
 from ai_agents_metrics.history.classify import render_classify_summary_json
 from ai_agents_metrics.history.derive import render_derive_summary_json
 from ai_agents_metrics.history.ingest import render_ingest_summary_json

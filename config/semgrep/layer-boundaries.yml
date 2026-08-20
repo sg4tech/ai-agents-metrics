@@ -25,6 +25,46 @@ rules:
     pattern-regex: >-
       (?i)(FROM|JOIN|INTO|UPDATE|TABLE)\s+(raw|normalized|derived)_[a-z0-9_]+
 
+  - id: ai-agents-metrics.command-broad-runtime
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Command handlers must use an approved narrow operation-specific runtime protocol.
+    paths:
+      include:
+        - "**/commands/*.py"
+    patterns:
+      - metavariable-regex:
+          metavariable: $HANDLER
+          regex: ^handle_
+      - metavariable-regex:
+          metavariable: $RUNTIME_TYPE
+          regex: >-
+            ^(?!(HistoryIngestRuntime|HistoryNormalizeRuntime|HistoryClassifyRuntime|HistoryDeriveRuntime|HistoryUpdateRuntime|ShowRuntime|PublicBoundaryRuntime|ReportRuntime|object)$).+$
+      - pattern: |
+          def $HANDLER($ARGS: $ARGS_TYPE, $RUNTIME: $RUNTIME_TYPE) -> $RETURN:
+              ...
+
+  - id: ai-agents-metrics.command-runtime-any-return
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Runtime protocol methods must return a concrete boundary type instead of Any.
+    paths:
+      include:
+        - "**/commands/*.py"
+    patterns:
+      - pattern-inside: |
+          class $PROTOCOL(..., Protocol, ...):
+              ...
+      - pattern-either:
+          - pattern: |
+              def $METHOD(...) -> Any:
+                  ...
+          - pattern: |
+              def $METHOD(...) -> typing.Any:
+                  ...
+
   - id: ai-agents-metrics.application-direct-io
     languages: [python]
     severity: ERROR

@@ -4,20 +4,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING
 
-from ai_agents_metrics.report.application import (
-    BuildReportRequest,
-    ReportDocument,
-    ReportSourceSummary,
-)
+from ai_agents_metrics.report.application import BuildReportRequest, ReportSourceSummary
 
 if TYPE_CHECKING:
     from argparse import Namespace
 
-
-class ReportRuntime(Protocol):
-    def build_html_report(self, request: BuildReportRequest) -> ReportDocument: ...
+    from ai_agents_metrics.commands._runtime import ReportRuntime
 
 
 def handle_render_html(args: Namespace, cli_module: ReportRuntime) -> int:

@@ -1,4 +1,5 @@
 """Tests for the history-only command-line surface."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -85,9 +86,15 @@ def test_maintained_docs_do_not_recommend_removed_commands() -> None:
         "llms.txt",
     )
     removed_invocations = {f"`{command}`" for command in REMOVED_MANUAL_COMMANDS}
-    removed_invocations.update(f"ai-agents-metrics {command}" for command in REMOVED_MANUAL_COMMANDS)
+    removed_invocations.update(
+        f"ai-agents-metrics {command}" for command in REMOVED_MANUAL_COMMANDS
+    )
 
     for relative_path in maintained_docs:
         contents = (repo_root / relative_path).read_text(encoding="utf-8")
-        stale_references = sorted(reference for reference in removed_invocations if reference in contents)
-        assert not stale_references, f"{relative_path} references removed commands: {stale_references}"
+        stale_references = sorted(
+            reference for reference in removed_invocations if reference in contents
+        )
+        assert not stale_references, (
+            f"{relative_path} references removed commands: {stale_references}"
+        )

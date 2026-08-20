@@ -1,4 +1,5 @@
 """CLI handlers for history summaries and public-boundary verification."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,10 +13,10 @@ from ai_agents_metrics.public_boundary import (
 if TYPE_CHECKING:
     from argparse import Namespace
 
-    from ai_agents_metrics.commands._runtime import CommandRuntime
+    from ai_agents_metrics.commands._runtime import PublicBoundaryRuntime, ShowRuntime
 
 
-def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_show(args: Namespace, cli_module: ShowRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     summary = cli_module.load_warehouse_summary(warehouse_path, Path.cwd())
     if getattr(args, "json", False):
@@ -25,7 +26,7 @@ def handle_show(args: Namespace, cli_module: CommandRuntime) -> int:
     return 0
 
 
-def handle_verify_public_boundary(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_verify_public_boundary(args: Namespace, cli_module: PublicBoundaryRuntime) -> int:
     report = cli_module.verify_public_boundary(
         repo_root=Path(args.repo_root).expanduser(),
         rules_path=Path(args.rules_path).expanduser(),
