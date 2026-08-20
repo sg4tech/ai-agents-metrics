@@ -94,6 +94,11 @@ def _repo_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
         ["git", "commit", "-m", "baseline"],
         cwd=template, text=True, capture_output=True, check=True,
     )
+    # Finish object packing before tests traverse the template. Otherwise Git
+    # maintenance can remove loose-object directories during a hardlink copy.
+    subprocess.run(
+        ["git", "gc"], cwd=template, text=True, capture_output=True, check=True,
+    )
     # Strip write bits so accidental writes to template-originated hardlinks
     # fail loudly with PermissionError instead of silently poisoning the
     # shared inode for every subsequent test. Directories stay writable so
