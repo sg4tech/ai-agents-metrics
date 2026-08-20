@@ -29,8 +29,7 @@ rules:
     languages: [python]
     severity: ERROR
     message: >-
-      Command handlers must depend on a narrow operation-specific runtime protocol, not the
-      aggregate CommandRuntime surface.
+      Command handlers must use an approved narrow operation-specific runtime protocol.
     paths:
       include:
         - "**/commands/*.py"
@@ -38,13 +37,13 @@ rules:
       - metavariable-regex:
           metavariable: $HANDLER
           regex: ^handle_
-      - pattern-either:
-          - pattern: |
-              def $HANDLER(..., $RUNTIME: CommandRuntime, ...) -> $RETURN:
-                  ...
-          - pattern: |
-              def $HANDLER(..., $RUNTIME: $MODULE.CommandRuntime, ...) -> $RETURN:
-                  ...
+      - metavariable-regex:
+          metavariable: $RUNTIME_TYPE
+          regex: >-
+            ^(?!(HistoryIngestRuntime|HistoryNormalizeRuntime|HistoryClassifyRuntime|HistoryDeriveRuntime|HistoryUpdateRuntime|ShowRuntime|PublicBoundaryRuntime|ReportRuntime|object)$).+$
+      - pattern: |
+          def $HANDLER($ARGS: $ARGS_TYPE, $RUNTIME: $RUNTIME_TYPE) -> $RETURN:
+              ...
 
   - id: ai-agents-metrics.command-runtime-any-return
     languages: [python]
@@ -53,14 +52,18 @@ rules:
       Runtime protocol methods must return a concrete boundary type instead of Any.
     paths:
       include:
-        - "**/commands/_runtime.py"
-    pattern-either:
-      - pattern: |
-          def $METHOD(...) -> Any:
+        - "**/commands/*.py"
+    patterns:
+      - pattern-inside: |
+          class $PROTOCOL(..., Protocol, ...):
               ...
-      - pattern: |
-          def $METHOD(...) -> typing.Any:
-              ...
+      - pattern-either:
+          - pattern: |
+              def $METHOD(...) -> Any:
+                  ...
+          - pattern: |
+              def $METHOD(...) -> typing.Any:
+                  ...
 
   - id: ai-agents-metrics.application-direct-io
     languages: [python]

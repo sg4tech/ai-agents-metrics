@@ -13,6 +13,7 @@ from ai_agents_metrics.commands._runtime import (
     HistoryNormalizeRuntime,
     HistoryUpdateRuntime,
     PublicBoundaryRuntime,
+    ReportRuntime,
     ShowRuntime,
 )
 from ai_agents_metrics.commands.history import (
@@ -40,6 +41,7 @@ __all__ = [
     "HistoryNormalizeRuntime",
     "HistoryUpdateRuntime",
     "PublicBoundaryRuntime",
+    "ReportRuntime",
     "ShowRuntime",
     "handle_classify_codex_history",
     "handle_derive_codex_history",

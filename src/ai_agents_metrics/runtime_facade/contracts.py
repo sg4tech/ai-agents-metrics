@@ -7,9 +7,9 @@ if TYPE_CHECKING:
     from ai_agents_metrics.commands import (
         HistoryUpdateRuntime,
         PublicBoundaryRuntime,
+        ReportRuntime,
         ShowRuntime,
     )
-    from ai_agents_metrics.commands.report import ReportRuntime
 
     history_runtime: HistoryUpdateRuntime = runtime_facade
     show_runtime: ShowRuntime = runtime_facade
