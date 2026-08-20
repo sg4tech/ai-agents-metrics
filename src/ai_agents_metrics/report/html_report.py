@@ -32,11 +32,9 @@ __all__ = [
 ]
 
 
-# Table that is expected in an up-to-date warehouse; used as a proxy for schema
-# freshness. If the warehouse predates the practice-events derivation, charts
-# that depend on it (chart 5) would silently be empty — we prefer to surface a
-# callout pointing to history-update instead.
-_SCHEMA_FRESHNESS_TABLE = "derived_practice_events"
+# Tables required by report queries. Missing report inputs must surface a
+# history-update callout instead of silently producing empty charts.
+_SCHEMA_FRESHNESS_TABLES = frozenset({"derived_model_usage", "derived_practice_events"})
 
 
 def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
@@ -62,7 +60,7 @@ def check_warehouse_state(warehouse_path: Path, cwd: str) -> dict[str, str]:
                     "SELECT name FROM sqlite_master WHERE type='table'"
                 )
             }
-            if not {"derived_goals", "derived_projects", _SCHEMA_FRESHNESS_TABLE} <= tables:
+            if not {"derived_goals", "derived_projects", *_SCHEMA_FRESHNESS_TABLES} <= tables:
                 return {"status": "schema_outdated"}
             project_columns = {
                 row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")

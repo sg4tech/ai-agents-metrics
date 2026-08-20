@@ -285,8 +285,8 @@ def test_load_render_html_warehouse_rows_groups_projects_and_all_projects(
         )
         conn.execute("CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT)")
         conn.execute(
-            "CREATE TABLE derived_session_usage ("
-            "thread_id TEXT, input_tokens INTEGER, cache_creation_input_tokens INTEGER, "
+            "CREATE TABLE derived_model_usage ("
+            "thread_id TEXT, model TEXT, input_tokens INTEGER, cache_creation_input_tokens INTEGER, "
             "cached_input_tokens INTEGER, output_tokens INTEGER, total_tokens INTEGER)"
         )
         conn.execute(
@@ -302,10 +302,10 @@ def test_load_render_html_warehouse_rows_groups_projects_and_all_projects(
             ],
         )
         conn.executemany(
-            "INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO derived_model_usage VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
-                ("one", 10, 0, 2, 3, 15),
-                ("two", 20, 0, 4, 6, 30),
+                ("one", "model", 10, 0, 2, 3, 15),
+                ("two", "model", 20, 0, 4, 6, 30),
             ],
         )
         conn.executemany(
@@ -329,6 +329,47 @@ def test_load_render_html_warehouse_rows_groups_projects_and_all_projects(
     }
     assert sum(row.total_tokens for row in rows.all_projects.tokens) == 45
     assert rows.all_projects.practice == [("Explore", "Agent", 2)]
+
+
+def test_load_render_html_rows_preserves_mixed_model_usage(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as conn:
+        conn.executescript(
+            """
+            CREATE TABLE derived_goals (
+                thread_id TEXT, cwd TEXT, last_seen_at TEXT, session_count INTEGER,
+                model TEXT, model_provider TEXT
+            );
+            CREATE TABLE normalized_usage_events (thread_id TEXT, raw_json TEXT);
+            CREATE TABLE derived_session_usage (
+                thread_id TEXT, input_tokens INTEGER,
+                cache_creation_input_tokens INTEGER, cached_input_tokens INTEGER,
+                output_tokens INTEGER, total_tokens INTEGER
+            );
+            CREATE TABLE derived_model_usage (
+                thread_id TEXT, model TEXT, input_tokens INTEGER,
+                cache_creation_input_tokens INTEGER, cached_input_tokens INTEGER,
+                output_tokens INTEGER, total_tokens INTEGER
+            );
+            CREATE TABLE derived_practice_events (
+                thread_id TEXT, practice_name TEXT, source_kind TEXT
+            );
+            INSERT INTO derived_goals VALUES
+                ('mixed', '/project', '2026-01-01', 1, 'gpt-second', 'openai');
+            INSERT INTO derived_session_usage VALUES
+                ('mixed', 30, 0, 0, 3, 33);
+            INSERT INTO derived_model_usage VALUES
+                ('mixed', 'gpt-first', 10, 0, 0, 1, 11),
+                ('mixed', 'gpt-second', 20, 0, 0, 2, 22);
+            """
+        )
+
+    rows = _load_render_html_warehouse_rows(warehouse).all_projects.tokens
+
+    assert [(row.model, row.total_tokens) for row in rows] == [
+        ("gpt-first", 11),
+        ("gpt-second", 22),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -360,6 +401,7 @@ def test_check_warehouse_state_reports_missing_and_current(tmp_path: Path) -> No
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
         conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute("CREATE TABLE derived_model_usage (model TEXT)")
         conn.execute(
             "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
         )
@@ -372,7 +414,21 @@ def test_check_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
         conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute("CREATE TABLE derived_model_usage (model TEXT)")
         conn.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
+
+    assert check_warehouse_state(path, "/repo") == {"status": "schema_outdated"}
+
+
+def test_check_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> None:
+    path = tmp_path / "warehouse.db"
+    with sqlite3.connect(path) as conn:
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute(
+            "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
+        )
+        conn.execute("INSERT INTO derived_goals VALUES ('/repo')")
 
     assert check_warehouse_state(path, "/repo") == {"status": "schema_outdated"}
 
@@ -383,6 +439,7 @@ def test_check_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str)
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
         conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        conn.execute("CREATE TABLE derived_model_usage (model TEXT)")
         conn.execute(
             "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
         )
@@ -414,8 +471,9 @@ def test_load_render_html_rows_includes_child_worktree(tmp_path: Path) -> None:
                 model TEXT,
                 model_provider TEXT
             );
-            CREATE TABLE derived_session_usage (
+            CREATE TABLE derived_model_usage (
                 thread_id TEXT,
+                model TEXT,
                 input_tokens INTEGER,
                 cache_creation_input_tokens INTEGER,
                 cached_input_tokens INTEGER,
@@ -437,9 +495,9 @@ def test_load_render_html_rows_includes_child_worktree(tmp_path: Path) -> None:
                 ('main', '/repo', '2026-01-01T12:00:00Z', 1, 'model', 'openai'),
                 ('child', '/repo/.claude/worktrees/feature', '2026-01-02T12:00:00Z', 2,
                  'model', 'openai');
-            INSERT INTO derived_session_usage VALUES
-                ('main', 10, 0, 0, 1, 11),
-                ('child', 20, 0, 0, 2, 22);
+            INSERT INTO derived_model_usage VALUES
+                ('main', 'model', 10, 0, 0, 1, 11),
+                ('child', 'model', 20, 0, 0, 2, 22);
             """
         )
 
@@ -468,8 +526,8 @@ def test_load_render_html_rows_resolves_relative_cwd(
                 thread_id TEXT, cwd TEXT, last_seen_at TEXT, session_count INTEGER,
                 model TEXT, model_provider TEXT
             );
-            CREATE TABLE derived_session_usage (
-                thread_id TEXT, input_tokens INTEGER,
+            CREATE TABLE derived_model_usage (
+                thread_id TEXT, model TEXT, input_tokens INTEGER,
                 cache_creation_input_tokens INTEGER, cached_input_tokens INTEGER,
                 output_tokens INTEGER, total_tokens INTEGER
             );
@@ -485,7 +543,7 @@ def test_load_render_html_rows_resolves_relative_cwd(
             ("thread", str(project), "2026-01-01T12:00:00Z", 1, "model", "openai"),
         )
         conn.execute(
-            "INSERT INTO derived_session_usage VALUES ('thread', 10, 0, 0, 1, 11)"
+            "INSERT INTO derived_model_usage VALUES ('thread', 'model', 10, 0, 0, 1, 11)"
         )
     monkeypatch.chdir(project)
 

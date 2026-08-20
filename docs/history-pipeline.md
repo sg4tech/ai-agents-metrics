@@ -118,6 +118,7 @@ flowchart LR
         DMF["derived_message_facts"]
         DRC["derived_retry_chains"]
         DUS["derived_session_usage"]
+        DMU["derived_model_usage"]
         DP["derived_projects"]
     end
 
@@ -138,6 +139,7 @@ flowchart LR
     NS --> DA
     NM --> DTE
     NU --> DUS
+    NU --> DMU
     NL --> DTE
     NM --> DMF
     NU --> DMF
@@ -231,6 +233,8 @@ Token usage rows after normalization.
 
 - Primary key: `usage_event_id`
 - Use for: stable usage accounting before derived aggregation
+- Model attribution uses the explicit usage-event model when present. Codex events without that
+  field inherit the nearest preceding `turn_context` model from the same session.
 - Provider token categories are not directly additive across sources. OpenAI cached input is a
   subset of input tokens, while Claude reports uncached input, cache creation, and cache reads as
   separate categories. Use `total_tokens` for cross-provider token volume and provider-aware
@@ -303,6 +307,15 @@ Session-level usage aggregates.
 - Primary key: `session_usage_id`
 - Join keys: `thread_id`, `session_path`, `attempt_index`
 - Use for: cost analysis per dialogue/session usage aggregate
+
+### `derived_model_usage`
+
+Usage aggregates split by session and model so a model switch does not assign the full session to
+one model.
+
+- Primary key: `model_usage_id`
+- Join keys: `thread_id`, `session_path`, `attempt_index`
+- Use for: model-level token and cost reporting
 
 ### `derived_projects`
 

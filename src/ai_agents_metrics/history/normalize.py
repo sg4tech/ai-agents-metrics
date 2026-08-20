@@ -386,6 +386,20 @@ def _usage_event_from_token_row(row: sqlite3.Row) -> dict[str, Any] | None:
     }
 
 
+def _turn_context_model(row: sqlite3.Row) -> str | None:
+    if row["event_type"] != "turn_context":
+        return None
+    payload = json.loads(row["raw_json"])
+    payload_body = payload.get("payload")
+    if not isinstance(payload_body, dict):
+        return None
+    model = payload_body.get("model")
+    if not isinstance(model, str):
+        return None
+    cleaned = model.strip()
+    return cleaned or None
+
+
 # _NormalizeIndexes packs per-thread/per-session counters accumulated during
 # the build-indexes pass. Each field serves a different downstream inserter;
 # collapsing them into nested structs would only add indirection.
@@ -545,18 +559,25 @@ def _insert_normalized_usage_events(
     thread_project_cwd: dict[str, str],
 ) -> int:
     inserted = 0
+    current_model_by_session: dict[str, str] = {}
     for event_row in raw_session_events:
         session_path = event_row["session_path"]
         event_index = int(event_row["event_index"])
         timestamp = event_row["timestamp"]
         idx.first_event_by_session[session_path] = _pick_earliest_timestamp(idx.first_event_by_session.get(session_path), timestamp)
         idx.last_event_by_session[session_path] = _pick_latest_timestamp(idx.last_event_by_session.get(session_path), timestamp)
+        context_model = _turn_context_model(event_row)
+        if context_model is not None:
+            current_model_by_session[session_path] = context_model
         token_row = idx.token_usage_by_session_index.get((event_row["session_path"], event_index))
         usage_event = _usage_event_from_token_row(token_row) if token_row is not None else None
         if usage_event is None:
             usage_event = _usage_event_from_row(event_row)
         if usage_event is None:
             continue
+        explicit_model = usage_event["model"]
+        if not isinstance(explicit_model, str) or not explicit_model.strip():
+            usage_event["model"] = current_model_by_session.get(session_path)
         project_cwd = thread_project_cwd.get(event_row["thread_id"])
         if project_cwd is not None:
             stats = _ensure_project_stats(project_stats, project_cwd)

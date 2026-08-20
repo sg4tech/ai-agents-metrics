@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 from test_history_ingest import (
+    add_codex_model_switch_session,
     create_claude_history_source_root,
     create_codex_history_source_root,
     run_cmd,
@@ -294,6 +295,40 @@ def test_derive_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM derived_retry_chains").fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM derived_session_usage").fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM derived_projects").fetchone()[0] == 2
+
+
+def test_derive_model_usage_preserves_mixed_model_totals(repo: Path) -> None:
+    source_root = create_codex_history_source_root(repo)
+    session_path = add_codex_model_switch_session(source_root)
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "warehouse.db"
+
+    assert run_cmd(
+        repo,
+        "history-ingest",
+        "--source-root",
+        str(source_root),
+        "--warehouse-path",
+        str(warehouse_path),
+    ).returncode == 0
+    assert run_cmd(
+        repo, "history-normalize", "--warehouse-path", str(warehouse_path)
+    ).returncode == 0
+    result = run_cmd(repo, "history-derive", "--warehouse-path", str(warehouse_path))
+
+    assert result.returncode == 0, result.stderr
+    with sqlite3.connect(warehouse_path) as conn:
+        rows = conn.execute(
+            "SELECT model, total_tokens FROM derived_model_usage "
+            "WHERE session_path = ? ORDER BY model",
+            (str(session_path),),
+        ).fetchall()
+        session_total = conn.execute(
+            "SELECT total_tokens FROM derived_session_usage WHERE session_path = ?",
+            (str(session_path),),
+        ).fetchone()[0]
+
+    assert rows == [("gpt-explicit", 30), ("gpt-first", 10), ("gpt-second", 20)]
+    assert sum(row[1] for row in rows) == session_total
 
 
 def test_derive_codex_history_rejects_missing_normalized_warehouse(repo: Path) -> None:
