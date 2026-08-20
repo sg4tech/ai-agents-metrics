@@ -11,6 +11,7 @@ from ai_agents_metrics.report.application import (
     BuildReportRequest,
     ReportDocument,
     ReportSourceSummary,
+    WarehouseStatus,
 )
 
 
@@ -31,7 +32,7 @@ def test_render_html_handler_delegates_report_building_to_runtime(tmp_path: Path
             html="<html>delegated</html>",
             source_summary=ReportSourceSummary(
                 practice_event_count=3,
-                warehouse_status="ok",
+                warehouse_status=WarehouseStatus.OK,
             ),
         )
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
@@ -35,6 +36,25 @@ class WarehouseReportSource:
     all_projects: WarehouseRenderRows = field(default_factory=WarehouseRenderRows)
 
 
+class WarehouseStatus(StrEnum):
+    OK = "ok"
+    MISSING_FILE = "missing_file"
+    SCHEMA_OUTDATED = "schema_outdated"
+    EMPTY_FOR_CWD = "empty_for_cwd"
+
+
+@dataclass(frozen=True)
+class WarehouseState:
+    status: WarehouseStatus
+
+    @classmethod
+    def ok(cls) -> WarehouseState:
+        return cls(WarehouseStatus.OK)
+
+    def as_render_data(self) -> dict[str, str]:
+        return {"status": self.status.value}
+
+
 @dataclass(frozen=True)
 class BuildReportRequest:
     warehouse_path: Path
@@ -46,7 +66,7 @@ class BuildReportRequest:
 @dataclass(frozen=True)
 class ReportSourceSummary:
     practice_event_count: int
-    warehouse_status: str
+    warehouse_status: WarehouseStatus
 
 
 @dataclass(frozen=True)
@@ -57,7 +77,7 @@ class ReportDocument:
 
 class ReportQuery(Protocol):
     def load_report_source(self, warehouse_path: Path) -> WarehouseReportSource: ...
-    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> dict[str, str]: ...
+    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> WarehouseState: ...
 
 
 class PricingPort(Protocol):
@@ -90,7 +110,9 @@ class BuildHtmlReport:
         }
         selected_rows = WarehouseRenderRows()
         for project_cwd in project_cwds:
-            project_state = selected_state if project_cwd == selected_project else {"status": "ok"}
+            project_state = (
+                selected_state if project_cwd == selected_project else WarehouseState.ok()
+            )
             project_rows = warehouse_rows.by_project.get(project_cwd, WarehouseRenderRows())
             project_reports[project_cwd] = aggregate_project_report(
                 project_rows, days=request.days, pricing=pricing, state=project_state
@@ -105,7 +127,7 @@ class BuildHtmlReport:
             ),
             source_summary=ReportSourceSummary(
                 practice_event_count=sum(count for _, _, count in selected_rows.practice),
-                warehouse_status=selected_state.get("status", "ok"),
+                warehouse_status=selected_state.status,
             ),
         )
 
@@ -143,11 +165,16 @@ def select_chart_data(
 
 
 def all_projects_warehouse_state(
-    selected_state: dict[str, str], project_cwds: list[str]
-) -> dict[str, str]:
-    if selected_state.get("status") in {"missing_file", "schema_outdated"}:
+    selected_state: WarehouseState, project_cwds: list[str]
+) -> WarehouseState:
+    if selected_state.status in {
+        WarehouseStatus.MISSING_FILE,
+        WarehouseStatus.SCHEMA_OUTDATED,
+    }:
         return selected_state
-    return {"status": "ok" if project_cwds else "empty_for_cwd"}
+    if project_cwds:
+        return WarehouseState.ok()
+    return WarehouseState(WarehouseStatus.EMPTY_FOR_CWD)
 
 
 def aggregate_project_report(
@@ -155,7 +182,7 @@ def aggregate_project_report(
     *,
     days: int | None,
     pricing: Pricing | None,
-    state: dict[str, str],
+    state: WarehouseState,
 ) -> dict[str, Any]:
     report = aggregate_report_data(
         days=days,
@@ -163,7 +190,7 @@ def aggregate_project_report(
         warehouse_tokens=rows.tokens,
         pricing=pricing,
         warehouse_practice=rows.practice,
-        warehouse_state=state,
+        warehouse_state=state.as_render_data(),
     )
     if report["granularity"] == "week":
         report["daily_filter_data"] = aggregate_report_data(
@@ -172,7 +199,7 @@ def aggregate_project_report(
             warehouse_tokens=rows.tokens,
             pricing=pricing,
             warehouse_practice=rows.practice,
-            warehouse_state=state,
+            warehouse_state=state.as_render_data(),
             bucket_granularity="day",
         )
     return report

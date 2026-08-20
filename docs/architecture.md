@@ -116,7 +116,7 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | File | Role |
 |------|------|
 | `report/html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
-| `report/application.py` | Typed report contracts, query and pricing ports, and the HTML-report use case; receives no persistence rows |
+| `report/application/` | Typed report contracts, query and pricing ports, and HTML-report use cases; application code belongs in this package and receives no persistence rows |
 | `report/sqlite_query.py` | SQLite adapter that owns SQL, schema knowledge, and persistence-row mapping behind the query port |
 | `report/aggregation.py` | Transforms warehouse retry, token, model, and practice rows into chart-ready series |
 | `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |

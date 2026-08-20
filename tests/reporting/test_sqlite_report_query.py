@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from ai_agents_metrics.report.application import WarehouseState, WarehouseStatus
 from ai_agents_metrics.report.sqlite_query import SQLiteReportQuery
 
 if TYPE_CHECKING:
@@ -113,14 +114,14 @@ def test_load_report_source_preserves_usage_for_each_model(tmp_path: Path) -> No
 def test_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:
     warehouse = tmp_path / "warehouse.db"
     query = SQLiteReportQuery()
-    assert query.warehouse_state(warehouse, "/repo") == {"status": "missing_file"}
+    assert query.warehouse_state(warehouse, "/repo") == WarehouseState(WarehouseStatus.MISSING_FILE)
     with sqlite3.connect(warehouse) as connection:
         _create_report_tables(connection)
         connection.execute(
             "INSERT INTO derived_goals VALUES ('thread', '/repo', NULL, 1, NULL, NULL)"
         )
 
-    assert query.warehouse_state(warehouse, "/repo") == {"status": "ok"}
+    assert query.warehouse_state(warehouse, "/repo") == WarehouseState.ok()
 
 
 def test_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None:
@@ -130,7 +131,9 @@ def test_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None
         connection.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
         connection.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == {"status": "schema_outdated"}
+    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == WarehouseState(
+        WarehouseStatus.SCHEMA_OUTDATED
+    )
 
 
 def test_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> None:
@@ -142,9 +145,9 @@ def test_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> No
             "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
         )
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == {
-        "status": "schema_outdated"
-    }
+    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == WarehouseState(
+        WarehouseStatus.SCHEMA_OUTDATED
+    )
 
 
 @pytest.mark.parametrize("cwd", ["/repo", "/repo/.claude/worktrees/feature"])
@@ -158,7 +161,7 @@ def test_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str) -> No
         connection.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
         connection.execute("INSERT INTO normalized_threads VALUES (?)", (cwd,))
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, cwd) == {"status": "ok"}
+    assert SQLiteReportQuery().warehouse_state(warehouse, cwd) == WarehouseState.ok()
 
 
 def test_load_report_source_groups_child_worktree_with_parent(tmp_path: Path) -> None:

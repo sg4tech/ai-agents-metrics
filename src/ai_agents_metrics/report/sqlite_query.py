@@ -9,6 +9,8 @@ from ai_agents_metrics.history.project_paths import parent_project_cwd
 from ai_agents_metrics.report.application import (
     WarehouseRenderRows,
     WarehouseReportSource,
+    WarehouseState,
+    WarehouseStatus,
     merge_warehouse_rows,
     report_project_cwd,
 )
@@ -64,9 +66,9 @@ class SQLiteReportQuery:
             practice_rows=practice_rows,
         )
 
-    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> dict[str, str]:
+    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> WarehouseState:
         if not warehouse_path.is_file():
-            return {"status": "missing_file"}
+            return WarehouseState(WarehouseStatus.MISSING_FILE)
         try:
             with sqlite3.connect(warehouse_path) as conn:
                 tables = {
@@ -79,23 +81,23 @@ class SQLiteReportQuery:
                     "derived_model_usage",
                     "derived_practice_events",
                 } <= tables:
-                    return {"status": "schema_outdated"}
+                    return WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
                 project_columns = {
                     row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")
                 }
                 if "parent_project_cwd" not in project_columns:
-                    return {"status": "schema_outdated"}
+                    return WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
                 canonical_cwd = parent_project_cwd(project_cwd)
                 if canonical_cwd is None:
-                    return {"status": "empty_for_cwd"}
+                    return WarehouseState(WarehouseStatus.EMPTY_FOR_CWD)
                 count = conn.execute(
                     "SELECT COUNT(*) FROM derived_goals WHERE cwd = ?", (canonical_cwd,)
                 ).fetchone()[0]
                 if count == 0:
-                    return {"status": "empty_for_cwd"}
+                    return WarehouseState(WarehouseStatus.EMPTY_FOR_CWD)
         except sqlite3.Error:
-            return {"status": "schema_outdated"}
-        return {"status": "ok"}
+            return WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
+        return WarehouseState.ok()
 
 
 def _map_report_source(

@@ -36,6 +36,7 @@ def test_layer_boundary_rules_detect_incident_patterns() -> None:
             str(fixture_root / "commands/invalid_controller.py"),
             str(fixture_root / "commands/valid_controller.py"),
             str(fixture_root / "report/application.py"),
+            str(fixture_root / "report/application/invalid_use_case.py"),
             str(fixture_root / "report/valid_use_case.py"),
         ],
         cwd=repo_root,
@@ -53,3 +54,6 @@ def test_layer_boundary_rules_detect_incident_patterns() -> None:
         "ai-agents-metrics.controller-warehouse-schema",
     }
     assert all(not Path(finding["path"]).name.startswith("valid_") for finding in findings)
+    assert any(
+        finding["path"].endswith("report/application/invalid_use_case.py") for finding in findings
+    )

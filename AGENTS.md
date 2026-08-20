@@ -95,6 +95,9 @@ the command's final output side effect, and render its console result. Follow th
 matrix in `docs/testing-guide.md` under "Testing architectural boundaries". Do not bypass a
 boundary with a private-helper import or `type: ignore` in a test.
 
+Place report application contracts and use cases under `report/application/`; the Semgrep
+boundary gate covers the complete package rather than relying on individual module names.
+
 ### General design principles
 
 Apply SOLID, DRY, GRASP, DDD, and Hexagonal/Clean Architecture to new code and refactors. The

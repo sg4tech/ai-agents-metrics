@@ -34,6 +34,7 @@ rules:
     paths:
       include:
         - "**/application.py"
+        - "**/application/**/*.py"
     pattern-either:
       - pattern: sqlite3.connect(...)
       - pattern: $PATH.read_text(...)

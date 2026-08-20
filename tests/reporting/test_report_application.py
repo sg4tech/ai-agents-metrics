@@ -15,6 +15,8 @@ from ai_agents_metrics.report.application import (
     ReportSourceSummary,
     WarehouseRenderRows,
     WarehouseReportSource,
+    WarehouseState,
+    WarehouseStatus,
     aggregate_project_report,
     all_projects_warehouse_state,
     report_project_cwd,
@@ -30,8 +32,8 @@ class FakeReportQuery:
     def load_report_source(self, warehouse_path: Path) -> WarehouseReportSource:
         return self.source
 
-    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> dict[str, str]:
-        return {"status": self.status}
+    def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> WarehouseState:
+        return WarehouseState(WarehouseStatus(self.status))
 
 
 class FakePricing:
@@ -63,7 +65,7 @@ def test_build_html_report_combines_typed_sources_through_ports() -> None:
     assert "2026-08-20" in document.html
     assert document.source_summary == ReportSourceSummary(
         practice_event_count=2,
-        warehouse_status="ok",
+        warehouse_status=WarehouseStatus.OK,
     )
 
 
@@ -75,7 +77,7 @@ def test_project_report_preserves_daily_data_for_exact_period_filtering() -> Non
         }
     )
 
-    report = aggregate_project_report(rows, days=None, pricing=None, state={"status": "ok"})
+    report = aggregate_project_report(rows, days=None, pricing=None, state=WarehouseState.ok())
 
     daily = report["daily_filter_data"]
     assert report["granularity"] == "week"
@@ -88,14 +90,26 @@ def test_project_report_preserves_daily_data_for_exact_period_filtering() -> Non
 @pytest.mark.parametrize(
     ("selected_state", "projects", "expected"),
     [
-        ({"status": "missing_file"}, [], {"status": "missing_file"}),
-        ({"status": "schema_outdated"}, [], {"status": "schema_outdated"}),
-        ({"status": "empty_for_cwd"}, ["/project"], {"status": "ok"}),
-        ({"status": "empty_for_cwd"}, [], {"status": "empty_for_cwd"}),
+        (
+            WarehouseState(WarehouseStatus.MISSING_FILE),
+            [],
+            WarehouseState(WarehouseStatus.MISSING_FILE),
+        ),
+        (
+            WarehouseState(WarehouseStatus.SCHEMA_OUTDATED),
+            [],
+            WarehouseState(WarehouseStatus.SCHEMA_OUTDATED),
+        ),
+        (WarehouseState(WarehouseStatus.EMPTY_FOR_CWD), ["/project"], WarehouseState.ok()),
+        (
+            WarehouseState(WarehouseStatus.EMPTY_FOR_CWD),
+            [],
+            WarehouseState(WarehouseStatus.EMPTY_FOR_CWD),
+        ),
     ],
 )
 def test_all_projects_warehouse_state(
-    selected_state: dict[str, str], projects: list[str], expected: dict[str, str]
+    selected_state: WarehouseState, projects: list[str], expected: WarehouseState
 ) -> None:
     assert all_projects_warehouse_state(selected_state, projects) == expected
 
