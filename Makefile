@@ -1,4 +1,4 @@
-.PHONY: init check-init lint typecheck test verify verify-fast build-check security bandit complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
+.PHONY: init check-init lint typecheck test verify verify-fast build-check security bandit semgrep-check complexity complexity-check arch-check pylint-check verify-public-boundary setup-hooks dev-refresh-local package package-standalone package-refresh-local package-refresh-global public-overlay-status public-overlay-bootstrap public-overlay-verify public-overlay-push public-overlay-pull
 
 PYTHON3 ?= python3
 
@@ -51,15 +51,23 @@ pylint-check: check-init
 	./.venv/bin/pylint src/
 endif
 
-verify-fast: check-init lint typecheck test
+verify-fast: check-init lint semgrep-check typecheck test
 
-verify: check-init lint security bandit typecheck test build-check complexity complexity-check arch-check pylint-check
+verify: check-init lint security bandit semgrep-check typecheck test build-check complexity complexity-check arch-check pylint-check
 
 security:
 	./.venv/bin/python -m ai_agents_metrics security --repo-root . --rules-path config/security-rules.toml
 
 bandit:
 	./.venv/bin/bandit -r src scripts -q --skip B404,B607,B603 --exclude scripts/permission_audit/test_*.py
+
+semgrep-check:
+	SSL_CERT_FILE="$$(.venv/bin/python -m certifi)" \
+	SEMGREP_LOG_FILE=/tmp/ai-agents-metrics-semgrep.log \
+	SEMGREP_SETTINGS_FILE=/tmp/ai-agents-metrics-semgrep-settings.yml \
+	SEMGREP_VERSION_CACHE_PATH=/tmp/ai-agents-metrics-semgrep-version-cache \
+	./.venv/bin/semgrep scan --error --no-git-ignore --metrics=off --disable-version-check \
+		--config config/semgrep/layer-boundaries.yml src
 
 verify-public-boundary:
 	./.venv/bin/python -m ai_agents_metrics verify-public-boundary --repo-root . --rules-path config/public-boundary-rules.toml

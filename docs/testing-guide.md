@@ -26,6 +26,7 @@ make verify          # full suite incl. bandit, pylint, complexity (~1.5min) —
 make test            # pytest only
 make lint            # ruff only
 make typecheck       # mypy only
+make semgrep-check   # project-specific layer-boundary patterns
 python -m pytest tests/history/test_history_summary.py -v # single file
 ```
 
@@ -201,6 +202,37 @@ def test_ingest(tmp_path: Path) -> None:
     )
     assert summary.threads_ingested == 1
 ```
+
+---
+
+## Testing architectural boundaries
+
+Test each layer through its own public surface. Replace the next layer with a
+small typed fake; do not pull infrastructure upward merely to make a test
+convenient.
+
+| Layer under test | Invoke | Replace | Must not use |
+|---|---|---|---|
+| CLI command | Handler or CLI entrypoint | Runtime protocol | SQLite, application internals |
+| Application use case | Typed request and use-case class | Port implementations | Filesystem, SQLite, concrete adapters |
+| Persistence adapter | Adapter public method | Nothing below the adapter | CLI handlers, HTML orchestration |
+| Renderer or domain function | Pure public function | I/O inputs with typed values | Runtime facade, database |
+
+For report changes this maps to:
+
+- `tests/cli/test_report_command.py` — command-to-runtime delegation and output side effects;
+- `tests/reporting/test_report_application.py` — report orchestration with fake query and pricing ports;
+- `tests/reporting/test_sqlite_report_query.py` — real SQLite queries against temporary databases;
+- `tests/reporting/test_html_report.py` — pure aggregation and HTML rendering.
+
+A test is at the wrong boundary when changing SQL breaks a CLI delegation test,
+changing console text breaks an adapter test, or an application test needs a
+temporary database. Move that assertion to the test for the layer that owns the
+behavior.
+
+When adding a new command capability, define the typed runtime/application
+operation before implementing the handler. Add or extend an import-linter
+contract when a forbidden dependency can be expressed statically.
 
 ---
 

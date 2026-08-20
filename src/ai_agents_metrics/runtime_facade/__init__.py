@@ -31,6 +31,7 @@ from ai_agents_metrics.runtime_facade.orchestration import (
     normalize_codex_history,
     verify_public_boundary,
 )
+from ai_agents_metrics.runtime_facade.reporting import build_html_report
 from ai_agents_metrics.storage import metrics_mutation_lock
 from ai_agents_metrics.usage.pricing_runtime import (
     load_effective_pricing,
@@ -56,6 +57,7 @@ __all__ = [
     "PRICING_JSON_PATH",
     "RAW_WAREHOUSE_PATH",
     "classify_codex_history",
+    "build_html_report",
     "compute_event_cost_usd",
     "derive_codex_history",
     "find_usage_thread_id",

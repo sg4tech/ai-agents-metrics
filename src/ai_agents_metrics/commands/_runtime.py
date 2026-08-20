@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ai_agents_metrics.history.ingest import IngestSummary
     from ai_agents_metrics.history.normalize import NormalizeSummary
     from ai_agents_metrics.history.summary import WarehouseSummary
+    from ai_agents_metrics.report.application import BuildReportRequest, ReportDocument
 
 
 # CommandRuntime aggregates the entire runtime surface that handle_* command
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
 # dispatches, not an architectural issue. Splitting would fragment the single
 # type hint each handler uses, without reducing coupling.
 class CommandRuntime(Protocol):  # pylint: disable=too-many-public-methods
+    def build_html_report(self, request: BuildReportRequest) -> ReportDocument: ...
     def ingest_codex_history(self, source_root: Path, warehouse_path: Path, source: str = ...) -> Any: ...
     def normalize_codex_history(self, warehouse_path: Path) -> Any: ...
     def classify_codex_history(self, warehouse_path: Path) -> Any: ...
