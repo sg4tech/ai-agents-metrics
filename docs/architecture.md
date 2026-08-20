@@ -104,6 +104,7 @@ Codex (~/.codex) or Claude Code (~/.claude)
        history/derive_build.py    — pipeline stage builders
        history/derive_insert.py   — typed inserts into derived_*
        history/derive_schema.py   — schema for derived tables
+       history/project_paths.py   — canonical checkout and worktree path rules
 ```
 
 For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggregated) see
@@ -139,6 +140,11 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 - Consumed by normalize → classify → derive steps
 - Read directly by `show` and `render-html` for token, retry, timeline, and practice data
 - `show --json` exposes a versioned warehouse summary contract
+
+The warehouse is disposable derived state, not a durable compatibility boundary. Schema changes
+do not require backward-compatible readers or migrations for existing local databases. Commands
+must reject an outdated schema clearly; running `history-update` rebuilds the warehouse from the
+source agent history.
 
 ---
 

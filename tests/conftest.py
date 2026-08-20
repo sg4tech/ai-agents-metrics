@@ -57,7 +57,7 @@ def find_repo_paths() -> tuple[Path, Path, Path]:
 
 
 # Session-scoped baseline repo built once per test run; ``repo`` below copies
-# from it with ``cp -rl`` (hardlinks) so per-test setup avoids re-running git
+# from it with hardlinks so per-test setup avoids re-running git
 # five times. Previously each test dir duplicated a ``repo`` fixture that
 # spawned ``git init`` + two ``git config`` + ``git add`` + ``git commit`` per
 # test — under xdist parallel workers this was the dominant source of flakes
@@ -106,10 +106,12 @@ def _repo_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 @pytest.fixture
 def repo(tmp_path: Path, _repo_template: Path) -> Path:
-    """Per-test repo copy. ``cp -rl`` hardlinks from the session template."""
-    subprocess.run(
-        ["cp", "-rl", f"{_repo_template}/.", str(tmp_path)],
-        check=True, capture_output=True,
+    """Create a per-test repo using hardlinks from the session template."""
+    shutil.copytree(
+        _repo_template,
+        tmp_path,
+        copy_function=os.link,
+        dirs_exist_ok=True,
     )
     return tmp_path
 

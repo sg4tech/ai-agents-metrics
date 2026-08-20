@@ -478,10 +478,8 @@ def _insert_goal_and_retry_chain(
 def _insert_projects(conn: sqlite3.Connection, project_stats: dict[str, dict[str, Any]]) -> int:
     count = 0
     for project_cwd, stats in project_stats.items():
-        # project_cwd is already the collapsed parent path (worktree suffix stripped by
-        # _parent_project_cwd at aggregation time), so parent_project_cwd == project_cwd for
-        # every row.  The column exists so that read_history_signals and history_compare_store
-        # can query by parent_project_cwd without needing a LIKE workaround on derived_projects.
+        # Project aggregation already uses the canonical parent checkout path. Keep the
+        # explicit parent column so readers can query the project-scope invariant directly.
         conn.execute(
             """
             INSERT INTO derived_projects (

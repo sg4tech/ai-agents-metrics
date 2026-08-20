@@ -31,31 +31,6 @@ def _message_date_from_timestamp(value: str | None) -> str | None:
     return timestamp[:10]
 
 
-def _normalize_project_cwd(value: Any) -> str | None:
-    if not isinstance(value, str):
-        return None
-    cleaned = value.strip()
-    return cleaned or None
-
-
-def _parent_project_cwd(value: Any) -> str | None:
-    """Return the parent project cwd, collapsing Claude Code worktree paths into their root.
-
-    Worktrees created by Claude Code live under ``<project>/.claude/worktrees/<name>``.
-    Any thread whose cwd matches that pattern is attributed to ``<project>`` instead,
-    so worktree activity is merged into the parent project when aggregating stats.
-    """
-    raw = _normalize_project_cwd(value)
-    if raw is None:
-        return None
-    marker = "/.claude/worktrees/"
-    idx = raw.find(marker)
-    if idx == -1:
-        return raw
-    parent = raw[:idx]
-    return parent or raw
-
-
 def _pick_earliest_timestamp(current: str | None, candidate: str | None) -> str | None:
     current_value = _normalize_timestamp(current)
     candidate_value = _normalize_timestamp(candidate)

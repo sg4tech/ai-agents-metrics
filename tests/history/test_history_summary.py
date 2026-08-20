@@ -74,9 +74,33 @@ def test_load_warehouse_summary_falls_back_to_all_projects(tmp_path: Path) -> No
     assert summary.scope.is_all_projects
 
 
+def test_load_warehouse_summary_resolves_worktree_to_parent(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    project = tmp_path / "project"
+    worktree = project / ".claude" / "worktrees" / "feature"
+    worktree.mkdir(parents=True)
+    _create_warehouse(warehouse)
+    _insert_project(warehouse, project)
+
+    summary = load_warehouse_summary(warehouse, worktree)
+
+    assert summary.activity.threads == 4
+    assert summary.scope.project_cwd == str(project)
+    assert not summary.scope.is_all_projects
+
+
 def test_load_warehouse_summary_requires_derived_data(tmp_path: Path) -> None:
     warehouse = tmp_path / "warehouse.db"
     sqlite3.connect(warehouse).close()
+
+    with pytest.raises(ValueError, match="run history-update first"):
+        load_warehouse_summary(warehouse, tmp_path)
+
+
+def test_load_warehouse_summary_rejects_outdated_project_schema(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as conn:
+        conn.execute("CREATE TABLE derived_projects (project_cwd TEXT, thread_count INTEGER)")
 
     with pytest.raises(ValueError, match="run history-update first"):
         load_warehouse_summary(warehouse, tmp_path)

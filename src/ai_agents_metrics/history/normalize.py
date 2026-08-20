@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, TypedDict
 
+from ai_agents_metrics.history.project_paths import normalize_project_cwd
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -107,13 +109,6 @@ def _iso_from_unix_seconds(value: int | None) -> str | None:
 
 def _normalize_timestamp(value: str | None) -> str | None:
     if value is None:
-        return None
-    cleaned = value.strip()
-    return cleaned or None
-
-
-def _normalize_project_cwd(value: Any) -> str | None:
-    if not isinstance(value, str):
         return None
     cleaned = value.strip()
     return cleaned or None
@@ -499,7 +494,7 @@ def _insert_normalized_threads(
     for thread_row in raw_threads:
         thread_id = thread_row["thread_id"]
         threads_with_rows.add(thread_id)
-        project_cwd = _normalize_project_cwd(thread_row["cwd"])
+        project_cwd = normalize_project_cwd(thread_row["cwd"])
         if project_cwd is not None:
             thread_project_cwd[thread_id] = project_cwd
             stats = _ensure_project_stats(project_stats, project_cwd)
@@ -611,7 +606,7 @@ def _insert_normalized_sessions(
     for session_row in raw_sessions:
         session_path = session_row["session_path"]
         thread_id = session_row["thread_id"]
-        project_cwd = _normalize_project_cwd(session_row["cwd"])
+        project_cwd = normalize_project_cwd(session_row["cwd"])
         if project_cwd is not None and thread_id is not None and thread_id not in threads_with_rows:
             thread_project_cwd[thread_id] = project_cwd
             stats = _ensure_project_stats(project_stats, project_cwd)
