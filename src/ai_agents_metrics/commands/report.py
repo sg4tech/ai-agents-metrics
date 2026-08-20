@@ -6,7 +6,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
 from ai_agents_metrics.report.html_report import (
@@ -18,10 +18,10 @@ from ai_agents_metrics.report.html_report import (
 
 _ALL_PROJECTS_KEY = "__all_projects__"
 
-type _ProjectDbRow = tuple[str]
-type _SessionDbRow = tuple[str, str, int | None]
-type _TokenDbRow = tuple[str, str, str | None, str | None, int, int, int, int, int]
-type _PracticeDbRow = tuple[str, str, str, int]
+_ProjectDbRow: TypeAlias = tuple[str]
+_SessionDbRow: TypeAlias = tuple[str, str, int | None]
+_TokenDbRow: TypeAlias = tuple[str, str, str | None, str | None, int, int, int, int, int]
+_PracticeDbRow: TypeAlias = tuple[str, str, str, int]
 
 if TYPE_CHECKING:
     from argparse import Namespace
@@ -85,7 +85,7 @@ def _load_render_html_warehouse_rows(warehouse_path: Path) -> _WarehouseReportRo
                 "WHERE dg.cwd IS NOT NULL AND dg.cwd != '' "
                 "GROUP BY dg.cwd, pe.practice_name, pe.source_kind",
             ).fetchall()
-    except sqlite3.Error, OSError:
+    except (sqlite3.Error, OSError):
         return _WarehouseReportRows()
 
     return _build_warehouse_report_rows(
@@ -175,7 +175,7 @@ def _safe_load_effective_pricing(
 ) -> dict[str, dict[str, float | None]] | None:
     try:
         return cli_module.load_effective_pricing(cwd=Path.cwd())
-    except OSError, ValueError:
+    except (OSError, ValueError):
         return None
 
 

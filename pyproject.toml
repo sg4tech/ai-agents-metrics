@@ -58,7 +58,7 @@ fallback_version = "0.0.0.dev0"
 ai_agents_metrics = ["data/*.json", "data/*.md"]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py311"
 line-length = 100
 
 [tool.ruff.lint]
@@ -81,7 +81,7 @@ select = [
 ]
 
 [tool.mypy]
-python_version = "3.14"
+python_version = "3.11"
 # strict = true enables the full strict flag set (equivalent to `mypy --strict`):
 # disallow_any_generics, disallow_subclassing_any, disallow_untyped_calls,
 # disallow_untyped_defs, disallow_untyped_decorators, warn_return_any,
