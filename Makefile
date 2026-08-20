@@ -4,11 +4,9 @@ PYTHON3 ?= python3
 
 ifndef PRIVATE_OVERRIDE
 init:
-	git pull origin master || true
 	$(PYTHON3) -m venv .venv
 	.venv/bin/pip install -U pip setuptools wheel
 	.venv/bin/pip install -e ".[dev]" || .venv/bin/pip install -e .
-	@$(MAKE) public-overlay-pull || true
 endif
 
 check-init:
