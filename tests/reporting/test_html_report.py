@@ -377,7 +377,8 @@ def test_check_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -
     assert check_warehouse_state(path, "/repo") == {"status": "schema_outdated"}
 
 
-def test_check_warehouse_state_includes_child_worktree(tmp_path: Path) -> None:
+@pytest.mark.parametrize("cwd", ["/repo", "/repo/.claude/worktrees/feature"])
+def test_check_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str) -> None:
     path = tmp_path / "warehouse.db"
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
@@ -386,13 +387,13 @@ def test_check_warehouse_state_includes_child_worktree(tmp_path: Path) -> None:
             "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
         )
         conn.execute("CREATE TABLE normalized_threads (cwd TEXT)")
-        conn.execute("INSERT INTO derived_goals VALUES ('/repo/.claude/worktrees/feature')")
+        conn.execute("INSERT INTO derived_goals VALUES ('/repo')")
         conn.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
         conn.execute(
             "INSERT INTO normalized_threads VALUES ('/repo/.claude/worktrees/feature')"
         )
 
-    assert check_warehouse_state(path, "/repo") == {"status": "ok"}
+    assert check_warehouse_state(path, cwd) == {"status": "ok"}
 
 
 def test_load_render_html_rows_includes_child_worktree(tmp_path: Path) -> None:

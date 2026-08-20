@@ -105,7 +105,6 @@ Codex (~/.codex) or Claude Code (~/.claude)
        history/derive_insert.py   — typed inserts into derived_*
        history/derive_schema.py   — schema for derived tables
        history/project_paths.py   — canonical checkout and worktree path rules
-       history/project_scope.py   — shared warehouse project-scope resolver
 ```
 
 For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggregated) see
