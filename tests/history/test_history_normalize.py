@@ -3,7 +3,11 @@ from __future__ import annotations
 import sqlite3
 from typing import TYPE_CHECKING
 
-from test_history_ingest import create_codex_history_source_root, run_cmd
+from test_history_ingest import (
+    add_codex_model_switch_session,
+    create_codex_history_source_root,
+    run_cmd,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -50,6 +54,7 @@ def test_normalize_codex_history_builds_analysis_tables(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM normalized_messages").fetchone()[0] == 3
         assert conn.execute("SELECT count(*) FROM normalized_usage_events").fetchone()[0] == 1
         assert conn.execute("SELECT count(*) FROM normalized_logs").fetchone()[0] == 2
+        assert conn.execute("SELECT count(*) FROM normalized_projects").fetchone()[0] == 2
         assert conn.execute("SELECT count(*) FROM normalized_projects").fetchone()[0] == 2
 
         session = conn.execute(
@@ -107,7 +112,31 @@ def test_normalize_codex_history_is_idempotent_on_rerun(repo: Path) -> None:
         assert conn.execute("SELECT count(*) FROM normalized_messages").fetchone()[0] == 3
         assert conn.execute("SELECT count(*) FROM normalized_usage_events").fetchone()[0] == 1
         assert conn.execute("SELECT count(*) FROM normalized_logs").fetchone()[0] == 2
-        assert conn.execute("SELECT count(*) FROM normalized_projects").fetchone()[0] == 2
+
+
+def test_normalize_codex_usage_uses_preceding_turn_context_model(repo: Path) -> None:
+    source_root = create_codex_history_source_root(repo)
+    session_path = add_codex_model_switch_session(source_root)
+    warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "warehouse.db"
+
+    assert run_cmd(
+        repo,
+        "history-ingest",
+        "--source-root",
+        str(source_root),
+        "--warehouse-path",
+        str(warehouse_path),
+    ).returncode == 0
+    result = run_cmd(repo, "history-normalize", "--warehouse-path", str(warehouse_path))
+
+    assert result.returncode == 0, result.stderr
+    with sqlite3.connect(warehouse_path) as conn:
+        rows = conn.execute(
+            "SELECT model FROM normalized_usage_events WHERE session_path = ? ORDER BY event_index",
+            (str(session_path),),
+        ).fetchall()
+
+    assert [row[0] for row in rows] == ["gpt-first", "gpt-second", "gpt-explicit"]
 
 
 def test_normalize_codex_history_handles_missing_event_timestamps(repo: Path) -> None:

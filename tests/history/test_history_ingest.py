@@ -289,6 +289,78 @@ def create_codex_history_source_root(root: Path) -> Path:
     return source_root
 
 
+def add_codex_model_switch_session(source_root: Path) -> Path:
+    session_path = source_root / "sessions" / "2026" / "04" / "02" / "model-switch.jsonl"
+    records = [
+        {
+            "timestamp": "2026-04-02T11:00:00.000Z",
+            "type": "session_meta",
+            "payload": {
+                "id": "model-switch-thread",
+                "timestamp": "2026-04-02T11:00:00.000Z",
+                "cwd": str(source_root),
+                "model_provider": "openai",
+            },
+        },
+        {
+            "timestamp": "2026-04-02T11:00:01.000Z",
+            "type": "turn_context",
+            "payload": {"model": "gpt-first"},
+        },
+        {
+            "timestamp": "2026-04-02T11:00:02.000Z",
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "info": {"last_token_usage": {"total_tokens": 10}},
+            },
+        },
+        {
+            "timestamp": "2026-04-02T11:00:03.000Z",
+            "type": "turn_context",
+            "payload": {"model": "gpt-second"},
+        },
+        {
+            "timestamp": "2026-04-02T11:00:04.000Z",
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "info": {"last_token_usage": {"total_tokens": 20}},
+            },
+        },
+        {
+            "timestamp": "2026-04-02T11:00:05.000Z",
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "model": "gpt-explicit",
+                    "last_token_usage": {"total_tokens": 30},
+                },
+            },
+        },
+    ]
+    session_path.write_text("\n".join(json.dumps(record) for record in records), encoding="utf-8")
+    with sqlite3.connect(source_root / "state_5.sqlite") as conn:
+        conn.execute(
+            """
+            INSERT INTO threads (
+                id, rollout_path, source, model_provider, cwd, title, model
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "model-switch-thread",
+                str(session_path),
+                "vscode",
+                "openai",
+                str(source_root),
+                "Model switch",
+                "gpt-second",
+            ),
+        )
+    return session_path
+
+
 def test_ingest_codex_history_builds_raw_warehouse(repo: Path) -> None:
     source_root = create_codex_history_source_root(repo)
     warehouse_path = repo / "metrics" / ".ai-agents-metrics" / "warehouse.db"

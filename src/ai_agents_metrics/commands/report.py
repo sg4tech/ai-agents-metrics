@@ -60,7 +60,7 @@ def _load_render_html_warehouse_rows(warehouse_path: Path) -> _WarehouseReportRo
             ).fetchall()
             token_rows = conn.execute(
                 "SELECT dg.cwd, dg.last_seen_at, "
-                "  COALESCE(dg.model, ("
+                "  COALESCE(dmu.model, dg.model, ("
                 "    SELECT json_extract(nue.raw_json, '$.message.model') "
                 "    FROM normalized_usage_events nue "
                 "    WHERE nue.thread_id = dg.thread_id "
@@ -68,15 +68,15 @@ def _load_render_html_warehouse_rows(warehouse_path: Path) -> _WarehouseReportRo
                 "    LIMIT 1"
                 "  )) as model, "
                 "  dg.model_provider, "
-                "  COALESCE(SUM(dsu.input_tokens), 0), "
-                "  COALESCE(SUM(dsu.cache_creation_input_tokens), 0), "
-                "  COALESCE(SUM(dsu.cached_input_tokens), 0), "
-                "  COALESCE(SUM(dsu.output_tokens), 0), "
-                "  COALESCE(SUM(dsu.total_tokens), 0) "
+                "  COALESCE(SUM(dmu.input_tokens), 0), "
+                "  COALESCE(SUM(dmu.cache_creation_input_tokens), 0), "
+                "  COALESCE(SUM(dmu.cached_input_tokens), 0), "
+                "  COALESCE(SUM(dmu.output_tokens), 0), "
+                "  COALESCE(SUM(dmu.total_tokens), 0) "
                 "FROM derived_goals dg "
-                "LEFT JOIN derived_session_usage dsu ON dsu.thread_id = dg.thread_id "
+                "LEFT JOIN derived_model_usage dmu ON dmu.thread_id = dg.thread_id "
                 "WHERE dg.cwd IS NOT NULL AND dg.cwd != '' AND dg.last_seen_at IS NOT NULL "
-                "GROUP BY dg.thread_id",
+                "GROUP BY dg.thread_id, COALESCE(dmu.model, dg.model)",
             ).fetchall()
             practice_rows = conn.execute(
                 "SELECT dg.cwd, pe.practice_name, pe.source_kind, COUNT(*) "

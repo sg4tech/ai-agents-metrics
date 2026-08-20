@@ -139,6 +139,28 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     )
     conn.execute(
         """
+        CREATE TABLE IF NOT EXISTS derived_model_usage (
+            model_usage_id TEXT PRIMARY KEY,
+            thread_id TEXT NOT NULL,
+            source_path TEXT NOT NULL,
+            session_path TEXT NOT NULL,
+            attempt_index INTEGER NOT NULL,
+            model TEXT,
+            usage_event_count INTEGER NOT NULL,
+            input_tokens INTEGER,
+            cache_creation_input_tokens INTEGER,
+            cached_input_tokens INTEGER,
+            output_tokens INTEGER,
+            reasoning_output_tokens INTEGER,
+            total_tokens INTEGER,
+            first_usage_at TEXT,
+            last_usage_at TEXT,
+            raw_json TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS derived_projects (
             project_cwd TEXT PRIMARY KEY,
             parent_project_cwd TEXT,
@@ -212,6 +234,8 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_message_facts_model ON derived_message_facts(model)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_retry_chains_thread_id ON derived_retry_chains(thread_id)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_session_usage_thread_id ON derived_session_usage(thread_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_model_usage_thread_id ON derived_model_usage(thread_id)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_model_usage_model ON derived_model_usage(model)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_derived_projects_cwd ON derived_projects(project_cwd)")
     for table in ("derived_session_usage", "derived_projects"):
         existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
@@ -236,6 +260,7 @@ def _clear_derived_tables(conn: sqlite3.Connection) -> None:
     conn.execute("DELETE FROM derived_message_facts")
     conn.execute("DELETE FROM derived_retry_chains")
     conn.execute("DELETE FROM derived_session_usage")
+    conn.execute("DELETE FROM derived_model_usage")
     conn.execute("DELETE FROM derived_projects")
 
 

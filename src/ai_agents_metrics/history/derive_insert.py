@@ -37,6 +37,10 @@ def _session_usage_id(session_path: str) -> str:
     return hashlib.sha256(session_path.encode("utf-8")).hexdigest()
 
 
+def _model_usage_id(session_path: str, model: str | None) -> str:
+    return hashlib.sha256(f"{session_path}:{model or ''}".encode()).hexdigest()
+
+
 def _resolve_message_model(usage_event: NormalizedUsageEventRow | None, thread_model: str | None) -> str | None:
     if usage_event is not None:
         usage_model = usage_event["model"]
@@ -370,6 +374,68 @@ def _insert_session_usage_row(
     )
 
 
+def _insert_model_usage_rows(
+    conn: sqlite3.Connection,
+    thread_id: str,
+    session_row: NormalizedSessionRow,
+    attempt_index: int,
+    usage_rows: list[NormalizedUsageEventRow],
+) -> None:
+    rows_by_model: dict[str | None, list[NormalizedUsageEventRow]] = {}
+    for row in usage_rows:
+        model = row["model"]
+        cleaned_model = model.strip() if isinstance(model, str) and model.strip() else None
+        rows_by_model.setdefault(cleaned_model, []).append(row)
+
+    for model, model_rows in rows_by_model.items():
+        sums = _compute_session_token_sums(model_rows)
+        conn.execute(
+            """
+            INSERT INTO derived_model_usage (
+                model_usage_id, thread_id, source_path, session_path, attempt_index,
+                model, usage_event_count, input_tokens, cache_creation_input_tokens,
+                cached_input_tokens, output_tokens, reasoning_output_tokens,
+                total_tokens, first_usage_at, last_usage_at, raw_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                _model_usage_id(session_row["session_path"], model),
+                thread_id,
+                session_row["source_path"],
+                session_row["session_path"],
+                attempt_index,
+                model,
+                sums.count,
+                sums.inp,
+                sums.cac_create,
+                sums.cac,
+                sums.out,
+                sums.reasoning,
+                sums.total,
+                sums.first_at,
+                sums.last_at,
+                json.dumps(
+                    {
+                        "thread_id": thread_id,
+                        "session_path": session_row["session_path"],
+                        "attempt_index": attempt_index,
+                        "model": model,
+                        "usage_event_count": sums.count,
+                        "input_tokens": sums.inp,
+                        "cache_creation_input_tokens": sums.cac_create,
+                        "cached_input_tokens": sums.cac,
+                        "output_tokens": sums.out,
+                        "reasoning_output_tokens": sums.reasoning,
+                        "total_tokens": sums.total,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+            ),
+        )
+
+
 def _insert_attempts_and_session_usage(
     conn: sqlite3.Connection,
     thread_id: str,
@@ -379,11 +445,13 @@ def _insert_attempts_and_session_usage(
 ) -> int:
     count = 0
     for attempt_index, session_row in enumerate(sorted_sessions, start=1):
-        sums = _compute_session_token_sums(usage_events_by_session.get(session_row["session_path"], []))
+        usage_rows = usage_events_by_session.get(session_row["session_path"], [])
+        sums = _compute_session_token_sums(usage_rows)
         if stats_entry is not None:
             _update_project_stats(stats_entry, sums)
         _insert_attempt_row(conn, thread_id, session_row, attempt_index, sums)
         _insert_session_usage_row(conn, thread_id, session_row, attempt_index, sums)
+        _insert_model_usage_rows(conn, thread_id, session_row, attempt_index, usage_rows)
         count += 1
     return count
 
