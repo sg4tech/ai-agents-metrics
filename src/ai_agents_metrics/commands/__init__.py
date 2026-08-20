@@ -7,7 +7,6 @@ knowing about the submodule layout.
 """
 
 from ai_agents_metrics.commands._runtime import (
-    CommandRuntime,
     HistoryClassifyRuntime,
     HistoryDeriveRuntime,
     HistoryIngestRuntime,
@@ -35,7 +34,6 @@ from ai_agents_metrics.commands.report import (
 )
 
 __all__ = [
-    "CommandRuntime",
     "HistoryClassifyRuntime",
     "HistoryDeriveRuntime",
     "HistoryIngestRuntime",

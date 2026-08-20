@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from ai_agents_metrics.history.normalize import NormalizeSummary
     from ai_agents_metrics.history.summary import WarehouseSummary
     from ai_agents_metrics.public_boundary import PublicBoundaryReport
-    from ai_agents_metrics.report.application import BuildReportRequest, ReportDocument
 
 
 class MutationLockRuntime(Protocol):
@@ -65,24 +64,3 @@ class PublicBoundaryRuntime(Protocol):
     def verify_public_boundary(
         self, *, repo_root: Path, rules_path: Path
     ) -> PublicBoundaryReport: ...
-
-
-class CommandRuntime(
-    HistoryUpdateRuntime,
-    ShowRuntime,
-    PublicBoundaryRuntime,
-    Protocol,
-):  # pylint: disable=too-many-ancestors
-    """Legacy aggregate runtime retained only for import compatibility."""
-
-    def build_html_report(self, request: BuildReportRequest) -> ReportDocument: ...
-
-    def load_effective_pricing(
-        self, *, cwd: Path, pricing_path: Path | None = None
-    ) -> dict[str, dict[str, float | None]]: ...
-
-    def resolve_effective_pricing_path(
-        self, *, cwd: Path, pricing_path: Path | None = None
-    ) -> Path: ...
-
-    def resolve_pricing_path(self, cwd: Path) -> Path: ...

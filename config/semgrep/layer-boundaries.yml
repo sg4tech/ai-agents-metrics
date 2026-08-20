@@ -30,7 +30,7 @@ rules:
     severity: ERROR
     message: >-
       Command handlers must depend on a narrow operation-specific runtime protocol, not the
-      legacy aggregate CommandRuntime compatibility surface.
+      aggregate CommandRuntime surface.
     paths:
       include:
         - "**/commands/*.py"

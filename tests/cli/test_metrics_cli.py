@@ -6,7 +6,7 @@ from pathlib import Path
 
 from conftest import run_cli_inprocess
 
-from ai_agents_metrics import commands, runtime_facade
+from ai_agents_metrics import runtime_facade
 from ai_agents_metrics.cli_parsers import build_parser
 
 REMOVED_MANUAL_COMMANDS = {
@@ -47,10 +47,6 @@ def test_manual_tracking_commands_are_removed() -> None:
 
 def test_primary_history_commands_remain_available() -> None:
     assert {"history-update", "show", "render-html"} <= _command_choices()
-
-
-def test_legacy_command_runtime_remains_importable() -> None:
-    assert commands.CommandRuntime is not None
 
 
 def test_help_describes_history_only_workflow(capsys) -> None:

@@ -1,7 +1,11 @@
-"""Fixture containing a handler coupled to the legacy aggregate runtime."""
+"""Fixture containing a handler coupled to an aggregate runtime."""
 
-from ai_agents_metrics.commands import CommandRuntime
+from typing import Protocol
+
+
+class CommandRuntime(Protocol):
+    def build_report(self) -> str: ...
 
 
 def handle_report(runtime: CommandRuntime) -> None:
-    runtime.render_warehouse_summary_json  # noqa: B018
+    runtime.build_report()
