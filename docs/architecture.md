@@ -10,6 +10,7 @@
 **Related docs:**
 - [decisions.md](decisions.md) — why key architectural choices were made
 - [testing-guide.md](testing-guide.md) — how to test each layer
+- [refactoring-guide.md](refactoring-guide.md) — ownership preflight for structural changes
 - [warehouse-layering.md](warehouse-layering.md) — rules for what each warehouse layer (`raw_*` / `normalized_*` / `derived_*`) is allowed to contain
 
 ---
@@ -77,8 +78,8 @@ ai-agents-metrics/
 | `cli.py` | CLI dispatcher + facade surface for `scripts/metrics_cli.py` — records invocation, routes `args.command` to handlers, exposes `console_main` |
 | `cli_parsers.py` | Argparse parser construction (`build_parser`, per-group `_add_*_parsers` helpers, hidden-command filter) |
 | `cli_constants.py` | Path defaults (`METRICS_JSON_PATH`, `CODEX_STATE_PATH`, `CLAUDE_ROOT`, `RAW_WAREHOUSE_PATH`, …) consumed by both `cli.py` and `cli_parsers.py` |
-| `commands/` | CLI handlers grouped into `history`, `report`, `install`, and `misc`; `_runtime.py` defines the runtime protocol used by handlers |
-| `runtime_facade/` | Concrete runtime surface for history orchestration, reporting, pricing, audits, and installation |
+| `commands/` | Thin CLI handlers grouped into `history`, `report`, `install`, and `misc`; `_runtime.py` defines the runtime protocol used by handlers |
+| `runtime_facade/` | Concrete runtime composition surface for history orchestration, reporting, pricing, audits, and installation |
 
 ### Core Domain
 
@@ -115,6 +116,8 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | File | Role |
 |------|------|
 | `report/html_report.py` | Public facade for the HTML report: re-exports `aggregate_report_data` and `render_html_report` |
+| `report/application/` | Typed report contracts, query and pricing ports, and HTML-report use cases; application code belongs in this package and receives no persistence rows |
+| `report/sqlite_query.py` | SQLite adapter that owns SQL, schema knowledge, and persistence-row mapping behind the query port |
 | `report/aggregation.py` | Transforms warehouse retry, token, model, and practice rows into chart-ready series |
 | `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
 | `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
@@ -156,6 +159,7 @@ Boundary note:
 
 - `cli.py` is the entrypoint module, not the general runtime dependency surface
 - `commands/` depends on `runtime_facade/`, not on `cli.py` (enforced by import-linter)
+- command handlers do not import persistence adapters directly (enforced by import-linter)
 - pricing-aware runtime consumers should go through `usage/pricing_runtime.py`, not ad-hoc pricing-path resolution
 
 Key command groups:
@@ -188,7 +192,7 @@ the root shows structure at a glance:
 | `cli/` | `test_metrics_cli.py` | Full CLI workflow integration |
 | `domain/` | `test_metrics_domain{,_properties}.py` | Domain model logic + hypothesis invariants |
 | `history/` | `test_history_{ingest,normalize,normalize_properties,derive,classify,compare,audit,pipeline_json}.py` | Pipeline stages |
-| `reporting/` | `test_{html_report,show_json}.py` | Warehouse-backed report rendering |
+| `reporting/` | `test_{html_report,report_application,sqlite_report_query,show_json}.py` | Pure rendering, report use cases, SQLite report adapter, and summary JSON |
 | `workflow/` | `test_commit_message.py` | Commit-message and hook integration |
 | `infra/` | `test_{public_boundary,public_overlay,security}.py` | Boundary and security rules |
 | `strategies/` | `domain.py`, `history.py` | Hypothesis strategies shared across property tests |
@@ -207,8 +211,9 @@ subdirs.
 | Tool | Config | Settings |
 |------|--------|----------|
 | **ruff** | `pyproject.toml` | 15 rule categories (B, C4, ERA, F, FURB, I, PERF, PGH, PTH, Q, RET, RSE, SIM, TC, UP); target Python 3.14; line length 100 |
-| **mypy** | `pyproject.toml` | `strict = true` at top level (ARCH-030); covers `src/` + `scripts/`; 65/65 files pass `--strict` |
-| **import-linter** | `pyproject.toml` | Six architectural contracts: domain/storage/history boundaries, usage-layer restrictions, package modules must not import `cli.py` outside the entrypoint shim |
+| **mypy** | `pyproject.toml` | `strict = true` at top level (ARCH-030); covers `src/` and `scripts/` |
+| **import-linter** | `pyproject.toml` | Executable dependency contracts for domain, storage, history, reporting, command, usage, and CLI boundaries |
+| **Semgrep CE** | `config/semgrep/` | Project-specific semantic guards against persistence leakage into controllers and direct I/O in application modules |
 | **pylint** | `pyproject.toml` + `Makefile` | Full default rule set on the whole project (ARCH-019 … ARCH-023); a small `disable` list documents the few intentionally-off rules |
 | **hypothesis** | `pyproject.toml` dev dep | Property-based tests for `domain/aggregation` (8 invariants) and `history/normalize` (8 invariants); strategies in `tests/strategies/` |
 | **pytest** | `pyproject.toml` | `pythonpath = ["src"]`, xdist auto workers, 5s default timeout (overridden per-test on hypothesis suites) |

@@ -21,6 +21,7 @@ Read the documents relevant to the change:
   normalization, classification, or derivation changes.
 - `docs/cli-reference.md` for CLI behavior and compatibility expectations.
 - `docs/decisions.md` before changing an established architectural choice.
+- `docs/refactoring-guide.md` before splitting a large file or package.
 
 ## Repository layout
 
@@ -57,6 +58,45 @@ adapters and CLI -> application orchestration -> domain
 
 Prefer small, observable changes over broad rewrites. Preserve the working path until its
 replacement is covered by tests.
+
+### Mandatory preflight for oversized-file refactors
+
+Before editing a large file for structural reasons, complete the ownership table and dependency
+map in `docs/refactoring-guide.md`. Record them in the task plan or in a design note when the
+decision must remain in the repository. Do not start implementation while any responsibility has
+no single owner or any dependency direction is unresolved.
+
+Reducing line count is not evidence of architectural improvement. Assign every reason to change
+to exactly one controller, use case, domain service, port, adapter, presenter, or composition
+root. Define typed boundary inputs and outputs, the public test surface for each owner, and the
+import-linter contracts that can enforce the intended direction before moving implementation.
+
+After the split, repeat the ownership inventory for every resulting module. The refactor is not
+complete if a new module mixes owners, raw external data crosses an adapter boundary, tests still
+import private helpers across layers, or the intended dependency direction is not enforced where
+the tooling supports it.
+
+### Mandatory boundary check for command changes
+
+Before adding or extending any `commands/` handler, define the operation at the
+application/runtime boundary first. A command change is not ready for implementation until all
+of the following have an explicit home:
+
+1. A typed request and result owned outside `commands/`.
+2. A narrow runtime `Protocol` containing only the operation used by that handler.
+3. Application ports for every database, filesystem, pricing, or external dependency.
+4. Concrete adapter composition in `runtime_facade/`, never in the command handler.
+5. Separate tests for command delegation, application behavior through fake ports, and each
+   concrete adapter.
+
+Command handlers must not import `sqlite3`, warehouse schema modules, persistence adapters, or
+raw persistence-row types. They may parse arguments, call the narrow runtime operation, perform
+the command's final output side effect, and render its console result. Follow the canonical test
+matrix in `docs/testing-guide.md` under "Testing architectural boundaries". Do not bypass a
+boundary with a private-helper import or `type: ignore` in a test.
+
+Place report application contracts and use cases under `report/application/`; the Semgrep
+boundary gate covers the complete package rather than relying on individual module names.
 
 ### General design principles
 

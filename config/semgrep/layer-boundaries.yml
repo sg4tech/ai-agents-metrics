@@ -1,0 +1,44 @@
+rules:
+  - id: ai-agents-metrics.controller-persistence-call
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Command handlers must not execute persistence operations. Move the operation behind an
+      application port and compose its adapter in runtime_facade.
+    paths:
+      include:
+        - "**/commands/*.py"
+    pattern-either:
+      - pattern: $CONNECTION.execute(...)
+      - pattern: $CONNECTION.executemany(...)
+      - pattern: $CONNECTION.executescript(...)
+
+  - id: ai-agents-metrics.controller-warehouse-schema
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Command handlers must not know warehouse schema names. Keep schema knowledge and row
+      mapping inside a persistence adapter.
+    paths:
+      include:
+        - "**/commands/*.py"
+    pattern-regex: >-
+      (?i)(FROM|JOIN|INTO|UPDATE|TABLE)\s+(raw|normalized|derived)_[a-z0-9_]+
+
+  - id: ai-agents-metrics.application-direct-io
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Application code must use a port instead of direct database, filesystem, process, or
+      network I/O.
+    paths:
+      include:
+        - "**/application.py"
+        - "**/application/**/*.py"
+    pattern-either:
+      - pattern: sqlite3.connect(...)
+      - pattern: $PATH.read_text(...)
+      - pattern: $PATH.write_text(...)
+      - pattern: open(...)
+      - pattern: subprocess.run(...)
+      - pattern: subprocess.Popen(...)

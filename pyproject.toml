@@ -37,7 +37,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["ruff", "mypy", "pytest", "pytest-xdist", "pytest-timeout", "hypothesis", "coverage[toml]", "setuptools>=82", "build", "bandit", "radon", "import-linter", "pylint"]
+dev = ["ruff", "mypy", "pytest", "pytest-xdist", "pytest-timeout", "hypothesis", "coverage[toml]", "setuptools>=82", "build", "bandit", "radon", "import-linter", "pylint", "semgrep"]
 
 [project.scripts]
 ai-agents-metrics = "ai_agents_metrics.cli:console_main"
@@ -124,6 +124,7 @@ src = "src"
 
 [tool.importlinter]
 root_packages = ["ai_agents_metrics"]
+include_external_packages = true
 
 [[tool.importlinter.contracts]]
 name = "Domain layer must not import from CLI or orchestration"
@@ -176,6 +177,29 @@ source_modules = ["ai_agents_metrics.usage.resolution"]
 forbidden_modules = [
     "ai_agents_metrics.cli",
     "ai_agents_metrics.usage.backends",
+]
+
+[[tool.importlinter.contracts]]
+name = "CLI and report application must not depend directly on persistence"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.report.application",
+]
+forbidden_modules = [
+    "ai_agents_metrics.report.sqlite_query",
+    "ai_agents_metrics.history.ingest.warehouse",
+    "sqlite3",
+]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Reporting composition follows runtime -> SQLite adapter -> application"
+type = "layers"
+layers = [
+    "ai_agents_metrics.runtime_facade.reporting",
+    "ai_agents_metrics.report.sqlite_query",
+    "ai_agents_metrics.report.application",
 ]
 
 [[tool.importlinter.contracts]]
