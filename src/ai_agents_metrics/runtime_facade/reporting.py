@@ -21,7 +21,7 @@ class EffectivePricing:
     def load_pricing(self, cwd: Path) -> Pricing | None:
         try:
             return load_effective_pricing(cwd=cwd)
-        except OSError, ValueError:
+        except (OSError, ValueError):
             return None
 
 

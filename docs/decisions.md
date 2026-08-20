@@ -84,7 +84,7 @@ When promoting, drop leading underscores from files whose privacy the new packag
 
 **Context:** Five test files (`tests/cli/test_metrics_cli.py` plus four `tests/history/test_history_*.py`) each defined a local `repo` fixture that spawned five git subprocesses per test (`git init`, two `git config`, `git add`, `git commit`). Across ~160 tests this is several hundred subprocess invocations per run. Under xdist parallel workers + the 5s per-test `pytest-timeout` the git spawns queued up during CPU contention and pushed tests over the cliff intermittently (~50% flake rate on 1-CPU CI hardware).
 
-**Decision:** Build a session-scoped `_repo_template` once (`tests/conftest.py`), then have a function-scoped `repo` fixture `cp -rl` (hardlink-copy) from it for each test. The template's files are `chmod 0o555` so accidental writes fail loudly instead of silently poisoning the shared inode. The pattern was originally introduced for the cli test suite (PR #46) and generalized to all subdirs in PR #49.
+**Decision:** Build a session-scoped `_repo_template` once (`tests/conftest.py`), pack its Git objects before exposing it, then have a function-scoped `repo` fixture hardlink-copy it for each test. The template's files are `chmod 0o555` so accidental writes fail loudly instead of silently poisoning the shared inode. The pattern was originally introduced for the cli test suite (PR #46) and generalized to all subdirs in PR #49.
 
 Two supporting conventions:
 
@@ -94,7 +94,7 @@ Two supporting conventions:
 
 **Trade-offs:** Tests that don't need `src/`, `scripts/`, or `pricing/` now get them as hardlinks. Hardlink cost is near-zero, so the extra files are free; the risk is tests accidentally depending on template-baked state, which the read-only permission guardrail surfaces immediately.
 
-**Why this works:** The session-scoped template amortizes the 5-subprocess git setup across the entire test run. `cp -rl` makes the per-test copy effectively free because no bytes are copied — just inode entries. Flake rate dropped from ~50% to 0 across 5 consecutive full-suite runs without any test skipping or xdist worker tuning.
+**Why this works:** The session-scoped template amortizes repository setup across the entire test run. Packing completes Git's object-directory mutations before tests begin traversing the template, while hardlinks keep each per-test copy lightweight.
 
 ---
 

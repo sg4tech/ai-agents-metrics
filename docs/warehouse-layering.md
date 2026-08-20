@@ -115,7 +115,7 @@ The two layers must not be collapsed into one table: they describe different kin
 - Raw text or payload content (those stay in Layer 2)
 - Field values that silently collapse partial-data (`None` tokens → `0`). Prefer an explicit coverage field and propagate NULL when coverage is incomplete.
 
-**Test of the invariant:** aggregates equal exactly what their source rows say. E.g. `SUM(derived_projects.total_tokens) == SUM(derived_session_usage.total_tokens)`. These equalities are existing tests; new aggregates must add similar equality tests.
+**Test of the invariant:** aggregates equal exactly what their source rows say. E.g. `SUM(derived_projects.total_tokens) == SUM(derived_session_usage.total_tokens)` and model-level usage sums back to session usage. These equalities are existing tests; new aggregates must add similar equality tests.
 
 ---
 
@@ -139,9 +139,10 @@ These should be enforced by tests in `tests/public/` and by the validation code 
 
 **Aggregate ↔ classified + normalized**
 - `SUM(derived_projects.total_tokens) == SUM(derived_session_usage.total_tokens)` (verified on current warehouse; already an implicit test).
+- `SUM(derived_model_usage.total_tokens) == SUM(derived_session_usage.total_tokens)` for usage rows with model-level attribution.
 - `derived_goals.attempt_count == COUNT(derived_attempts WHERE thread_id = derived_goals.thread_id)` (verified on current warehouse; 0 mismatches across 160 goals).
 - After the classified layer lands: `derived_goals.main_attempt_count == COUNT(derived_session_kinds WHERE thread_id = derived_goals.thread_id AND kind = 'main' AND classifier_version = <current>)`.
-- No orphans between aggregate and its sources: `derived_attempts.session_path ⊆ normalized_sessions.session_path`, `derived_goals.thread_id ⊆ normalized_threads.thread_id`, `derived_session_usage.session_path ⊆ normalized_sessions.session_path`. (All verified at 0 orphans on current warehouse.)
+- No orphans between aggregate and its sources: `derived_attempts.session_path ⊆ normalized_sessions.session_path`, `derived_goals.thread_id ⊆ normalized_threads.thread_id`, and session/model usage rows reference normalized sessions.
 
 **Idempotency (across all layers)**
 - Running the full pipeline twice on unchanged input produces byte-identical rows, modulo fields that track the run itself: `ingested_at`, `normalized_at`, `classified_at`, `derived_at`, and `ingest_run_id`. Any other column that changes between runs indicates non-determinism and is a bug.

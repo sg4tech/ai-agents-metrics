@@ -31,8 +31,9 @@ def _create_report_tables(connection: sqlite3.Connection) -> None:
             model TEXT,
             model_provider TEXT
         );
-        CREATE TABLE derived_session_usage (
+        CREATE TABLE derived_model_usage (
             thread_id TEXT,
+            model TEXT,
             input_tokens INTEGER,
             cache_creation_input_tokens INTEGER,
             cached_input_tokens INTEGER,
@@ -62,8 +63,8 @@ def test_load_report_source_maps_rows_and_merges_projects(tmp_path: Path) -> Non
             ],
         )
         connection.executemany(
-            "INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?)",
-            [("one", 10, 0, 2, 3, 15), ("two", 20, 0, 4, 6, 30)],
+            "INSERT INTO derived_model_usage VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [("one", "model", 10, 0, 2, 3, 15), ("two", "model", 20, 0, 4, 6, 30)],
         )
         connection.executemany(
             "INSERT INTO derived_practice_events VALUES (?, ?, ?)",
@@ -83,6 +84,30 @@ def test_load_report_source_maps_rows_and_merges_projects(tmp_path: Path) -> Non
     }
     assert sum(row.total_tokens for row in source.all_projects.tokens) == 45
     assert source.all_projects.practice == [("Explore", "Agent", 2)]
+
+
+def test_load_report_source_preserves_usage_for_each_model(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as connection:
+        _create_report_tables(connection)
+        connection.execute(
+            "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?, ?)",
+            ("mixed", "/project", "2026-01-01", 1, "gpt-second", "openai"),
+        )
+        connection.executemany(
+            "INSERT INTO derived_model_usage VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [
+                ("mixed", "gpt-first", 10, 0, 0, 1, 11),
+                ("mixed", "gpt-second", 20, 0, 0, 2, 22),
+            ],
+        )
+
+    rows = SQLiteReportQuery().load_report_source(warehouse).all_projects.tokens
+
+    assert [(row.model, row.total_tokens) for row in rows] == [
+        ("gpt-first", 11),
+        ("gpt-second", 22),
+    ]
 
 
 def test_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:
@@ -106,6 +131,20 @@ def test_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None
         connection.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
 
     assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == {"status": "schema_outdated"}
+
+
+def test_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    with sqlite3.connect(warehouse) as connection:
+        connection.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        connection.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        connection.execute(
+            "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
+        )
+
+    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == {
+        "status": "schema_outdated"
+    }
 
 
 @pytest.mark.parametrize("cwd", ["/repo", "/repo/.claude/worktrees/feature"])
@@ -146,8 +185,8 @@ def test_load_report_source_groups_child_worktree_with_parent(tmp_path: Path) ->
             ],
         )
         connection.executemany(
-            "INSERT INTO derived_session_usage VALUES (?, ?, ?, ?, ?, ?)",
-            [("main", 10, 0, 0, 1, 11), ("child", 20, 0, 0, 2, 22)],
+            "INSERT INTO derived_model_usage VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [("main", "model", 10, 0, 0, 1, 11), ("child", "model", 20, 0, 0, 2, 22)],
         )
 
     source = SQLiteReportQuery().load_report_source(warehouse)
@@ -171,7 +210,9 @@ def test_load_report_source_resolves_relative_cwd(tmp_path: Path, monkeypatch: M
             "INSERT INTO derived_goals VALUES (?, ?, ?, ?, ?, ?)",
             ("thread", str(project), "2026-01-01T12:00:00Z", 1, "model", "openai"),
         )
-        connection.execute("INSERT INTO derived_session_usage VALUES ('thread', 10, 0, 0, 1, 11)")
+        connection.execute(
+            "INSERT INTO derived_model_usage VALUES ('thread', 'model', 10, 0, 0, 1, 11)"
+        )
     monkeypatch.chdir(project)
 
     source = SQLiteReportQuery().load_report_source(warehouse)

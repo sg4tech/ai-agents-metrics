@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
 from ai_agents_metrics.report.html_report import (
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 ALL_PROJECTS_KEY = "__all_projects__"
-type Pricing = dict[str, dict[str, float | None]]
+Pricing: TypeAlias = dict[str, dict[str, float | None]]
 
 
 @dataclass(frozen=True)

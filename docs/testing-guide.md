@@ -87,8 +87,8 @@ dropping the file at the root.
   up to the first `pyproject.toml` with a `[tool.codex_tests]` section. Prefer
   it over `Path(__file__).parents[N]` so test paths stay valid when files
   move between subdirs. Cached with `@lru_cache` so it runs once per process.
-- `_repo_template` (session-scoped) + `repo` (function-scoped) — a git
-  baseline built once and hardlinked per test with `cp -rl`. Replaces the
+- `_repo_template` (session-scoped) + `repo` (function-scoped) — a packed git
+  baseline built once and hardlinked per test. Replaces the
   per-file `repo` fixtures that used to spawn five git subprocesses per test.
   See the CLI integration section and `decisions.md` for the full rationale.
 
@@ -146,8 +146,8 @@ A per-test timeout of 5 seconds is enforced via `pytest-timeout` (`pyproject.tom
 
 **The `repo` fixture (shared across all test subdirs):** `tests/conftest.py`
 ships a session-scoped `_repo_template` (git-initialized repo with `src/`,
-`scripts/`, `pricing/`, and a baseline commit) that the function-scoped `repo`
-fixture hardlinks into each test's `tmp_path` via `cp -rl`. The same fixture
+`scripts/`, `pricing/`, and a packed baseline commit) that the function-scoped `repo`
+fixture hardlinks into each test's `tmp_path`. The same fixture
 serves `cli/`, `history/`, and any future subdir — do not redefine `repo`
 locally (the five local copies that used to spawn `git init` + two `git config`
 + `git add` + `git commit` per test were the dominant xdist flake source on

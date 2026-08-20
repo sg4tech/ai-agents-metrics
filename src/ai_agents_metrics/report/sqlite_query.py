@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
 from ai_agents_metrics.report.application import (
@@ -17,10 +17,10 @@ from ai_agents_metrics.report.html_report import TokenReportRow
 if TYPE_CHECKING:
     from pathlib import Path
 
-type ProjectDbRow = tuple[str]
-type SessionDbRow = tuple[str, str, int | None]
-type TokenDbRow = tuple[str, str, str | None, str | None, int, int, int, int, int]
-type PracticeDbRow = tuple[str, str, str, int]
+ProjectDbRow: TypeAlias = tuple[str]
+SessionDbRow: TypeAlias = tuple[str, str, int | None]
+TokenDbRow: TypeAlias = tuple[str, str, str | None, str | None, int, int, int, int, int]
+PracticeDbRow: TypeAlias = tuple[str, str, str, int]
 
 
 class SQLiteReportQuery:
@@ -36,17 +36,18 @@ class SQLiteReportQuery:
                     "WHERE cwd IS NOT NULL AND cwd != '' AND last_seen_at IS NOT NULL"
                 ).fetchall()
                 token_rows = conn.execute(
-                    "SELECT dg.cwd, dg.last_seen_at, COALESCE(dg.model, ("
+                    "SELECT dg.cwd, dg.last_seen_at, COALESCE(dmu.model, dg.model, ("
                     "SELECT json_extract(nue.raw_json, '$.message.model') "
                     "FROM normalized_usage_events nue WHERE nue.thread_id = dg.thread_id "
                     "AND json_extract(nue.raw_json, '$.message.model') IS NOT NULL LIMIT 1)), "
-                    "dg.model_provider, COALESCE(SUM(dsu.input_tokens), 0), "
-                    "COALESCE(SUM(dsu.cache_creation_input_tokens), 0), "
-                    "COALESCE(SUM(dsu.cached_input_tokens), 0), "
-                    "COALESCE(SUM(dsu.output_tokens), 0), COALESCE(SUM(dsu.total_tokens), 0) "
-                    "FROM derived_goals dg LEFT JOIN derived_session_usage dsu "
-                    "ON dsu.thread_id = dg.thread_id WHERE dg.cwd IS NOT NULL AND dg.cwd != '' "
-                    "AND dg.last_seen_at IS NOT NULL GROUP BY dg.thread_id"
+                    "dg.model_provider, COALESCE(SUM(dmu.input_tokens), 0), "
+                    "COALESCE(SUM(dmu.cache_creation_input_tokens), 0), "
+                    "COALESCE(SUM(dmu.cached_input_tokens), 0), "
+                    "COALESCE(SUM(dmu.output_tokens), 0), COALESCE(SUM(dmu.total_tokens), 0) "
+                    "FROM derived_goals dg LEFT JOIN derived_model_usage dmu "
+                    "ON dmu.thread_id = dg.thread_id WHERE dg.cwd IS NOT NULL AND dg.cwd != '' "
+                    "AND dg.last_seen_at IS NOT NULL "
+                    "GROUP BY dg.thread_id, COALESCE(dmu.model, dg.model)"
                 ).fetchall()
                 practice_rows = conn.execute(
                     "SELECT dg.cwd, pe.practice_name, pe.source_kind, COUNT(*) "
@@ -54,7 +55,7 @@ class SQLiteReportQuery:
                     "ON dg.thread_id = pe.thread_id WHERE dg.cwd IS NOT NULL AND dg.cwd != '' "
                     "GROUP BY dg.cwd, pe.practice_name, pe.source_kind"
                 ).fetchall()
-        except sqlite3.Error, OSError:
+        except (sqlite3.Error, OSError):
             return WarehouseReportSource()
         return _map_report_source(
             project_rows=project_rows,
@@ -72,7 +73,12 @@ class SQLiteReportQuery:
                     row[0]
                     for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
                 }
-                if not {"derived_goals", "derived_projects", "derived_practice_events"} <= tables:
+                if not {
+                    "derived_goals",
+                    "derived_projects",
+                    "derived_model_usage",
+                    "derived_practice_events",
+                } <= tables:
                     return {"status": "schema_outdated"}
                 project_columns = {
                     row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")
