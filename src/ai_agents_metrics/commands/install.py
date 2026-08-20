@@ -1,4 +1,5 @@
 """CLI handler for installing the executable."""
+
 from __future__ import annotations
 
 import os
@@ -10,8 +11,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from argparse import Namespace
-
-    from ai_agents_metrics.commands._runtime import CommandRuntime
 
 
 def _resolve_invocation_path() -> Path:
@@ -92,16 +91,17 @@ def _detect_shadowing_command(*, command_name: str, target_path: Path) -> Path |
     return resolved_path
 
 
-def _write_python_launcher(target_path: Path, *, python_executable: Path, source_path: Path) -> None:
-    launcher = (
-        "#!/bin/sh\n"
-        f"exec '{python_executable}' '{source_path}' \"$@\"\n"
-    )
+def _write_python_launcher(
+    target_path: Path, *, python_executable: Path, source_path: Path
+) -> None:
+    launcher = f"#!/bin/sh\nexec '{python_executable}' '{source_path}' \"$@\"\n"
     target_path.write_text(launcher, encoding="utf-8")
     target_path.chmod(target_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
-def _write_source_module_launcher(target_path: Path, *, python_executable: Path, source_root: Path) -> None:
+def _write_source_module_launcher(
+    target_path: Path, *, python_executable: Path, source_root: Path
+) -> None:
     launcher = (
         "#!/bin/sh\n"
         'if [ -n "$PYTHONPATH" ]; then\n'
@@ -123,7 +123,9 @@ def _render_python_launcher(*, python_executable: Path, source_path: Path, repo_
     )
 
 
-def _render_source_module_launcher(*, python_executable: Path, source_root: Path, repo_root: Path) -> str:
+def _render_source_module_launcher(
+    *, python_executable: Path, source_root: Path, repo_root: Path
+) -> str:
     return (
         "#!/bin/sh\n"
         f"cd '{repo_root}' || exit 1\n"
@@ -149,7 +151,7 @@ def _render_repo_local_wrapper(source_path: Path, repo_root: Path) -> str:
             source_path=source_path,
             repo_root=repo_root,
         )
-    return "#!/bin/sh\n" f"cd '{repo_root}' || exit 1\n" f"exec '{source_path}' \"$@\"\n"
+    return f"#!/bin/sh\ncd '{repo_root}' || exit 1\nexec '{source_path}' \"$@\"\n"
 
 
 def _write_repo_local_wrapper(target_path: Path, source_path: Path, repo_root: Path) -> str:
@@ -160,13 +162,17 @@ def _write_repo_local_wrapper(target_path: Path, source_path: Path, repo_root: P
     return content
 
 
-def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
+def handle_install_self(args: Namespace, _cli_module: object) -> int:
     source_path = _resolve_invocation_path()
-    target_path = Path(args.target_path) if args.target_path else Path(args.target_dir) / args.command_name
+    target_path = (
+        Path(args.target_path) if args.target_path else Path(args.target_dir) / args.command_name
+    )
 
     if source_path == target_path.resolve(strict=False):
         print(f"Already installed at {target_path}")
-        shadowing_path = _detect_shadowing_command(command_name=args.command_name, target_path=target_path)
+        shadowing_path = _detect_shadowing_command(
+            command_name=args.command_name, target_path=target_path
+        )
         if shadowing_path is not None:
             print(
                 f"Warning: active virtualenv is shadowing the global install via {shadowing_path}. "
@@ -191,7 +197,9 @@ def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
         )
         verb = "Installed launcher"
     elif launcher_mode:
-        _write_python_launcher(target_path, python_executable=Path(sys.executable), source_path=source_path)
+        _write_python_launcher(
+            target_path, python_executable=Path(sys.executable), source_path=source_path
+        )
         verb = "Installed launcher"
     elif use_copy:
         shutil.copy2(source_path, target_path)
@@ -208,7 +216,9 @@ def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
         profile_path = _shell_profile_path()
         if args.write_shell_profile:
             if profile_path is None:
-                raise ValueError("Cannot determine shell profile automatically for this shell; add PATH manually.")
+                raise ValueError(
+                    "Cannot determine shell profile automatically for this shell; add PATH manually."
+                )
             changed = _ensure_profile_has_path_line(profile_path, export_line)
             if changed:
                 print(f"Added PATH update to {profile_path}")
@@ -219,7 +229,9 @@ def handle_install_self(args: Namespace, _cli_module: CommandRuntime) -> int:
             print(f"Add this line to {profile_name}:")
             print(export_line)
         print("Then reopen your shell before running `ai-agents-metrics` by command name.")
-    shadowing_path = _detect_shadowing_command(command_name=args.command_name, target_path=target_path)
+    shadowing_path = _detect_shadowing_command(
+        command_name=args.command_name, target_path=target_path
+    )
     if shadowing_path is not None:
         print(
             f"Warning: active virtualenv is shadowing the global install via {shadowing_path}. "

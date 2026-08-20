@@ -25,6 +25,43 @@ rules:
     pattern-regex: >-
       (?i)(FROM|JOIN|INTO|UPDATE|TABLE)\s+(raw|normalized|derived)_[a-z0-9_]+
 
+  - id: ai-agents-metrics.command-broad-runtime
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Command handlers must depend on a narrow operation-specific runtime protocol, not the
+      legacy aggregate CommandRuntime compatibility surface.
+    paths:
+      include:
+        - "**/commands/*.py"
+    patterns:
+      - metavariable-regex:
+          metavariable: $HANDLER
+          regex: ^handle_
+      - pattern-either:
+          - pattern: |
+              def $HANDLER(..., $RUNTIME: CommandRuntime, ...) -> $RETURN:
+                  ...
+          - pattern: |
+              def $HANDLER(..., $RUNTIME: $MODULE.CommandRuntime, ...) -> $RETURN:
+                  ...
+
+  - id: ai-agents-metrics.command-runtime-any-return
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Runtime protocol methods must return a concrete boundary type instead of Any.
+    paths:
+      include:
+        - "**/commands/_runtime.py"
+    pattern-either:
+      - pattern: |
+          def $METHOD(...) -> Any:
+              ...
+      - pattern: |
+          def $METHOD(...) -> typing.Any:
+              ...
+
   - id: ai-agents-metrics.application-direct-io
     languages: [python]
     severity: ERROR

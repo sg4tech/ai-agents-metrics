@@ -2,10 +2,20 @@
 
 Handlers are grouped by functional cluster in submodules; this ``__init__``
 re-exports the full public surface so that ``from ai_agents_metrics import
-commands`` continues to resolve every ``handle_*`` and ``CommandRuntime``
-symbol without callers knowing about the submodule layout.
+commands`` continues to resolve every ``handle_*`` symbol without callers
+knowing about the submodule layout.
 """
-from ai_agents_metrics.commands._runtime import CommandRuntime
+
+from ai_agents_metrics.commands._runtime import (
+    CommandRuntime,
+    HistoryClassifyRuntime,
+    HistoryDeriveRuntime,
+    HistoryIngestRuntime,
+    HistoryNormalizeRuntime,
+    HistoryUpdateRuntime,
+    PublicBoundaryRuntime,
+    ShowRuntime,
+)
 from ai_agents_metrics.commands.history import (
     handle_classify_codex_history,
     handle_derive_codex_history,
@@ -26,6 +36,13 @@ from ai_agents_metrics.commands.report import (
 
 __all__ = [
     "CommandRuntime",
+    "HistoryClassifyRuntime",
+    "HistoryDeriveRuntime",
+    "HistoryIngestRuntime",
+    "HistoryNormalizeRuntime",
+    "HistoryUpdateRuntime",
+    "PublicBoundaryRuntime",
+    "ShowRuntime",
     "handle_classify_codex_history",
     "handle_derive_codex_history",
     "handle_history_update",

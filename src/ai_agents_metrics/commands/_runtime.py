@@ -1,9 +1,11 @@
-"""Protocol describing the runtime surface CLI handlers depend on."""
+"""Narrow runtime protocols used by CLI command handlers."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
+    from contextlib import AbstractContextManager
     from pathlib import Path
 
     from ai_agents_metrics.history.classify import ClassifySummary
@@ -11,28 +13,76 @@ if TYPE_CHECKING:
     from ai_agents_metrics.history.ingest import IngestSummary
     from ai_agents_metrics.history.normalize import NormalizeSummary
     from ai_agents_metrics.history.summary import WarehouseSummary
+    from ai_agents_metrics.public_boundary import PublicBoundaryReport
     from ai_agents_metrics.report.application import BuildReportRequest, ReportDocument
 
 
-# CommandRuntime aggregates the entire runtime surface that handle_* command
-# functions depend on. 40 methods reflect the breadth of operations the CLI
-# dispatches, not an architectural issue. Splitting would fragment the single
-# type hint each handler uses, without reducing coupling.
-class CommandRuntime(Protocol):  # pylint: disable=too-many-public-methods
-    def build_html_report(self, request: BuildReportRequest) -> ReportDocument: ...
-    def ingest_codex_history(self, source_root: Path, warehouse_path: Path, source: str = ...) -> Any: ...
-    def normalize_codex_history(self, warehouse_path: Path) -> Any: ...
-    def classify_codex_history(self, warehouse_path: Path) -> Any: ...
-    def derive_codex_history(self, warehouse_path: Path) -> Any: ...
-    def verify_public_boundary(self, *, repo_root: Path, rules_path: Path) -> Any: ...
-    def load_warehouse_summary(self, warehouse_path: Path, project_cwd: Path) -> WarehouseSummary: ...
+class MutationLockRuntime(Protocol):
+    def metrics_mutation_lock(self, path: Path) -> AbstractContextManager[None]: ...
+
+
+class HistoryIngestRuntime(MutationLockRuntime, Protocol):
+    def ingest_codex_history(
+        self, source_root: Path, warehouse_path: Path, source: str = ...
+    ) -> IngestSummary: ...
+    def render_ingest_summary_json(self, summary: IngestSummary) -> str: ...
+
+
+class HistoryNormalizeRuntime(MutationLockRuntime, Protocol):
+    def normalize_codex_history(self, warehouse_path: Path) -> NormalizeSummary: ...
+    def render_normalize_summary_json(self, summary: NormalizeSummary) -> str: ...
+
+
+class HistoryClassifyRuntime(MutationLockRuntime, Protocol):
+    def classify_codex_history(self, warehouse_path: Path) -> ClassifySummary: ...
+    def render_classify_summary_json(self, summary: ClassifySummary) -> str: ...
+
+
+class HistoryDeriveRuntime(MutationLockRuntime, Protocol):
+    def derive_codex_history(self, warehouse_path: Path) -> DeriveSummary: ...
+    def render_derive_summary_json(self, summary: DeriveSummary) -> str: ...
+
+
+class HistoryUpdateRuntime(
+    HistoryIngestRuntime,
+    HistoryNormalizeRuntime,
+    HistoryClassifyRuntime,
+    HistoryDeriveRuntime,
+    Protocol,
+):
+    """Runtime capabilities required by the complete history pipeline."""
+
+
+class ShowRuntime(Protocol):
+    def load_warehouse_summary(
+        self, warehouse_path: Path, project_cwd: Path
+    ) -> WarehouseSummary: ...
     def render_warehouse_summary(self, summary: WarehouseSummary) -> str: ...
     def render_warehouse_summary_json(self, summary: WarehouseSummary) -> str: ...
-    def render_ingest_summary_json(self, summary: IngestSummary) -> str: ...
-    def render_normalize_summary_json(self, summary: NormalizeSummary) -> str: ...
-    def render_classify_summary_json(self, summary: ClassifySummary) -> str: ...
-    def render_derive_summary_json(self, summary: DeriveSummary) -> str: ...
-    def metrics_mutation_lock(self, path: Path) -> Any: ...
-    def load_effective_pricing(self, *, cwd: Path, pricing_path: Path | None = None) -> dict[str, dict[str, float | None]]: ...
-    def resolve_effective_pricing_path(self, *, cwd: Path, pricing_path: Path | None = None) -> Path: ...
+
+
+class PublicBoundaryRuntime(Protocol):
+    def verify_public_boundary(
+        self, *, repo_root: Path, rules_path: Path
+    ) -> PublicBoundaryReport: ...
+
+
+class CommandRuntime(
+    HistoryUpdateRuntime,
+    ShowRuntime,
+    PublicBoundaryRuntime,
+    Protocol,
+):  # pylint: disable=too-many-ancestors
+    """Legacy aggregate runtime retained only for import compatibility."""
+
+    def build_html_report(self, request: BuildReportRequest) -> ReportDocument: ...
+
+    def load_effective_pricing(
+        self, *, cwd: Path, pricing_path: Path | None = None
+    ) -> dict[str, dict[str, float | None]]: ...
+
+    def resolve_effective_pricing_path(
+        self, *, cwd: Path, pricing_path: Path | None = None
+    ) -> Path: ...
+
     def resolve_pricing_path(self, cwd: Path) -> Path: ...

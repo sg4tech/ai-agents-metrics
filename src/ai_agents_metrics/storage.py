@@ -1,4 +1,5 @@
 """Atomic-write and cross-process lock helpers for local warehouse operations."""
+
 from __future__ import annotations
 
 import contextlib
@@ -7,7 +8,10 @@ import os
 import tempfile
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 LOCKFILE_SUFFIX = ".lock"
 
@@ -31,13 +35,12 @@ def atomic_write_text(path: Path, content: str) -> None:
     tmp_path.replace(path)
 
 
-
 def metrics_lock_path(metrics_path: Path) -> Path:
     return metrics_path.with_name(f"{metrics_path.name}{LOCKFILE_SUFFIX}")
 
 
 @contextlib.contextmanager
-def metrics_mutation_lock(metrics_path: Path) -> Any:
+def metrics_mutation_lock(metrics_path: Path) -> Iterator[None]:
     lock_path = metrics_lock_path(metrics_path)
     ensure_parent_dir(lock_path)
     with lock_path.open("a+", encoding="utf-8") as lock_file:

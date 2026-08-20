@@ -29,7 +29,7 @@ Data flow:
 CLI entrypoint (cli.py + cli_parsers.py + cli_constants.py)
   ↓  parses args and dispatches handlers through runtime_facade/
 Commands (commands/ package)
-  ↓  orchestration against a sanctioned runtime surface (CommandRuntime)
+  ↓  orchestration against narrow, command-specific runtime protocols
 History pipeline (history/*)           ← primary analysis layer
   ↓  ingest → normalize → derive from ~/.codex or ~/.claude
   ↓  SQLite warehouse: session structure, token cost, session timeline
@@ -78,8 +78,11 @@ ai-agents-metrics/
 | `cli.py` | CLI dispatcher + facade surface for `scripts/metrics_cli.py` — records invocation, routes `args.command` to handlers, exposes `console_main` |
 | `cli_parsers.py` | Argparse parser construction (`build_parser`, per-group `_add_*_parsers` helpers, hidden-command filter) |
 | `cli_constants.py` | Path defaults (`METRICS_JSON_PATH`, `CODEX_STATE_PATH`, `CLAUDE_ROOT`, `RAW_WAREHOUSE_PATH`, …) consumed by both `cli.py` and `cli_parsers.py` |
-| `commands/` | Thin CLI handlers grouped into `history`, `report`, `install`, and `misc`; `_runtime.py` defines the runtime protocol used by handlers |
+| `commands/` | Thin CLI handlers grouped into `history`, `report`, `install`, and `misc`; `_runtime.py` defines narrow runtime protocols for individual handlers and composed workflows |
 | `runtime_facade/` | Concrete runtime composition surface for history orchestration, reporting, pricing, audits, and installation |
+
+`runtime_facade/contracts.py` statically verifies that the concrete facade satisfies every
+command-specific runtime protocol. The module is checked by mypy and has no runtime behavior.
 
 ### Core Domain
 

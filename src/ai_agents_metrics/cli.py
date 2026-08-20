@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Command-line entrypoint for history-based AI agent metrics."""
+
 from __future__ import annotations
 
 import sys

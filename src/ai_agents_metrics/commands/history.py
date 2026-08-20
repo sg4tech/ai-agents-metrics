@@ -1,4 +1,5 @@
 """CLI handlers for history ingestion, normalization, derivation, and related audits."""
+
 from __future__ import annotations
 
 import json
@@ -9,7 +10,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from argparse import Namespace
 
-    from ai_agents_metrics.commands._runtime import CommandRuntime
+    from ai_agents_metrics.commands._runtime import (
+        HistoryClassifyRuntime,
+        HistoryDeriveRuntime,
+        HistoryIngestRuntime,
+        HistoryNormalizeRuntime,
+        HistoryUpdateRuntime,
+    )
     from ai_agents_metrics.history.ingest import IngestSummary
 
 
@@ -17,7 +24,7 @@ def _run_ingest(
     source: str,
     source_root_arg: str | None,
     warehouse_path: Path,
-    cli_module: CommandRuntime,
+    cli_module: HistoryIngestRuntime,
 ) -> tuple[dict[str, IngestSummary], list[str], str | None]:
     """Run ingest for the resolved source(s).
 
@@ -29,12 +36,17 @@ def _run_ingest(
             return {}, [], "--source-root cannot be used with --source all"
         summaries: dict[str, IngestSummary] = {}
         skipped: list[str] = []
-        for src_name, src_root in [("codex", Path.home() / ".codex"), ("claude", Path.home() / ".claude")]:
+        for src_name, src_root in [
+            ("codex", Path.home() / ".codex"),
+            ("claude", Path.home() / ".claude"),
+        ]:
             if not src_root.exists():
                 skipped.append(src_name)
                 continue
             with cli_module.metrics_mutation_lock(warehouse_path):
-                summaries[src_name] = cli_module.ingest_codex_history(src_root, warehouse_path, src_name)
+                summaries[src_name] = cli_module.ingest_codex_history(
+                    src_root, warehouse_path, src_name
+                )
         return summaries, skipped, None
 
     if source_root_arg is not None:
@@ -83,7 +95,7 @@ def _summarise_ingest_results(
     ingest_results: dict[str, IngestSummary],
     ingest_skipped: list[str],
     *,
-    cli_module: CommandRuntime,
+    cli_module: HistoryIngestRuntime,
     json_output: bool,
 ) -> dict[str, object]:
     """Print per-source ingest output (or collect JSON payloads) and return the JSON dict."""
@@ -91,26 +103,38 @@ def _summarise_ingest_results(
     if source == "all":
         for src_name in ingest_skipped:
             if not json_output:
-                print(f"==> history-ingest ({src_name}) [skipped: {Path.home() / ('.' + src_name)} not found]")
+                print(
+                    f"==> history-ingest ({src_name}) [skipped: {Path.home() / ('.' + src_name)} not found]"
+                )
         for src_name, ingest_summary in ingest_results.items():
             if not json_output:
                 print(f"==> history-ingest ({src_name})")
-                print(f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads")
+                print(
+                    f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads"
+                )
             else:
-                ingest_summaries[src_name] = json.loads(cli_module.render_ingest_summary_json(ingest_summary))
+                ingest_summaries[src_name] = json.loads(
+                    cli_module.render_ingest_summary_json(ingest_summary)
+                )
     else:
         ingest_summary = next(iter(ingest_results.values()))
         if not json_output:
             print("==> history-ingest")
-            print(f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads")
+            print(
+                f"    Imported {ingest_summary.imported_files} files, {ingest_summary.threads} threads"
+            )
         else:
-            ingest_summaries = {source: json.loads(cli_module.render_ingest_summary_json(ingest_summary))}
+            ingest_summaries = {
+                source: json.loads(cli_module.render_ingest_summary_json(ingest_summary))
+            }
     return ingest_summaries
 
 
-def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_ingest_codex_history(args: Namespace, cli_module: HistoryIngestRuntime) -> int:
     source_root_arg: str | None = getattr(args, "source_root", None)
-    source: str = getattr(args, "source", None) or ("codex" if source_root_arg is not None else "all")
+    source: str = getattr(args, "source", None) or (
+        "codex" if source_root_arg is not None else "all"
+    )
     json_output: bool = getattr(args, "json", False)
     warehouse_path = Path(args.warehouse_path).expanduser()
 
@@ -121,7 +145,14 @@ def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
 
     if source == "all":
         if json_output:
-            print(json.dumps({k: json.loads(cli_module.render_ingest_summary_json(v)) for k, v in summaries.items()}))
+            print(
+                json.dumps(
+                    {
+                        k: json.loads(cli_module.render_ingest_summary_json(v))
+                        for k, v in summaries.items()
+                    }
+                )
+            )
         else:
             for src_name in skipped:
                 print(f"Skipping {src_name}: {Path.home() / ('.' + src_name)} not found")
@@ -165,7 +196,7 @@ def handle_ingest_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     return 0
 
 
-def handle_normalize_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_normalize_codex_history(args: Namespace, cli_module: HistoryNormalizeRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.normalize_codex_history(warehouse_path)
@@ -182,7 +213,7 @@ def handle_normalize_codex_history(args: Namespace, cli_module: CommandRuntime) 
     return 0
 
 
-def handle_classify_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_classify_codex_history(args: Namespace, cli_module: HistoryClassifyRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.classify_codex_history(warehouse_path)
@@ -198,12 +229,14 @@ def handle_classify_codex_history(args: Namespace, cli_module: CommandRuntime) -
         if summary.practice_event_classifier_version:
             print(f"Practice events: {summary.practice_events_total}")
             if summary.practice_events_by_family:
-                families = ", ".join(f"{family}={count}" for family, count in summary.practice_events_by_family)
+                families = ", ".join(
+                    f"{family}={count}" for family, count in summary.practice_events_by_family
+                )
                 print(f"Practice events by family: {families}")
     return 0
 
 
-def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_derive_codex_history(args: Namespace, cli_module: HistoryDeriveRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     with cli_module.metrics_mutation_lock(warehouse_path):
         summary = cli_module.derive_codex_history(warehouse_path)
@@ -221,14 +254,18 @@ def handle_derive_codex_history(args: Namespace, cli_module: CommandRuntime) -> 
     return 0
 
 
-def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
+def handle_history_update(args: Namespace, cli_module: HistoryUpdateRuntime) -> int:
     """Run the full history pipeline: ingest → normalize → derive."""
     source_root_arg: str | None = getattr(args, "source_root", None)
-    source: str = getattr(args, "source", None) or ("codex" if source_root_arg is not None else "all")
+    source: str = getattr(args, "source", None) or (
+        "codex" if source_root_arg is not None else "all"
+    )
     warehouse_path = Path(args.warehouse_path).expanduser()
     json_output: bool = getattr(args, "json", False)
 
-    ingest_results, ingest_skipped, error = _run_ingest(source, source_root_arg, warehouse_path, cli_module)
+    ingest_results, ingest_skipped, error = _run_ingest(
+        source, source_root_arg, warehouse_path, cli_module
+    )
     if error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
@@ -243,7 +280,6 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
         else:
             print(json.dumps({"ingest": ingest_summaries, "normalize": None, "derive": None}))
         return 0
-
 
     if not json_output:
         print("==> history-normalize")
@@ -272,8 +308,12 @@ def handle_history_update(args: Namespace, cli_module: CommandRuntime) -> int:
             json.dumps(
                 {
                     "ingest": ingest_summaries,
-                    "normalize": json.loads(cli_module.render_normalize_summary_json(normalize_summary)),
-                    "classify": json.loads(cli_module.render_classify_summary_json(classify_summary)),
+                    "normalize": json.loads(
+                        cli_module.render_normalize_summary_json(normalize_summary)
+                    ),
+                    "classify": json.loads(
+                        cli_module.render_classify_summary_json(classify_summary)
+                    ),
                     "derive": json.loads(cli_module.render_derive_summary_json(derive_summary)),
                 }
             )
