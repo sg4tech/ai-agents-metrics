@@ -9,6 +9,7 @@ import pytest
 
 from ai_agents_metrics.report.application import WarehouseState, WarehouseStatus
 from ai_agents_metrics.report.sqlite_query import SQLiteReportQuery
+from ai_agents_metrics.warehouse.adapters import SQLiteWarehouseGate
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -72,7 +73,7 @@ def test_load_report_source_maps_rows_and_merges_projects(tmp_path: Path) -> Non
             [("one", "Explore", "Agent"), ("two", "Explore", "Agent")],
         )
 
-    source = SQLiteReportQuery().load_report_source(warehouse)
+    source = SQLiteReportQuery(SQLiteWarehouseGate()).load_report_source(warehouse)
 
     assert source.project_cwds == ["/projects/second", "/projects/first"]
     assert source.by_project["/projects/second"].sessions["2026-01-02"] == {
@@ -103,7 +104,9 @@ def test_load_report_source_preserves_usage_for_each_model(tmp_path: Path) -> No
             ],
         )
 
-    rows = SQLiteReportQuery().load_report_source(warehouse).all_projects.tokens
+    rows = (
+        SQLiteReportQuery(SQLiteWarehouseGate()).load_report_source(warehouse).all_projects.tokens
+    )
 
     assert [(row.model, row.total_tokens) for row in rows] == [
         ("gpt-first", 11),
@@ -113,7 +116,7 @@ def test_load_report_source_preserves_usage_for_each_model(tmp_path: Path) -> No
 
 def test_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:
     warehouse = tmp_path / "warehouse.db"
-    query = SQLiteReportQuery()
+    query = SQLiteReportQuery(SQLiteWarehouseGate())
     assert query.warehouse_state(warehouse, "/repo") == WarehouseState(WarehouseStatus.MISSING_FILE)
     with sqlite3.connect(warehouse) as connection:
         _create_report_tables(connection)
@@ -135,9 +138,9 @@ def test_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None
         connection.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
         connection.execute("CREATE TABLE derived_projects (project_cwd TEXT)")
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == WarehouseState(
-        WarehouseStatus.SCHEMA_OUTDATED
-    )
+    assert SQLiteReportQuery(SQLiteWarehouseGate()).warehouse_state(
+        warehouse, "/repo"
+    ) == WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
 
 
 def test_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> None:
@@ -149,9 +152,9 @@ def test_warehouse_state_rejects_missing_model_usage_table(tmp_path: Path) -> No
             "CREATE TABLE derived_projects (project_cwd TEXT, parent_project_cwd TEXT)"
         )
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, "/repo") == WarehouseState(
-        WarehouseStatus.SCHEMA_OUTDATED
-    )
+    assert SQLiteReportQuery(SQLiteWarehouseGate()).warehouse_state(
+        warehouse, "/repo"
+    ) == WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
 
 
 @pytest.mark.parametrize("cwd", ["/repo", "/repo/.claude/worktrees/feature"])
@@ -165,7 +168,7 @@ def test_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str) -> No
         connection.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
         connection.execute("INSERT INTO normalized_threads VALUES (?)", (cwd,))
 
-    state = SQLiteReportQuery().warehouse_state(warehouse, cwd)
+    state = SQLiteReportQuery(SQLiteWarehouseGate()).warehouse_state(warehouse, cwd)
     assert state.status is WarehouseStatus.OK
     assert state.scope is not None
     assert state.scope.project_cwd == "/repo"
@@ -199,7 +202,7 @@ def test_load_report_source_groups_child_worktree_with_parent(tmp_path: Path) ->
             [("main", "model", 10, 0, 0, 1, 11), ("child", "model", 20, 0, 0, 2, 22)],
         )
 
-    source = SQLiteReportQuery().load_report_source(warehouse)
+    source = SQLiteReportQuery(SQLiteWarehouseGate()).load_report_source(warehouse)
 
     assert source.project_cwds == ["/repo"]
     assert source.by_project["/repo"].sessions == {
@@ -225,7 +228,7 @@ def test_load_report_source_resolves_relative_cwd(tmp_path: Path, monkeypatch: M
         )
     monkeypatch.chdir(project)
 
-    source = SQLiteReportQuery().load_report_source(warehouse)
+    source = SQLiteReportQuery(SQLiteWarehouseGate()).load_report_source(warehouse)
 
     assert source.by_project[str(project.resolve())].sessions == {
         "2026-01-01": {"threads": 1, "sessions": 1}

@@ -7,7 +7,7 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseScope
+from ai_agents_metrics.warehouse import WarehouseGate, WarehouseScope
 from ai_agents_metrics.warehouse.application import require_warehouse_scope
 
 if TYPE_CHECKING:
@@ -72,9 +72,13 @@ _SUMMARY_QUERY = """
 _PARENT_PROJECT_SUMMARY_QUERY = _SUMMARY_QUERY + " WHERE parent_project_cwd = ?"
 
 
-def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> WarehouseSummary:
+def load_warehouse_summary(
+    warehouse_path: Path,
+    project_cwd: Path,
+    warehouse_gate: WarehouseGate,
+) -> WarehouseSummary:
     """Load summary data, falling back to all projects when cwd has no rows."""
-    state = SQLiteWarehouseGate().resolve(warehouse_path, project_cwd)
+    state = warehouse_gate.resolve(warehouse_path, project_cwd)
     scope = require_warehouse_scope(state, warehouse_path)
 
     try:

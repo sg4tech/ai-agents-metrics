@@ -126,9 +126,9 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
 | `warehouse/application.py` | Shared typed readiness, scope, and token-breakdown application contracts |
 | `warehouse/domain.py` | Pure token-breakdown value objects, aggregation, ranking, and remainder rules |
-| `warehouse/sqlite_breakdown.py` | SQLite adapter that maps derived marts into typed breakdown records |
-| `warehouse/sqlite_gate.py` | SQLite adapter that applies the shared schema gate and project-scope fallback |
+| `warehouse/adapters/` | Concrete SQLite warehouse adapters behind application ports |
 | `runtime_facade/breakdown.py` | Composition root for the breakdown use case and its concrete adapters |
+| `runtime_facade/summary.py` | Composition root for warehouse summary loading and its readiness gate |
 
 ### Integrations
 

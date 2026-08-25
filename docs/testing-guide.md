@@ -105,7 +105,7 @@ working from any area.
 For history queries, domain logic, reporting, and other pure modules.
 
 ```python
-from ai_agents_metrics.history.summary import load_warehouse_summary
+from ai_agents_metrics.runtime_facade.summary import load_warehouse_summary
 
 def test_summary_uses_warehouse(tmp_path) -> None:
     summary = load_warehouse_summary(tmp_path / "warehouse.db", tmp_path)

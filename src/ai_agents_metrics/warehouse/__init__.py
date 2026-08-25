@@ -1,4 +1,4 @@
-"""Shared warehouse readiness contracts and adapters."""
+"""Shared warehouse application contracts and domain types."""
 
 from ai_agents_metrics.warehouse.application import (
     BreakdownAggregation,
@@ -16,10 +16,8 @@ from ai_agents_metrics.warehouse.domain import (
     BreakdownRow,
     BreakdownTokenRecord,
 )
-from ai_agents_metrics.warehouse.sqlite_gate import SQLiteWarehouseGate
 
 __all__ = [
-    "SQLiteWarehouseGate",
     "BreakdownAggregator",
     "BreakdownAggregation",
     "BreakdownDimension",

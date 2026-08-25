@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ai_agents_metrics.warehouse.adapters import (
+    SQLiteWarehouseBreakdownQuery,
+    SQLiteWarehouseGate,
+)
 from ai_agents_metrics.warehouse.application import (
     LoadWarehouseBreakdown,
     WarehouseBreakdown,
 )
 from ai_agents_metrics.warehouse.domain import BreakdownAggregator, BreakdownDimension
-from ai_agents_metrics.warehouse.sqlite_breakdown import SQLiteWarehouseBreakdownQuery
-from ai_agents_metrics.warehouse.sqlite_gate import SQLiteWarehouseGate
 
 if TYPE_CHECKING:
     from pathlib import Path

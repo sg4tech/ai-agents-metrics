@@ -10,8 +10,8 @@ import pytest
 from ai_agents_metrics.history.breakdown import (
     render_warehouse_breakdown,
 )
-from ai_agents_metrics.history.summary import load_warehouse_summary
 from ai_agents_metrics.runtime_facade.breakdown import load_warehouse_breakdown
+from ai_agents_metrics.runtime_facade.summary import load_warehouse_summary
 from ai_agents_metrics.warehouse.domain import BreakdownDimension
 
 
@@ -150,9 +150,7 @@ def test_token_type_breakdown_matches_summary_scope(tmp_path: Path) -> None:
     )
 
     summary = load_warehouse_summary(warehouse, project)
-    breakdown = load_warehouse_breakdown(
-        warehouse, project, BreakdownDimension.CATEGORY, top=None
-    )
+    breakdown = load_warehouse_breakdown(warehouse, project, BreakdownDimension.CATEGORY, top=None)
 
     totals = {row.key: row.total_tokens for row in breakdown.rows}
     assert totals == {

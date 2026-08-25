@@ -18,7 +18,6 @@ from ai_agents_metrics.history.derive import render_derive_summary_json
 from ai_agents_metrics.history.ingest import render_ingest_summary_json
 from ai_agents_metrics.history.normalize import render_normalize_summary_json
 from ai_agents_metrics.history.summary import (
-    load_warehouse_summary,
     render_warehouse_summary,
     render_warehouse_summary_json,
 )
@@ -38,6 +37,7 @@ from ai_agents_metrics.runtime_facade.orchestration import (
     verify_public_boundary,
 )
 from ai_agents_metrics.runtime_facade.reporting import build_html_report
+from ai_agents_metrics.runtime_facade.summary import load_warehouse_summary
 from ai_agents_metrics.storage import metrics_mutation_lock
 from ai_agents_metrics.usage.pricing_runtime import (
     load_effective_pricing,

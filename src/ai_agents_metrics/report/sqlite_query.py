@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 from ai_agents_metrics.report.application import (
     WarehouseRenderRows,
@@ -14,17 +14,19 @@ from ai_agents_metrics.report.application import (
     report_project_cwd,
 )
 from ai_agents_metrics.report.html_report import TokenReportRow
-from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseGate
 
 ProjectDbRow: TypeAlias = tuple[str]
 SessionDbRow: TypeAlias = tuple[str, str, int | None]
 TokenDbRow: TypeAlias = tuple[str, str, str | None, str | None, int, int, int, int, int]
 PracticeDbRow: TypeAlias = tuple[str, str, str, int]
 
+if TYPE_CHECKING:
+    from ai_agents_metrics.warehouse import WarehouseGate
+
 
 class SQLiteReportQuery:
-    def __init__(self, warehouse_gate: WarehouseGate | None = None) -> None:
-        self._warehouse_gate = warehouse_gate or SQLiteWarehouseGate()
+    def __init__(self, warehouse_gate: WarehouseGate) -> None:
+        self._warehouse_gate = warehouse_gate
 
     def load_report_source(self, warehouse_path: Path) -> WarehouseReportSource:
         try:

@@ -82,3 +82,21 @@ rules:
       - pattern: open(...)
       - pattern: subprocess.run(...)
       - pattern: subprocess.Popen(...)
+
+  - id: ai-agents-metrics.concrete-adapter-outside-runtime-facade
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Concrete warehouse adapters may be imported only by runtime_facade composition modules.
+      Depend on warehouse application ports everywhere else.
+    paths:
+      include:
+        - "**/*.py"
+      exclude:
+        - "**/runtime_facade/*.py"
+        - "**/warehouse/adapters/*.py"
+    pattern-either:
+      - pattern: from ai_agents_metrics.warehouse.adapters import $NAME
+      - pattern: from ai_agents_metrics.warehouse.adapters.$MODULE import $NAME
+      - pattern: import ai_agents_metrics.warehouse.adapters
+      - pattern: import ai_agents_metrics.warehouse.adapters.$MODULE
