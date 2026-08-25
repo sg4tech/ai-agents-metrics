@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from ai_agents_metrics.report.application import (
+    ALL_PROJECTS_KEY,
     BuildHtmlReport,
     BuildReportRequest,
     Pricing,
@@ -22,18 +23,25 @@ from ai_agents_metrics.report.application import (
     report_project_cwd,
     select_chart_data,
 )
+from ai_agents_metrics.warehouse import WarehouseScope
 
 
 class FakeReportQuery:
-    def __init__(self, source: WarehouseReportSource, status: str = "ok") -> None:
+    def __init__(
+        self,
+        source: WarehouseReportSource,
+        status: str = "ok",
+        scope: WarehouseScope | None = None,
+    ) -> None:
         self.source = source
         self.status = status
+        self.scope = scope
 
     def load_report_source(self, warehouse_path: Path) -> WarehouseReportSource:
         return self.source
 
     def warehouse_state(self, warehouse_path: Path, project_cwd: str) -> WarehouseState:
-        return WarehouseState(WarehouseStatus(self.status))
+        return WarehouseState(WarehouseStatus(self.status), self.scope)
 
 
 class FakePricing:
@@ -67,6 +75,30 @@ def test_build_html_report_combines_typed_sources_through_ports() -> None:
         practice_event_count=2,
         warehouse_status=WarehouseStatus.OK,
     )
+
+
+def test_build_html_report_uses_shared_all_projects_fallback() -> None:
+    all_projects = WarehouseRenderRows(
+        sessions={"2026-08-20": {"threads": 2, "sessions": 3}},
+        practice=[("Explore", "Agent", 2)],
+    )
+    source = WarehouseReportSource(project_cwds=["/another"], all_projects=all_projects)
+    query = FakeReportQuery(
+        source,
+        scope=WarehouseScope(project_cwd="/missing", is_all_projects=True),
+    )
+
+    document = BuildHtmlReport(query, FakePricing())(
+        BuildReportRequest(
+            warehouse_path=Path("warehouse.db"),
+            selected_project=Path("/missing"),
+            days=30,
+            generated_at=datetime(2026, 8, 20, tzinfo=UTC),
+        )
+    )
+
+    assert f'"selected_project": "{ALL_PROJECTS_KEY}"' in document.html
+    assert document.source_summary.practice_event_count == 2
 
 
 def test_project_report_preserves_daily_data_for_exact_period_filtering() -> None:

@@ -1,4 +1,5 @@
 """Tests for warehouse-native CLI summary queries."""
+
 from __future__ import annotations
 
 import json
@@ -8,12 +9,14 @@ from typing import TYPE_CHECKING
 import pytest
 
 from ai_agents_metrics.history.summary import load_warehouse_summary, render_warehouse_summary_json
+from ai_agents_metrics.report.application import WarehouseState, WarehouseStatus
+from ai_agents_metrics.report.sqlite_query import SQLiteReportQuery
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _create_warehouse(path: Path) -> None:
+def _create_warehouse(path: Path, *, include_model_usage: bool = True) -> None:
     with sqlite3.connect(path) as conn:
         conn.execute(
             """
@@ -27,6 +30,10 @@ def _create_warehouse(path: Path) -> None:
             )
             """
         )
+        conn.execute("CREATE TABLE derived_goals (cwd TEXT)")
+        conn.execute("CREATE TABLE derived_practice_events (practice_name TEXT)")
+        if include_model_usage:
+            conn.execute("CREATE TABLE derived_model_usage (model TEXT)")
 
 
 def _insert_project(path: Path, cwd: Path, *, threads: int = 4, retries: int = 1) -> None:
@@ -36,8 +43,21 @@ def _insert_project(path: Path, cwd: Path, *, threads: int = 4, retries: int = 1
             INSERT INTO derived_projects VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                str(cwd), str(cwd), threads, 5, retries, 20, 3, 100, 10, 25, 50, 185,
-                3, "2026-01-01T00:00:00+00:00", "2026-01-02T00:00:00+00:00",
+                str(cwd),
+                str(cwd),
+                threads,
+                5,
+                retries,
+                20,
+                3,
+                100,
+                10,
+                25,
+                50,
+                185,
+                3,
+                "2026-01-01T00:00:00+00:00",
+                "2026-01-02T00:00:00+00:00",
             ),
         )
 
@@ -104,3 +124,17 @@ def test_load_warehouse_summary_rejects_outdated_project_schema(tmp_path: Path) 
 
     with pytest.raises(ValueError, match="run history-update first"):
         load_warehouse_summary(warehouse, tmp_path)
+
+
+def test_show_and_report_reject_warehouse_without_model_usage(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    project = tmp_path / "project"
+    project.mkdir()
+    _create_warehouse(warehouse, include_model_usage=False)
+    _insert_project(warehouse, project)
+
+    report_state = SQLiteReportQuery().warehouse_state(warehouse, str(project))
+
+    assert report_state == WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
+    with pytest.raises(ValueError, match="run history-update first"):
+        load_warehouse_summary(warehouse, project)

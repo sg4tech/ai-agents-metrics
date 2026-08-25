@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
@@ -12,6 +11,10 @@ from ai_agents_metrics.report.html_report import (
     aggregate_report_data,
     render_html_report,
 )
+from ai_agents_metrics.warehouse import application as warehouse_application
+
+WarehouseState = warehouse_application.WarehouseState
+WarehouseStatus = warehouse_application.WarehouseStatus
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -34,25 +37,6 @@ class WarehouseReportSource:
     project_cwds: list[str] = field(default_factory=list)
     by_project: dict[str, WarehouseRenderRows] = field(default_factory=dict)
     all_projects: WarehouseRenderRows = field(default_factory=WarehouseRenderRows)
-
-
-class WarehouseStatus(StrEnum):
-    OK = "ok"
-    MISSING_FILE = "missing_file"
-    SCHEMA_OUTDATED = "schema_outdated"
-    EMPTY_FOR_CWD = "empty_for_cwd"
-
-
-@dataclass(frozen=True)
-class WarehouseState:
-    status: WarehouseStatus
-
-    @classmethod
-    def ok(cls) -> WarehouseState:
-        return cls(WarehouseStatus.OK)
-
-    def as_render_data(self) -> dict[str, str]:
-        return {"status": self.status.value}
 
 
 @dataclass(frozen=True)
@@ -100,6 +84,8 @@ class BuildHtmlReport:
         selected_state = self._report_query.warehouse_state(
             request.warehouse_path, str(request.selected_project)
         )
+        if selected_state.scope is not None and selected_state.scope.is_all_projects:
+            selected_project = ALL_PROJECTS_KEY
         project_reports: dict[str, dict[str, Any]] = {
             ALL_PROJECTS_KEY: aggregate_project_report(
                 warehouse_rows.all_projects,
@@ -108,7 +94,11 @@ class BuildHtmlReport:
                 state=all_projects_warehouse_state(selected_state, warehouse_project_cwds),
             )
         }
-        selected_rows = WarehouseRenderRows()
+        selected_rows = (
+            warehouse_rows.all_projects
+            if selected_project == ALL_PROJECTS_KEY
+            else WarehouseRenderRows()
+        )
         for project_cwd in project_cwds:
             project_state = (
                 selected_state if project_cwd == selected_project else WarehouseState.ok()
