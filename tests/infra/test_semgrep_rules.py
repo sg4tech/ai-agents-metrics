@@ -44,6 +44,8 @@ def test_layer_boundary_rules_detect_incident_patterns() -> None:
             str(fixture_root / "report/application/invalid_use_case.py"),
             str(fixture_root / "report/valid_use_case.py"),
             str(fixture_root / "history/invalid_adapter_import.py"),
+            str(fixture_root / "history/invalid_report_adapter_import.py"),
+            str(fixture_root / "report/invalid_ingest_adapter_import.py"),
             str(fixture_root / "runtime_facade/valid_adapter_import.py"),
         ],
         cwd=repo_root,
@@ -62,6 +64,7 @@ def test_layer_boundary_rules_detect_incident_patterns() -> None:
         "ai-agents-metrics.controller-persistence-call",
         "ai-agents-metrics.controller-warehouse-schema",
         "ai-agents-metrics.concrete-adapter-outside-runtime-facade",
+        "ai-agents-metrics.ingest-persistence-outside-adapter",
     }
     assert all(not Path(finding["path"]).name.startswith("valid_") for finding in findings)
     assert any(
@@ -69,4 +72,10 @@ def test_layer_boundary_rules_detect_incident_patterns() -> None:
     )
     assert any(
         finding["path"].endswith("commands/invalid_report_runtime.py") for finding in findings
+    )
+    assert any(
+        finding["path"].endswith("history/invalid_report_adapter_import.py") for finding in findings
+    )
+    assert any(
+        finding["path"].endswith("report/invalid_ingest_adapter_import.py") for finding in findings
     )

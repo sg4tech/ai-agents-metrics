@@ -130,6 +130,10 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `runtime_facade/breakdown.py` | Composition root for the breakdown use case and its concrete adapters |
 | `runtime_facade/summary.py` | Composition root for warehouse summary loading and its readiness gate |
 
+Concrete persistence adapters are imported only by `runtime_facade` composition modules. Adapter
+package internals may collaborate with modules inside the same adapter package; application,
+presentation, and command modules depend on typed ports instead.
+
 ### Integrations
 
 | File | Role |

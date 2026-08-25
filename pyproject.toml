@@ -251,6 +251,52 @@ forbidden_modules = ["ai_agents_metrics.warehouse.adapters"]
 allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
+name = "Report SQLite adapter is composed only by runtime facade"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics._version",
+    "ai_agents_metrics.cli",
+    "ai_agents_metrics.cli_constants",
+    "ai_agents_metrics.cli_parsers",
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.commit_message",
+    "ai_agents_metrics.completion",
+    "ai_agents_metrics.domain",
+    "ai_agents_metrics.git_hooks",
+    "ai_agents_metrics.history",
+    "ai_agents_metrics.public_boundary",
+    "ai_agents_metrics.security",
+    "ai_agents_metrics.storage",
+    "ai_agents_metrics.usage",
+    "ai_agents_metrics.warehouse",
+]
+forbidden_modules = ["ai_agents_metrics.report.sqlite_query"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "History ingest persistence internals stay inside their adapter package"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics._version",
+    "ai_agents_metrics.cli",
+    "ai_agents_metrics.cli_constants",
+    "ai_agents_metrics.cli_parsers",
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.commit_message",
+    "ai_agents_metrics.completion",
+    "ai_agents_metrics.domain",
+    "ai_agents_metrics.git_hooks",
+    "ai_agents_metrics.public_boundary",
+    "ai_agents_metrics.report",
+    "ai_agents_metrics.security",
+    "ai_agents_metrics.storage",
+    "ai_agents_metrics.usage",
+    "ai_agents_metrics.warehouse",
+]
+forbidden_modules = ["ai_agents_metrics.history.ingest.warehouse"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
 name = "Package modules must not import cli outside the entrypoint shim"
 # `__main__` (the console entrypoint shim) is the sole legitimate importer of
 # `cli`. Every other package module must stay off `cli` so `cli.py` can keep
