@@ -124,6 +124,8 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `report/aggregation.py` | Transforms warehouse retry, token, model, and practice rows into chart-ready series |
 | `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
 | `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
+| `warehouse/application.py` | Shared typed readiness and scope contract used by warehouse consumers |
+| `warehouse/sqlite_gate.py` | SQLite adapter that applies the shared schema gate and project-scope fallback |
 
 ### Integrations
 

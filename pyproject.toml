@@ -185,10 +185,12 @@ type = "forbidden"
 source_modules = [
     "ai_agents_metrics.commands",
     "ai_agents_metrics.report.application",
+    "ai_agents_metrics.warehouse.application",
 ]
 forbidden_modules = [
     "ai_agents_metrics.report.sqlite_query",
     "ai_agents_metrics.history.ingest.warehouse",
+    "ai_agents_metrics.warehouse.sqlite_gate",
     "sqlite3",
 ]
 allow_indirect_imports = true

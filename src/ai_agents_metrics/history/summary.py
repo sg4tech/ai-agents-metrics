@@ -1,4 +1,5 @@
 """Warehouse-native summary queries and renderers for the ``show`` command."""
+
 from __future__ import annotations
 
 import json
@@ -6,16 +7,13 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.history.project_paths import parent_project_cwd
+from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseScope, WarehouseStatus
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-@dataclass(frozen=True)
-class SummaryScope:
-    project_cwd: str
-    is_all_projects: bool
+SummaryScope = WarehouseScope
 
 
 @dataclass(frozen=True)
@@ -75,26 +73,21 @@ _PARENT_PROJECT_SUMMARY_QUERY = _SUMMARY_QUERY + " WHERE parent_project_cwd = ?"
 
 def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> WarehouseSummary:
     """Load summary data, falling back to all projects when cwd has no rows."""
-    if not warehouse_path.is_file():
+    state = SQLiteWarehouseGate().resolve(warehouse_path, project_cwd)
+    if state.status is WarehouseStatus.MISSING_FILE:
         raise ValueError(f"History warehouse does not exist: {warehouse_path}")
-
-    resolved_project_cwd = parent_project_cwd(project_cwd)
-    if resolved_project_cwd is None:
-        raise ValueError("Project cwd must be a non-empty path")
+    if state.status is not WarehouseStatus.OK or state.scope is None:
+        raise ValueError("History warehouse has no derived project data; run history-update first")
 
     try:
         with sqlite3.connect(warehouse_path) as conn:
-            columns = {row[1] for row in conn.execute("PRAGMA table_info(derived_projects)")}
-            if "parent_project_cwd" not in columns:
-                raise ValueError("History warehouse has no derived project data; run history-update first")
-            row = conn.execute(
-                _PARENT_PROJECT_SUMMARY_QUERY,
-                (resolved_project_cwd,),
-            ).fetchone()
-            is_all_projects = False
-            if row is None or int(row[0]) == 0:
+            if state.scope.is_all_projects:
                 row = conn.execute(_SUMMARY_QUERY).fetchone()
-                is_all_projects = bool(row and int(row[0]) > 0)
+            else:
+                row = conn.execute(
+                    _PARENT_PROJECT_SUMMARY_QUERY,
+                    (state.scope.project_cwd,),
+                ).fetchone()
     except sqlite3.DatabaseError as exc:
         raise ValueError(f"Cannot read history warehouse: {exc}") from exc
 
@@ -105,19 +98,20 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
     covered_sessions = int(row[9])
     return WarehouseSummary(
         schema_version=2,
-        scope=SummaryScope(
-            project_cwd=resolved_project_cwd,
-            is_all_projects=is_all_projects,
-        ),
+        scope=state.scope,
         activity=ActivitySummary(
             threads=threads,
             sessions=sessions,
             sessions_per_thread=(sessions / threads) if threads else 0.0,
-            messages=int(row[2]), usage_events=int(row[3]),
+            messages=int(row[2]),
+            usage_events=int(row[3]),
         ),
         tokens=TokenSummary(
-            input_tokens=row[4], cache_creation_input_tokens=row[5], cached_input_tokens=row[6],
-            output_tokens=row[7], total_tokens=row[8],
+            input_tokens=row[4],
+            cache_creation_input_tokens=row[5],
+            cached_input_tokens=row[6],
+            output_tokens=row[7],
+            total_tokens=row[8],
             coverage=(covered_sessions / sessions) if sessions else None,
         ),
         window=HistoryWindow(first_seen_at=row[10], last_seen_at=row[11]),
@@ -129,7 +123,11 @@ def render_warehouse_summary_json(summary: WarehouseSummary) -> str:
 
 
 def render_warehouse_summary(summary: WarehouseSummary) -> str:
-    scope = "all projects (cwd had no matching history)" if summary.scope.is_all_projects else summary.scope.project_cwd
+    scope = (
+        "all projects (cwd had no matching history)"
+        if summary.scope.is_all_projects
+        else summary.scope.project_cwd
+    )
     coverage = "n/a" if summary.tokens.coverage is None else f"{summary.tokens.coverage:.2%}"
     return "\n".join(
         (

@@ -117,11 +117,15 @@ def test_warehouse_state_reports_missing_and_current(tmp_path: Path) -> None:
     assert query.warehouse_state(warehouse, "/repo") == WarehouseState(WarehouseStatus.MISSING_FILE)
     with sqlite3.connect(warehouse) as connection:
         _create_report_tables(connection)
+        connection.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
         connection.execute(
             "INSERT INTO derived_goals VALUES ('thread', '/repo', NULL, 1, NULL, NULL)"
         )
 
-    assert query.warehouse_state(warehouse, "/repo") == WarehouseState.ok()
+    state = query.warehouse_state(warehouse, "/repo")
+    assert state.status is WarehouseStatus.OK
+    assert state.scope is not None
+    assert state.scope.project_cwd == "/repo"
 
 
 def test_warehouse_state_rejects_outdated_project_schema(tmp_path: Path) -> None:
@@ -161,7 +165,10 @@ def test_warehouse_state_includes_child_worktree(tmp_path: Path, cwd: str) -> No
         connection.execute("INSERT INTO derived_projects VALUES ('/repo', '/repo')")
         connection.execute("INSERT INTO normalized_threads VALUES (?)", (cwd,))
 
-    assert SQLiteReportQuery().warehouse_state(warehouse, cwd) == WarehouseState.ok()
+    state = SQLiteReportQuery().warehouse_state(warehouse, cwd)
+    assert state.status is WarehouseStatus.OK
+    assert state.scope is not None
+    assert state.scope.project_cwd == "/repo"
 
 
 def test_load_report_source_groups_child_worktree_with_parent(tmp_path: Path) -> None:
