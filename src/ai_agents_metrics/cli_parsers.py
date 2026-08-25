@@ -160,6 +160,12 @@ def _add_sync_and_render_parsers(subparsers: Any) -> None:
         default=str(RAW_WAREHOUSE_PATH),
         help="Path to the history warehouse SQLite file",
     )
+    show_parser.add_argument(
+        "--by",
+        choices=("model", "project", "token-type"),
+        help="Break down token usage by a warehouse dimension",
+    )
+    show_parser.add_argument("--top", type=int, help="Keep the top N rows and aggregate the rest")
     show_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
 
     public_boundary_parser = subparsers.add_parser(

@@ -190,7 +190,7 @@ source_modules = [
 forbidden_modules = [
     "ai_agents_metrics.report.sqlite_query",
     "ai_agents_metrics.history.ingest.warehouse",
-    "ai_agents_metrics.warehouse.sqlite_gate",
+    "ai_agents_metrics.warehouse.adapters",
     "sqlite3",
 ]
 allow_indirect_imports = true
@@ -203,6 +203,98 @@ layers = [
     "ai_agents_metrics.report.sqlite_query",
     "ai_agents_metrics.report.application",
 ]
+
+[[tool.importlinter.contracts]]
+name = "History breakdown presentation must not compose persistence adapters"
+type = "forbidden"
+source_modules = ["ai_agents_metrics.history.breakdown"]
+forbidden_modules = [
+    "ai_agents_metrics.warehouse.adapters",
+]
+
+[[tool.importlinter.contracts]]
+name = "Warehouse breakdown domain must remain independent"
+type = "forbidden"
+source_modules = ["ai_agents_metrics.warehouse.domain"]
+forbidden_modules = [
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.history",
+    "ai_agents_metrics.runtime_facade",
+    "ai_agents_metrics.warehouse.application",
+    "ai_agents_metrics.warehouse.adapters",
+    "sqlite3",
+]
+
+[[tool.importlinter.contracts]]
+name = "Concrete warehouse adapters are composed only by runtime facade"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics._version",
+    "ai_agents_metrics.cli",
+    "ai_agents_metrics.cli_constants",
+    "ai_agents_metrics.cli_parsers",
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.commit_message",
+    "ai_agents_metrics.completion",
+    "ai_agents_metrics.domain",
+    "ai_agents_metrics.git_hooks",
+    "ai_agents_metrics.history",
+    "ai_agents_metrics.public_boundary",
+    "ai_agents_metrics.report",
+    "ai_agents_metrics.security",
+    "ai_agents_metrics.storage",
+    "ai_agents_metrics.usage",
+    "ai_agents_metrics.warehouse.application",
+    "ai_agents_metrics.warehouse.domain",
+]
+forbidden_modules = ["ai_agents_metrics.warehouse.adapters"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Report SQLite adapter is composed only by runtime facade"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics._version",
+    "ai_agents_metrics.cli",
+    "ai_agents_metrics.cli_constants",
+    "ai_agents_metrics.cli_parsers",
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.commit_message",
+    "ai_agents_metrics.completion",
+    "ai_agents_metrics.domain",
+    "ai_agents_metrics.git_hooks",
+    "ai_agents_metrics.history",
+    "ai_agents_metrics.public_boundary",
+    "ai_agents_metrics.security",
+    "ai_agents_metrics.storage",
+    "ai_agents_metrics.usage",
+    "ai_agents_metrics.warehouse",
+]
+forbidden_modules = ["ai_agents_metrics.report.sqlite_query"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "History ingest persistence internals stay inside their adapter package"
+type = "forbidden"
+source_modules = [
+    "ai_agents_metrics._version",
+    "ai_agents_metrics.cli",
+    "ai_agents_metrics.cli_constants",
+    "ai_agents_metrics.cli_parsers",
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.commit_message",
+    "ai_agents_metrics.completion",
+    "ai_agents_metrics.domain",
+    "ai_agents_metrics.git_hooks",
+    "ai_agents_metrics.public_boundary",
+    "ai_agents_metrics.report",
+    "ai_agents_metrics.security",
+    "ai_agents_metrics.storage",
+    "ai_agents_metrics.usage",
+    "ai_agents_metrics.warehouse",
+]
+forbidden_modules = ["ai_agents_metrics.history.ingest.warehouse"]
+allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "Package modules must not import cli outside the entrypoint shim"

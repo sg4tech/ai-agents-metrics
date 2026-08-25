@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from ai_agents_metrics.history.summary import WarehouseSummary
     from ai_agents_metrics.public_boundary import PublicBoundaryReport
     from ai_agents_metrics.report.application import BuildReportRequest, ReportDocument
+    from ai_agents_metrics.warehouse.application import WarehouseBreakdown
+    from ai_agents_metrics.warehouse.domain import BreakdownDimension
 
 
 class MutationLockRuntime(Protocol):
@@ -54,6 +56,15 @@ class HistoryUpdateRuntime(
 
 
 class ShowRuntime(Protocol):
+    def load_warehouse_breakdown(
+        self,
+        warehouse_path: Path,
+        project_cwd: Path,
+        dimension: BreakdownDimension,
+        top: int | None,
+    ) -> WarehouseBreakdown: ...
+    def render_warehouse_breakdown(self, breakdown: WarehouseBreakdown) -> str: ...
+    def render_warehouse_breakdown_json(self, breakdown: WarehouseBreakdown) -> str: ...
     def load_warehouse_summary(
         self, warehouse_path: Path, project_cwd: Path
     ) -> WarehouseSummary: ...

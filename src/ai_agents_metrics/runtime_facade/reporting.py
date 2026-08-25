@@ -12,6 +12,7 @@ from ai_agents_metrics.report.application import (
 )
 from ai_agents_metrics.report.sqlite_query import SQLiteReportQuery
 from ai_agents_metrics.usage.pricing_runtime import load_effective_pricing
+from ai_agents_metrics.warehouse.adapters import SQLiteWarehouseGate
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -26,4 +27,4 @@ class EffectivePricing:
 
 
 def build_html_report(request: BuildReportRequest) -> ReportDocument:
-    return BuildHtmlReport(SQLiteReportQuery(), EffectivePricing())(request)
+    return BuildHtmlReport(SQLiteReportQuery(SQLiteWarehouseGate()), EffectivePricing())(request)

@@ -11,6 +11,7 @@ import pytest
 from ai_agents_metrics.history.summary import load_warehouse_summary, render_warehouse_summary_json
 from ai_agents_metrics.report.application import WarehouseState, WarehouseStatus
 from ai_agents_metrics.report.sqlite_query import SQLiteReportQuery
+from ai_agents_metrics.warehouse.adapters import SQLiteWarehouseGate
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -69,7 +70,7 @@ def test_load_warehouse_summary_reads_current_project(tmp_path: Path) -> None:
     _create_warehouse(warehouse)
     _insert_project(warehouse, project)
 
-    summary = load_warehouse_summary(warehouse, project)
+    summary = load_warehouse_summary(warehouse, project, SQLiteWarehouseGate())
 
     assert summary.schema_version == 2
     assert summary.activity.threads == 4
@@ -86,7 +87,7 @@ def test_load_warehouse_summary_falls_back_to_all_projects(tmp_path: Path) -> No
     _create_warehouse(warehouse)
     _insert_project(warehouse, tmp_path / "another-project", threads=2, retries=1)
 
-    summary = load_warehouse_summary(warehouse, tmp_path / "missing-project")
+    summary = load_warehouse_summary(warehouse, tmp_path / "missing-project", SQLiteWarehouseGate())
 
     assert summary.activity.threads == 2
     assert summary.activity.sessions == 5
@@ -102,7 +103,7 @@ def test_load_warehouse_summary_resolves_worktree_to_parent(tmp_path: Path) -> N
     _create_warehouse(warehouse)
     _insert_project(warehouse, project)
 
-    summary = load_warehouse_summary(warehouse, worktree)
+    summary = load_warehouse_summary(warehouse, worktree, SQLiteWarehouseGate())
 
     assert summary.activity.threads == 4
     assert summary.scope.project_cwd == str(project)
@@ -114,7 +115,7 @@ def test_load_warehouse_summary_requires_derived_data(tmp_path: Path) -> None:
     sqlite3.connect(warehouse).close()
 
     with pytest.raises(ValueError, match="run history-update first"):
-        load_warehouse_summary(warehouse, tmp_path)
+        load_warehouse_summary(warehouse, tmp_path, SQLiteWarehouseGate())
 
 
 def test_load_warehouse_summary_rejects_outdated_project_schema(tmp_path: Path) -> None:
@@ -123,7 +124,7 @@ def test_load_warehouse_summary_rejects_outdated_project_schema(tmp_path: Path) 
         conn.execute("CREATE TABLE derived_projects (project_cwd TEXT, thread_count INTEGER)")
 
     with pytest.raises(ValueError, match="run history-update first"):
-        load_warehouse_summary(warehouse, tmp_path)
+        load_warehouse_summary(warehouse, tmp_path, SQLiteWarehouseGate())
 
 
 def test_show_and_report_reject_warehouse_without_model_usage(tmp_path: Path) -> None:
@@ -133,8 +134,8 @@ def test_show_and_report_reject_warehouse_without_model_usage(tmp_path: Path) ->
     _create_warehouse(warehouse, include_model_usage=False)
     _insert_project(warehouse, project)
 
-    report_state = SQLiteReportQuery().warehouse_state(warehouse, str(project))
+    report_state = SQLiteReportQuery(SQLiteWarehouseGate()).warehouse_state(warehouse, str(project))
 
     assert report_state == WarehouseState(WarehouseStatus.SCHEMA_OUTDATED)
     with pytest.raises(ValueError, match="run history-update first"):
-        load_warehouse_summary(warehouse, project)
+        load_warehouse_summary(warehouse, project, SQLiteWarehouseGate())

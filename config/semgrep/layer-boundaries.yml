@@ -82,3 +82,39 @@ rules:
       - pattern: open(...)
       - pattern: subprocess.run(...)
       - pattern: subprocess.Popen(...)
+
+  - id: ai-agents-metrics.concrete-adapter-outside-runtime-facade
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Concrete persistence adapters may be imported only by runtime_facade composition modules.
+      Depend on application ports everywhere else.
+    paths:
+      include:
+        - "**/*.py"
+      exclude:
+        - "**/runtime_facade/*.py"
+        - "**/warehouse/adapters/*.py"
+    pattern-either:
+      - pattern: from ai_agents_metrics.warehouse.adapters import $NAME
+      - pattern: from ai_agents_metrics.warehouse.adapters.$MODULE import $NAME
+      - pattern: import ai_agents_metrics.warehouse.adapters
+      - pattern: import ai_agents_metrics.warehouse.adapters.$MODULE
+      - pattern: from ai_agents_metrics.report.sqlite_query import $NAME
+      - pattern: import ai_agents_metrics.report.sqlite_query
+
+  - id: ai-agents-metrics.ingest-persistence-outside-adapter
+    languages: [python]
+    severity: ERROR
+    message: >-
+      History-ingest persistence internals may be imported only by their adapter package or by
+      runtime_facade composition modules.
+    paths:
+      include:
+        - "**/*.py"
+      exclude:
+        - "**/runtime_facade/*.py"
+        - "**/history/ingest/*.py"
+    pattern-either:
+      - pattern: from ai_agents_metrics.history.ingest.warehouse import $NAME
+      - pattern: import ai_agents_metrics.history.ingest.warehouse

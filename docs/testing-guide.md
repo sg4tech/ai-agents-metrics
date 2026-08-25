@@ -105,7 +105,7 @@ working from any area.
 For history queries, domain logic, reporting, and other pure modules.
 
 ```python
-from ai_agents_metrics.history.summary import load_warehouse_summary
+from ai_agents_metrics.runtime_facade.summary import load_warehouse_summary
 
 def test_summary_uses_warehouse(tmp_path) -> None:
     summary = load_warehouse_summary(tmp_path / "warehouse.db", tmp_path)
@@ -224,6 +224,10 @@ For report changes this maps to:
 - `tests/reporting/test_report_application.py` — report orchestration with fake query and pricing ports;
 - `tests/reporting/test_sqlite_report_query.py` — real SQLite queries against temporary databases;
 - `tests/reporting/test_html_report.py` — pure aggregation and HTML rendering.
+
+Warehouse breakdown coverage follows the same split: application tests use fake gate and query
+ports, SQLite adapter tests own persistence mapping, domain tests own aggregation rules, and a
+small warehouse-backed test pins the composed behavior.
 
 A test is at the wrong boundary when changing SQL breaks a CLI delegation test,
 changing console text breaks an adapter test, or an application test needs a

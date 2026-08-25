@@ -124,8 +124,15 @@ For the layering rules (raw_* byte-perfect, normalized_* typed, derived_* aggreg
 | `report/aggregation.py` | Transforms warehouse retry, token, model, and practice rows into chart-ready series |
 | `report/buckets.py` | Pure date/time-bucket helpers (parse, bucket key, make buckets) |
 | `report/template.py` | Self-contained HTML/CSS/JS template string; no Python logic |
-| `warehouse/application.py` | Shared typed readiness and scope contract used by warehouse consumers |
-| `warehouse/sqlite_gate.py` | SQLite adapter that applies the shared schema gate and project-scope fallback |
+| `warehouse/application.py` | Shared typed readiness, scope, and token-breakdown application contracts |
+| `warehouse/domain.py` | Pure token-breakdown value objects, aggregation, ranking, and remainder rules |
+| `warehouse/adapters/` | Concrete SQLite warehouse adapters behind application ports |
+| `runtime_facade/breakdown.py` | Composition root for the breakdown use case and its concrete adapters |
+| `runtime_facade/summary.py` | Composition root for warehouse summary loading and its readiness gate |
+
+Concrete persistence adapters are imported only by `runtime_facade` composition modules. Adapter
+package internals may collaborate with modules inside the same adapter package; application,
+presentation, and command modules depend on typed ports instead.
 
 ### Integrations
 

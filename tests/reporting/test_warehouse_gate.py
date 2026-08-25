@@ -5,7 +5,8 @@ from __future__ import annotations
 import sqlite3
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseStatus
+from ai_agents_metrics.warehouse import WarehouseStatus
+from ai_agents_metrics.warehouse.adapters import SQLiteWarehouseGate
 
 if TYPE_CHECKING:
     from pathlib import Path

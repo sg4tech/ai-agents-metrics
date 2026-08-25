@@ -9,15 +9,19 @@ import runtime_facade`` and ``runtime_facade.X`` continue to resolve every
 symbol without callers knowing about the submodule layout.
 """
 
+from ai_agents_metrics.history.breakdown import (
+    render_warehouse_breakdown,
+    render_warehouse_breakdown_json,
+)
 from ai_agents_metrics.history.classify import render_classify_summary_json
 from ai_agents_metrics.history.derive import render_derive_summary_json
 from ai_agents_metrics.history.ingest import render_ingest_summary_json
 from ai_agents_metrics.history.normalize import render_normalize_summary_json
 from ai_agents_metrics.history.summary import (
-    load_warehouse_summary,
     render_warehouse_summary,
     render_warehouse_summary_json,
 )
+from ai_agents_metrics.runtime_facade.breakdown import load_warehouse_breakdown
 from ai_agents_metrics.runtime_facade.costs import (
     resolve_usage_costs,
 )
@@ -33,6 +37,7 @@ from ai_agents_metrics.runtime_facade.orchestration import (
     verify_public_boundary,
 )
 from ai_agents_metrics.runtime_facade.reporting import build_html_report
+from ai_agents_metrics.runtime_facade.summary import load_warehouse_summary
 from ai_agents_metrics.storage import metrics_mutation_lock
 from ai_agents_metrics.usage.pricing_runtime import (
     load_effective_pricing,
@@ -65,6 +70,7 @@ __all__ = [
     "ingest_codex_history",
     "load_effective_pricing",
     "load_pricing",
+    "load_warehouse_breakdown",
     "load_warehouse_summary",
     "metrics_mutation_lock",
     "normalize_codex_history",
@@ -73,6 +79,8 @@ __all__ = [
     "render_derive_summary_json",
     "render_ingest_summary_json",
     "render_normalize_summary_json",
+    "render_warehouse_breakdown",
+    "render_warehouse_breakdown_json",
     "render_warehouse_summary",
     "render_warehouse_summary_json",
     "resolve_codex_session_usage_window",
