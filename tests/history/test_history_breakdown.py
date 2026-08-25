@@ -7,7 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from ai_agents_metrics.history.breakdown import load_warehouse_breakdown
+from ai_agents_metrics.history.breakdown import (
+    load_warehouse_breakdown,
+    render_warehouse_breakdown,
+)
 from ai_agents_metrics.history.summary import load_warehouse_summary
 from ai_agents_metrics.warehouse.application import BreakdownDimension
 
@@ -182,6 +185,76 @@ def test_top_keeps_aggregated_other_row(tmp_path: Path) -> None:
         ("other", 30, 2),
     ]
     assert [row.share_of_total for row in breakdown.rows] == pytest.approx([0.5, 0.5])
+
+
+def test_top_distinguishes_real_other_key_and_counts_ranked_rows(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    _create_warehouse(warehouse)
+    _insert_project(
+        warehouse,
+        cwd="/first",
+        parent_cwd="/first",
+        thread_id="first",
+        model="other",
+        tokens=(30, 0, 0, 0, 30),
+    )
+    for index in range(2):
+        _insert_project(
+            warehouse,
+            cwd=f"/second-{index}",
+            parent_cwd=f"/second-{index}",
+            thread_id=f"second-{index}",
+            model="repeated",
+            tokens=(10, 0, 0, 0, 10),
+        )
+
+    breakdown = load_warehouse_breakdown(
+        warehouse, tmp_path / "missing", BreakdownDimension.MODEL, top=1
+    )
+
+    assert breakdown.rows[0].key == "other"
+    assert not breakdown.rows[0].is_remainder
+    assert breakdown.rows[1].is_remainder
+    assert breakdown.rows[1].grouped_row_count == 1
+    rendered = render_warehouse_breakdown(breakdown)
+    assert "other | 30" in rendered
+    assert "other (1 rows) | 20" in rendered
+
+
+def test_project_breakdown_falls_back_when_parent_cwd_is_null(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    _create_warehouse(warehouse)
+    with sqlite3.connect(warehouse) as connection:
+        connection.execute(
+            "INSERT INTO derived_projects VALUES ('/project', NULL, 1, 1, 1, 1, "
+            "10, 0, 0, 0, 10, 1, NULL, NULL)"
+        )
+
+    breakdown = load_warehouse_breakdown(
+        warehouse, tmp_path / "missing", BreakdownDimension.PROJECT, top=None
+    )
+
+    assert [(row.key, row.total_tokens) for row in breakdown.rows] == [("/project", 10)]
+
+
+def test_model_breakdown_ignores_rows_without_cwd(tmp_path: Path) -> None:
+    warehouse = tmp_path / "warehouse.db"
+    _create_warehouse(warehouse)
+    with sqlite3.connect(warehouse) as connection:
+        connection.execute(
+            "INSERT INTO derived_projects VALUES ('/project', '/project', 1, 1, 1, 1, "
+            "10, 0, 0, 0, 10, 1, NULL, NULL)"
+        )
+        connection.execute("INSERT INTO derived_goals VALUES ('thread', NULL)")
+        connection.execute(
+            "INSERT INTO derived_model_usage VALUES ('thread', 'model', 10, 0, 0, 0, 10)"
+        )
+
+    breakdown = load_warehouse_breakdown(
+        warehouse, tmp_path / "missing", BreakdownDimension.MODEL, top=None
+    )
+
+    assert breakdown.rows == []
 
 
 def test_breakdown_reuses_gate_for_outdated_schema(tmp_path: Path) -> None:

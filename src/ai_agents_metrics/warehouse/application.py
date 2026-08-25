@@ -67,6 +67,7 @@ class BreakdownRow:
     total_tokens: int | None
     share_of_total: float
     grouped_row_count: int = 1
+    is_remainder: bool = False
 
 
 @dataclass(frozen=True)
@@ -150,7 +151,7 @@ def _aggregate_records(records: list[BreakdownTokenRecord]) -> list[BreakdownRow
                 output_tokens=_sum_optional([record.output_tokens for record in group]),
                 total_tokens=_sum_optional([record.total_tokens for record in group]),
                 share_of_total=0.0,
-                grouped_row_count=len(group),
+                grouped_row_count=1,
             )
             for key, group in grouped.items()
         ),
@@ -237,6 +238,7 @@ def _apply_top(rows: list[BreakdownRow], top: int) -> list[BreakdownRow]:
         output_tokens=_sum_optional([row.output_tokens for row in hidden]),
         total_tokens=_sum_optional([row.total_tokens for row in hidden]),
         share_of_total=sum(row.share_of_total for row in hidden),
-        grouped_row_count=sum(row.grouped_row_count for row in hidden),
+        grouped_row_count=len(hidden),
+        is_remainder=True,
     )
     return [*visible, other]

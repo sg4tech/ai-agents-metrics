@@ -43,7 +43,7 @@ def render_warehouse_breakdown(breakdown: WarehouseBreakdown) -> str:
     lines.extend(
         " | ".join(
             (
-                _row_label(row.key, row.grouped_row_count),
+                _row_label(row.key, row.grouped_row_count, row.is_remainder),
                 _tokens(row.input_tokens),
                 _tokens(row.cache_creation_input_tokens),
                 _tokens(row.cached_input_tokens),
@@ -61,5 +61,5 @@ def _tokens(value: int | None) -> str:
     return "n/a" if value is None else str(value)
 
 
-def _row_label(key: str, grouped_row_count: int) -> str:
-    return f"other ({grouped_row_count} rows)" if key == "other" else key
+def _row_label(key: str, grouped_row_count: int, is_remainder: bool) -> str:
+    return f"other ({grouped_row_count} rows)" if is_remainder else key

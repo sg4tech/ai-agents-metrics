@@ -4,7 +4,8 @@ from __future__ import annotations
 import json
 from argparse import Namespace
 from pathlib import Path
-from typing import TYPE_CHECKING
+
+import pytest
 
 from ai_agents_metrics import commands
 from ai_agents_metrics.history.breakdown import (
@@ -25,9 +26,6 @@ from ai_agents_metrics.warehouse.application import (
     BreakdownRow,
     WarehouseBreakdown,
 )
-
-if TYPE_CHECKING:
-    import pytest
 
 
 class _FakeRuntime:
@@ -123,3 +121,11 @@ def test_handle_show_prints_breakdown_json(capsys: pytest.CaptureFixture[str]) -
     payload = json.loads(capsys.readouterr().out)
     assert payload["dimension"] == "model"
     assert payload["rows"][0]["key"] == "model"
+
+
+def test_handle_show_rejects_top_without_breakdown() -> None:
+    with pytest.raises(ValueError, match="--top requires --by"):
+        commands.handle_show(
+            Namespace(top=1, json=False, warehouse_path="/warehouse.db"),
+            _FakeRuntime(),
+        )

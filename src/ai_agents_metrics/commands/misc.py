@@ -20,12 +20,15 @@ if TYPE_CHECKING:
 def handle_show(args: Namespace, cli_module: ShowRuntime) -> int:
     warehouse_path = Path(args.warehouse_path).expanduser()
     dimension = getattr(args, "by", None)
+    top = getattr(args, "top", None)
+    if dimension is None and top is not None:
+        raise ValueError("--top requires --by")
     if dimension is not None:
         breakdown = cli_module.load_warehouse_breakdown(
             warehouse_path,
             Path.cwd(),
             BreakdownDimension(dimension),
-            getattr(args, "top", None),
+            top,
         )
         if getattr(args, "json", False):
             print(cli_module.render_warehouse_breakdown_json(breakdown))

@@ -25,15 +25,19 @@ BreakdownDbRow: TypeAlias = tuple[
 ]
 
 _PROJECT_RECORDS_QUERY = """
-    SELECT parent_project_cwd, parent_project_cwd, input_tokens,
+    SELECT COALESCE(parent_project_cwd, project_cwd),
+           COALESCE(parent_project_cwd, project_cwd), input_tokens,
            cache_creation_input_tokens, cached_input_tokens, output_tokens, total_tokens
     FROM derived_projects
+    WHERE COALESCE(parent_project_cwd, project_cwd) IS NOT NULL
+      AND COALESCE(parent_project_cwd, project_cwd) != ''
 """
 _MODEL_RECORDS_QUERY = """
     SELECT dmu.model, dg.cwd, dmu.input_tokens, dmu.cache_creation_input_tokens,
            dmu.cached_input_tokens, dmu.output_tokens, dmu.total_tokens
     FROM derived_model_usage dmu
     JOIN derived_goals dg ON dg.thread_id = dmu.thread_id
+    WHERE dg.cwd IS NOT NULL AND dg.cwd != ''
 """
 
 
