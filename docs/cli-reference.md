@@ -22,6 +22,10 @@ Prints a warehouse-native summary of threads, sessions, sessions per thread, mes
 token usage, coverage, and the observed time window. Pass `--json` for the stable,
 versioned machine-readable output or `--warehouse-path` to select a warehouse.
 
+Pass `--by model`, `--by project`, or `--by token-type` to print a token breakdown instead of
+the aggregate summary. Model and project breakdowns accept `--top N`; omitted rows are combined
+into an explicit `other` row. The JSON form preserves the same breakdown and scope information.
+
 ### `render-html`
 
 Generates a self-contained HTML report from the warehouse. `--output` selects the destination,

@@ -190,6 +190,7 @@ source_modules = [
 forbidden_modules = [
     "ai_agents_metrics.report.sqlite_query",
     "ai_agents_metrics.history.ingest.warehouse",
+    "ai_agents_metrics.warehouse.sqlite_breakdown",
     "ai_agents_metrics.warehouse.sqlite_gate",
     "sqlite3",
 ]

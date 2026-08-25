@@ -68,6 +68,14 @@ def test_command_help_uses_current_history_terms() -> None:
     assert "four trend charts" in render_help
 
 
+def test_show_parser_accepts_breakdown_options() -> None:
+    args = build_parser().parse_args(["show", "--by", "model", "--top", "3", "--json"])
+
+    assert args.by == "model"
+    assert args.top == 3
+    assert args.json
+
+
 def test_cli_does_not_create_an_observability_store(tmp_path: Path) -> None:
     result = run_cli_inprocess(tmp_path, "completion", "zsh")
 

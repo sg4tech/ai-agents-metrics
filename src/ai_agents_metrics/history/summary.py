@@ -7,7 +7,8 @@ import sqlite3
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseScope, WarehouseStatus
+from ai_agents_metrics.warehouse import SQLiteWarehouseGate, WarehouseScope
+from ai_agents_metrics.warehouse.application import require_warehouse_scope
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -74,19 +75,16 @@ _PARENT_PROJECT_SUMMARY_QUERY = _SUMMARY_QUERY + " WHERE parent_project_cwd = ?"
 def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> WarehouseSummary:
     """Load summary data, falling back to all projects when cwd has no rows."""
     state = SQLiteWarehouseGate().resolve(warehouse_path, project_cwd)
-    if state.status is WarehouseStatus.MISSING_FILE:
-        raise ValueError(f"History warehouse does not exist: {warehouse_path}")
-    if state.status is not WarehouseStatus.OK or state.scope is None:
-        raise ValueError("History warehouse has no derived project data; run history-update first")
+    scope = require_warehouse_scope(state, warehouse_path)
 
     try:
         with sqlite3.connect(warehouse_path) as conn:
-            if state.scope.is_all_projects:
+            if scope.is_all_projects:
                 row = conn.execute(_SUMMARY_QUERY).fetchone()
             else:
                 row = conn.execute(
                     _PARENT_PROJECT_SUMMARY_QUERY,
-                    (state.scope.project_cwd,),
+                    (scope.project_cwd,),
                 ).fetchone()
     except sqlite3.DatabaseError as exc:
         raise ValueError(f"Cannot read history warehouse: {exc}") from exc
@@ -98,7 +96,7 @@ def load_warehouse_summary(warehouse_path: Path, project_cwd: Path) -> Warehouse
     covered_sessions = int(row[9])
     return WarehouseSummary(
         schema_version=2,
-        scope=state.scope,
+        scope=scope,
         activity=ActivitySummary(
             threads=threads,
             sessions=sessions,
