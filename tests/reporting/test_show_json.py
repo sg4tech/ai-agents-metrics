@@ -21,11 +21,8 @@ from ai_agents_metrics.history.summary import (
     render_warehouse_summary,
     render_warehouse_summary_json,
 )
-from ai_agents_metrics.warehouse.application import (
-    BreakdownDimension,
-    BreakdownRow,
-    WarehouseBreakdown,
-)
+from ai_agents_metrics.warehouse.application import WarehouseBreakdown
+from ai_agents_metrics.warehouse.domain import BreakdownDimension, BreakdownRow
 
 
 class _FakeRuntime:

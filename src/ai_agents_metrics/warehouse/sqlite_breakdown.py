@@ -6,7 +6,7 @@ import sqlite3
 from typing import TYPE_CHECKING, TypeAlias
 
 from ai_agents_metrics.history.project_paths import parent_project_cwd
-from ai_agents_metrics.warehouse.application import (
+from ai_agents_metrics.warehouse.domain import (
     BreakdownDimension,
     BreakdownTokenRecord,
 )

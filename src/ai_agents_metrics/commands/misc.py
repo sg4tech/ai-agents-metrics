@@ -9,7 +9,7 @@ from ai_agents_metrics.public_boundary import (
     render_public_boundary_report,
     render_public_boundary_report_json,
 )
-from ai_agents_metrics.warehouse.application import BreakdownDimension
+from ai_agents_metrics.warehouse.domain import BreakdownDimension
 
 if TYPE_CHECKING:
     from argparse import Namespace

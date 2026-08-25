@@ -206,6 +206,29 @@ layers = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "History breakdown presentation must not compose persistence adapters"
+type = "forbidden"
+source_modules = ["ai_agents_metrics.history.breakdown"]
+forbidden_modules = [
+    "ai_agents_metrics.warehouse.sqlite_breakdown",
+    "ai_agents_metrics.warehouse.sqlite_gate",
+]
+
+[[tool.importlinter.contracts]]
+name = "Warehouse breakdown domain must remain independent"
+type = "forbidden"
+source_modules = ["ai_agents_metrics.warehouse.domain"]
+forbidden_modules = [
+    "ai_agents_metrics.commands",
+    "ai_agents_metrics.history",
+    "ai_agents_metrics.runtime_facade",
+    "ai_agents_metrics.warehouse.application",
+    "ai_agents_metrics.warehouse.sqlite_breakdown",
+    "ai_agents_metrics.warehouse.sqlite_gate",
+    "sqlite3",
+]
+
+[[tool.importlinter.contracts]]
 name = "Package modules must not import cli outside the entrypoint shim"
 # `__main__` (the console entrypoint shim) is the sole legitimate importer of
 # `cli`. Every other package module must stay off `cli` so `cli.py` can keep

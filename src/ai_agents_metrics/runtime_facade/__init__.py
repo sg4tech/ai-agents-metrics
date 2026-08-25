@@ -10,7 +10,6 @@ symbol without callers knowing about the submodule layout.
 """
 
 from ai_agents_metrics.history.breakdown import (
-    load_warehouse_breakdown,
     render_warehouse_breakdown,
     render_warehouse_breakdown_json,
 )
@@ -23,6 +22,7 @@ from ai_agents_metrics.history.summary import (
     render_warehouse_summary,
     render_warehouse_summary_json,
 )
+from ai_agents_metrics.runtime_facade.breakdown import load_warehouse_breakdown
 from ai_agents_metrics.runtime_facade.costs import (
     resolve_usage_costs,
 )

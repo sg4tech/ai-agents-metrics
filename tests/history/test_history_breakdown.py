@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 
 from ai_agents_metrics.history.breakdown import (
-    load_warehouse_breakdown,
     render_warehouse_breakdown,
 )
 from ai_agents_metrics.history.summary import load_warehouse_summary
-from ai_agents_metrics.warehouse.application import BreakdownDimension
+from ai_agents_metrics.runtime_facade.breakdown import load_warehouse_breakdown
+from ai_agents_metrics.warehouse.domain import BreakdownDimension
 
 
 def _create_warehouse(path: Path) -> None:
@@ -254,7 +254,7 @@ def test_model_breakdown_ignores_rows_without_cwd(tmp_path: Path) -> None:
         warehouse, tmp_path / "missing", BreakdownDimension.MODEL, top=None
     )
 
-    assert breakdown.rows == []
+    assert breakdown.rows == ()
 
 
 def test_breakdown_reuses_gate_for_outdated_schema(tmp_path: Path) -> None:

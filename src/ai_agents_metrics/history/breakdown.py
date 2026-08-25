@@ -6,27 +6,8 @@ import json
 from dataclasses import asdict
 from typing import TYPE_CHECKING
 
-from ai_agents_metrics.warehouse import SQLiteWarehouseGate
-from ai_agents_metrics.warehouse.application import (
-    BreakdownDimension,
-    LoadWarehouseBreakdown,
-    WarehouseBreakdown,
-)
-from ai_agents_metrics.warehouse.sqlite_breakdown import SQLiteWarehouseBreakdownQuery
-
 if TYPE_CHECKING:
-    from pathlib import Path
-
-
-def load_warehouse_breakdown(
-    warehouse_path: Path,
-    project_cwd: Path,
-    dimension: BreakdownDimension,
-    top: int | None,
-) -> WarehouseBreakdown:
-    return LoadWarehouseBreakdown(SQLiteWarehouseGate(), SQLiteWarehouseBreakdownQuery())(
-        warehouse_path, project_cwd, dimension, top
-    )
+    from ai_agents_metrics.warehouse.application import WarehouseBreakdown
 
 
 def render_warehouse_breakdown_json(breakdown: WarehouseBreakdown) -> str:

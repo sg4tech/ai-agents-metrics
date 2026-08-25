@@ -225,6 +225,10 @@ For report changes this maps to:
 - `tests/reporting/test_sqlite_report_query.py` — real SQLite queries against temporary databases;
 - `tests/reporting/test_html_report.py` — pure aggregation and HTML rendering.
 
+Warehouse breakdown coverage follows the same split: application tests use fake gate and query
+ports, SQLite adapter tests own persistence mapping, domain tests own aggregation rules, and a
+small warehouse-backed test pins the composed behavior.
+
 A test is at the wrong boundary when changing SQL breaks a CLI delegation test,
 changing console text breaks an adapter test, or an application test needs a
 temporary database. Move that assertion to the test for the layer that owns the
